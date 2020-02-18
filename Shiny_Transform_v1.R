@@ -1,0 +1,270 @@
+protein_to_peptide <- function(){
+  protein <- dpmsr_set$data$data_raw_protein
+  peptide_groups <- dpmsr_set$data$data_raw_peptide
+  
+  protein_master <- subset(protein, Master %in% ("IsMasterProtein"))
+  protein_high_master <- subset(protein_master, Protein.FDR.Confidence.Combined %in% ("High"))
+  protein_razor <- subset(protein, Number.of.Razor.Peptides>0)
+  
+  razor_accessions <- protein_razor$Accession
+  master_accessions <- protein_high_master$Accession  
+  
+  peptide_shared <- subset(peptide_groups,  Quan.Info %in% ("NotUnique"))
+  peptide_noquan <- subset(peptide_groups,  Quan.Info %in% ("NoQuanValues"))
+  peptide_unique <- peptide_groups[peptide_groups$Quan.Info=="",]
+  
+  peptide_shared_expand  <- peptide_shared %>% 
+    mutate(Master.Protein.Accessions = strsplit(as.character(Master.Protein.Accessions), "; ", fixed = TRUE)) %>% 
+    unnest(Master.Protein.Accessions)
+  
+  if(dpmsr_set$x$peptides_to_use=="Razor"){
+    peptide_shared_expand <- subset(peptide_shared_expand, Master.Protein.Accessions %in% razor_accessions )
+    protein_razor_lookup <- protein_razor %>% dplyr::select(Accession, Description, Number.of.Peptides, 
+                                                            Coverage.in.Percent, Number.of.Unique.Peptides, Number.of.Razor.Peptides)
+    peptide_shared_expand <- merge(peptide_shared_expand, protein_razor_lookup, by.x="Master.Protein.Accessions", by.y="Accession")
+    peptide_shared_expand$unique <- str_c(peptide_shared_expand$Annotated.Sequence, peptide_shared_expand$Modifications)
+    peptide_shared_expand <- peptide_shared_expand[order(peptide_shared_expand$unique, -peptide_shared_expand$Number.of.Peptides, 
+                                                         peptide_shared_expand$Coverage.in.Percent, 
+                                                         -peptide_shared_expand$Number.of.Razor.Peptides),]
+    peptide_final <- peptide_shared_expand[!duplicated(peptide_shared_expand$unique),]
+    peptide_final$Master.Protein.Descriptions <- peptide_final$Description
+    peptide_final <- peptide_final[1:(ncol(peptide_groups))]
+    peptide_final <- rbind(peptide_unique, peptide_final)
+  }else if (dpmsr_set$x$peptides_to_use=="Shared"){
+    peptide_final <- rbind(peptide_unique, peptide_shared_expand)
+  }else{
+    peptide_final <- peptide_unique
+  }
+  
+  peptide_final <- peptide_final[order(peptide_final$Master.Protein.Accessions, peptide_final$Sequence),]
+  peptide_out <- peptide_final %>% dplyr::select(Confidence, Master.Protein.Accessions, Master.Protein.Descriptions, Sequence, Modifications,
+                                                 Top.Apex.RT.in.min, Ions.Score.by.Search.Engine.Mascot, contains("Percolator.q.Value"), contains("Abundance.F"))
+  colnames(peptide_out)[1:8] <- c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Retention.Time", "Ion.Score", "q-Value")
+  peptide_out <- subset(peptide_out, Accession %in% master_accessions )
+  Simple_Excel(peptide_out, str_c(dpmsr_set$file$extra_prefix,"_ProteinPeptide_to_Peptide_Raw.xlsx", collapse = " "))
+  return(peptide_out)
+}
+
+
+#----------------------------------------------------------------------------------------
+protein_to_protein <- function(){
+  protein <- dpmsr_set$data$data_raw_protein
+  protein_out <- protein %>% dplyr::select(Accession, Description, Number.of.Protein.Unique.Peptides, 
+                                           contains("Abundance"), -contains("Abundance.Count"))
+  colnames(protein_out)[1:3] <- c("Accession", "Description", "Unique.Peptides")
+  Simple_Excel(protein_out, str_c(dpmsr_set$file$extra_prefix,"_Protein_to_Protein_Raw.xlsx", collapse = " "))
+return(protein_out)
+}
+
+#----------------------------------------------------------------------------------------
+peptide_to_peptide <- function(){
+  peptide_groups <- dpmsr_set$data$data_raw_peptide
+  peptide_out <- peptide_groups %>% dplyr::select(Confidence, Master.Protein.Accessions, Master.Protein.Descriptions, Sequence, Modifications,
+                                                 Top.Apex.RT.in.min, Ions.Score.by.Search.Engine.Mascot, contains("Percolator.q.Value"), contains("Abundance.F"))
+  colnames(peptide_out)[1:8] <- c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Retention.Time", "Ion.Score", "q-Value")
+  Simple_Excel(peptide_out, str_c(dpmsr_set$file$extra_prefix,"_Peptide_to_Peptide_Raw.xlsx", collapse = " "))
+  return(peptide_out)
+}
+
+#----------------------------------------------------------------------------------------
+isoform_to_isoform <- function(){
+  peptide_groups <- dpmsr_set$data$data_raw_isoform
+  peptide_out <- peptide_groups %>% dplyr::select(contains("Confidence.by"), Master.Protein.Accessions, Master.Protein.Descriptions, Sequence, Modifications,
+                                                  Top.Apex.RT.in.min, Ions.Score.by.Search.Engine.Mascot, contains("Percolator.q.Value"), contains("Abundance.F"))
+  colnames(peptide_out)[1:8] <- c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Retention.Time", "Ion.Score", "q-Value")
+  Simple_Excel(peptide_out, str_c(dpmsr_set$file$extra_prefix,"_Isoform_to_Isoform_Raw.xlsx", collapse = " "))
+  return(peptide_out)
+}
+
+
+
+#----------------------------------------------------------------------------------------
+# input PD protein/peptide export and output peptide (keeps master protein assignment)
+protein_to_peptide_old <- function(df){
+  peptide_header <- df[2,]
+  colnames(df) <- peptide_header
+  colnames(df)[3] <- "Accession"
+  colnames(df)[4] <- "Description"
+  df$ph <- grepl("Master", df$Accession)
+  df <- subset(df, df$ph==FALSE )
+  df$semi <- grepl(";", df$Accession)
+  df$iD <- seq.int(nrow(df))
+  df_list <- subset(df, df$semi==TRUE)$iD
+  
+  for(i in df_list){
+    df$Accession[i]<-df$Accession[i-1]
+    df$Description[i]<-df$Description[i-1]
+  }
+  
+  
+  df <- subset(df, is.na(df[,1]))
+  df <- df[2:(ncol(df)-3)]
+  # PD versions <2.4 have quan usage column for peptides: some are listed but not used for the protein quant
+  colnames(df)[colnames(df) == 'Quan Usage'] <- 'Used'
+  if("Used" %in% colnames(df))
+  {
+    df <- subset(df, Used=="Used")
+  }
+  #set data columns to numeric
+  df[, (ncol(df)-dpmsr_set$y$sample_number+1):ncol(df)] <- 
+    sapply(df[, (ncol(df)-dpmsr_set$y$sample_number+1):ncol(df)], as.numeric)
+  Simple_Excel(df, str_c(dpmsr_set$file$extra_prefix,"_ProteinPeptide_to_Peptide_Raw.xlsx", collapse = " "))
+  return(df)
+}
+
+
+#--- collapse peptide to protein-------------------------------------------------------------
+collapse_peptide <- function(peptide_data){
+  peptide_annotate <- peptide_data[1:(dpmsr_set$y$info_columns)]
+  peptide_data <- peptide_data[(dpmsr_set$y$info_columns+1):ncol(peptide_data)]
+  peptide_data[is.na(peptide_data)] <- 0
+  peptide_annotate <- peptide_annotate[, c("Accession", "Description")]
+  peptide_annotate$Peptides <- 1
+  peptide_annotate$Peptides <- as.numeric(peptide_annotate$Peptides)
+  test1 <- cbind(peptide_annotate, peptide_data)
+  #test2 <- test1 %>% group_by(Accession, Description) %>% summarise_all(funs(sum))
+  test2 <- test1 %>% group_by(Accession, Description) %>% summarise_all(list(sum))
+  test2 <- data.frame(ungroup(test2))
+  #add imputed column info
+  if ((dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Peptide") 
+      && dpmsr_set$x$final_data_output == "Protein"){
+            test2 <- add_column(test2, dpmsr_set$data$protein_missing, .after = "Peptides")
+            dpmsr_set$y$info_columns_final <<- dpmsr_set$y$info_columns_final+1
+            names(test2)[4] <- "PD_Detected_Peptides"
+  }
+  return(test2)
+} 
+
+
+
+#----------------------------------------------------------------------------------------
+
+peptide_psm_set_fdr <- function(){
+  psmfdr_dir <- create_dir(str_c(data_dir,"//PSM_FDR"))
+  psm_prefix <- str_c(psmfdr_dir, file_prefix)
+  
+  forward_psm <- subset(forward_psm, forward_psm$`Ions Score`>10)
+  decoy_psm <- subset(decoy_psm, decoy_psm$`Ions Score`>10)
+  
+  psm_record <- c(nrow(forward_psm), nrow(decoy_psm), nrow(forward_peptide), nrow(decoy_peptide))
+  psm_record_names <- c("psm_forward", "psm_decoy", "peptide_forward", "peptide_decoy")
+  
+  forward_psm$fdr <- rep("forward", nrow(forward_psm))
+  decoy_psm$fdr <- rep("decoy", nrow(decoy_psm))
+  
+  isv1 <- forward_psm$`Ions Score`
+  isv2 <- decoy_psm$`Ions Score`
+  isv3 <- c(isv1, isv2)
+  
+  fdr1 <- forward_psm$fdr
+  fdr2 <- decoy_psm$fdr
+  fdr3 <- c(fdr1, fdr2)
+  
+  combo_psm <-forward_psm  
+  combo_psm[nrow(forward_psm)+nrow(decoy_psm),] <- NA
+  combo_psm$Ions_Score <- isv3
+  combo_psm$fdr <- fdr3
+  
+  combo_psm <- combo_psm[order(combo_psm$Ions_Score),]
+  rcount <- nrow(combo_psm)
+  
+  for (i in 1:rcount) {
+    testthis <- data.frame(table(combo_psm$fdr[i:rcount]))
+    test_fdr <- testthis$Freq[1] / testthis$Freq[2] * 100
+    if (test_fdr <= 1.0000) {
+      break
+    }
+  }
+  
+  fdr_psm <- combo_psm[i:rcount, ]
+  fdr_psm <- fdr_psm[order(-fdr_psm$Ions_Score), ]
+  psm_record_names <- c(psm_record_names, "ForwardDecoy", "IonScore")
+  psm_record <- c(psm_record, nrow(fdr_psm), min(fdr_psm$Ions_Score))
+  fdr_psm <- fdr_psm[fdr_psm$fdr == "forward", ]
+  fdr_psm$fdr <- NULL
+  fdr_psm$Ions_Score <- NULL
+  psm_record_names <- c(psm_record_names, "Forward")
+  psm_record <- c(psm_record, nrow(fdr_psm))
+  
+  Simple_Excel(fdr_psm, str_c(psmfdr_dir, "_PSM.xlsx"))
+  
+  fdr_psm$Match <- str_c(fdr_psm$`Sequence`,fdr_psm$`m/z [Da]`)
+  peptide_psmfdr <- forward_peptide
+  peptide_psmfdr$Match <- str_c(peptide_psmfdr$`Sequence`,peptide_psmfdr$`m/z [Da] (by Search Engine): Mascot`)
+  
+  unique_fdr_psm <- fdr_psm$Match
+  unique_fdr_psm <- unique(unique_fdr_psm)
+  
+  peptide_psmfdr <- subset(peptide_psmfdr, Match %in% unique_fdr_psm)
+  Simple_Excel(peptide_psmfdr, str_c(psm_prefix, "_Peptide.xlsx"))
+  
+  # find fdr of peptides directly with ion score from psm
+  psm_cuttoff <- min(fdr_psm$`Ions Score`)
+  
+  forward_peptide$fdr <- "forward"
+  decoy_peptide$fdr <- "decoy)"
+  all_peptide1 <- c(forward_peptide$fdr, decoy_peptide$fdr)
+  all_peptide2 <- c(forward_peptide$`Ions Score (by Search Engine): Mascot`, decoy_peptide$`Ions Score (by Search Engine): Mascot`)
+  all_peptide <- cbind(all_peptide1, all_peptide2)
+  all_peptide <- subset(all_peptide, all_peptide2 > psm_cuttoff)
+  
+  psm_record_names <- c(psm_record_names, "PeptideForwardDecoy")
+  psm_record <- c(psm_record, nrow(all_peptide))
+  
+  all_peptide <- data.frame(all_peptide)
+  all_count <- nrow(all_peptide)
+  testforward <- subset(all_peptide, all_peptide1 == "forward")
+  peptideFDR <- ((all_count/nrow(testforward)-1 ))*100
+  
+  psm_record_names <- c(psm_record_names, "PeptideForward", "PeptideFDR")
+  psm_record <- c(psm_record, nrow(all_peptide), peptideFDR )
+  psm_stat <- cbind(psm_record_names, psm_record)
+  Simple_Excel(psm_stat, str_c(psm_prefix, "_fdr_stats.xlsx"))
+  
+  peptide_psmfdr$Match <- NULL
+  
+  if (use_isoform == TRUE){
+    peptide_isoform <- subset(peptide_isoform, peptide_isoform$`Ions Score (by Search Engine): Mascot` > psm_cuttoff)
+    Simple_Excel(peptide_isoform, str_c(psm_prefix, "_Peptide_Isoform.xlsx"))
+    assign("peptide_isoform", peptide_isoform, envir = .GlobalEnv)
+  }
+  
+  return(peptide_psmfdr)
+}
+
+
+#----------------------------------------------------------------------------------------
+add_imputed_column <- function(df){
+  #imputed column for protein output
+  if ((dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Peptide") 
+      && dpmsr_set$x$final_data_output == "Protein"){
+    peptide_data <- df
+    peptide_annotate <- peptide_data[1:(dpmsr_set$y$info_columns)]
+    peptide_data <- peptide_data[(dpmsr_set$y$info_columns+1):ncol(peptide_data)]
+    peptide_data[is.na(peptide_data)] <- 0
+    peptide_data[peptide_data>0] <- 1
+    peptide_annotate <- peptide_annotate[, c("Accession", "Description")]
+    test1 <- cbind(peptide_annotate, peptide_data)
+    test2 <- test1 %>% group_by(Accession, Description) %>% summarise_all(list(sum))
+    test2 <- data.frame(ungroup(test2))
+    test2 <- test2[3:ncol(test2)]
+    test2[test2==0] <- "-"
+    dpmsr_set$data$protein_missing <<- unite(test2, "", sep=".", remove = TRUE, na.rm=FALSE)
+  }
+  
+  #imputed column for peptide output
+  df_annotation <- df[1:dpmsr_set$y$info_columns]
+  df <- df[(dpmsr_set$y$info_columns+1):ncol(df)]
+  df[df>0] <- 1
+  df[is.na(df)] <- "-"
+  df_annotation$PD_Detected_Peptides <- unite(df, "", sep=".", remove = TRUE, na.rm=FALSE)
+  df<- cbind(df_annotation,df)
+  #add another column to info columns
+  dpmsr_set$y$info_columns <<- dpmsr_set$y$info_columns + 1
+  return(df)
+}
+
+
+
+
+

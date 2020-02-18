@@ -1,0 +1,238 @@
+
+#-----------------------------------------------------------
+#-----------------------------------------------------------
+
+update_dpmsr_set_from_widgets <- function(session, input){
+  #--Select type of data to load, and final format--------------------------------------------------    
+  observe({
+    if (input$radio_input==1){dpmsr_set$x$raw_data_input <<-"Protein_Peptide"}
+    else if (input$radio_input==2){dpmsr_set$x$raw_data_input<<-"Protein"}
+    else if (input$radio_input==3){dpmsr_set$x$raw_data_input<<-"Peptide"}
+    else if (input$radio_input==4){dpmsr_set$x$raw_data_input<<-"PSM_FDR"}
+  })
+  
+  observe({
+    if (input$radio_output==1){dpmsr_set$x$final_data_output<<-"Protein"}
+    else if (input$radio_output==2){dpmsr_set$x$final_data_output<<-"Peptide"}
+  }) 
+  
+  observe({
+    dpmsr_set$x$peptides_to_use <<- input$razor
+  })
+  
+  observe({
+    if (input$checkbox_isoform){dpmsr_set$x$peptide_isoform<<-TRUE}else{dpmsr_set$x$peptide_isoform<<-FALSE}
+  })
+  
+  observe({
+    if (input$checkbox_tmt){dpmsr_set$x$peptide_isoform<<-TRUE}else{dpmsr_set$x$peptide_isoform<<-FALSE}
+  })
+  
+
+  observe({
+    dpmsr_set$x$file_prefix <<-  input$fileprefix
+  })
+  
+  #-Filters-----------------------------------------------------------------------------------------------------    
+  observe({
+    if (input$checkbox_require2){dpmsr_set$x$require_2 <<-TRUE}else{dpmsr_set$x$require_2 <<-FALSE}
+  })
+  
+  observe({
+    if (input$checkbox_filtercv){dpmsr_set$x$filter_cv <<-TRUE}else{dpmsr_set$x$filter_cv <<-FALSE}
+  })
+  
+  observe({
+    dpmsr_set$x$filter_cv_group <<-  input$text_filtercvgroup
+  })
+  
+  observe({
+    dpmsr_set$x$filter_cv_cutoff <<-  input$number_filtercvcutoff
+  })
+  
+  observe({
+    if (input$checkbox_norm_ptm){dpmsr_set$x$peptide_ptm_norm <<- TRUE
+    }else{dpmsr_set$x$peptide_ptm_norm <<- FALSE}
+  })
+  
+  observe({
+    dpmsr_set$x$filter_grep <<-  input$filter_grep
+  })
+  
+  #-Normalize-----------------------------------------------------------------------------------------------------      
+  
+  observe({
+    if (input$checkbox_n1){dpmsr_set$x$sl <<-TRUE}else{dpmsr_set$x$sl <<-FALSE}
+  })
+  observe({
+    if (input$checkbox_n2){dpmsr_set$x$tmm <<-TRUE}else{dpmsr_set$x$tmm <<-FALSE}
+  })
+  observe({
+    if (input$checkbox_n3){dpmsr_set$x$sltmm <<-TRUE}else{dpmsr_set$x$sltmm <<-FALSE}
+  })
+  observe({
+    if (input$checkbox_n4){dpmsr_set$x$quantile <<-TRUE}else{dpmsr_set$x$quantile <<-FALSE}
+  })
+  observe({
+    if (input$checkbox_n5){dpmsr_set$x$lr <<-TRUE}else{dpmsr_set$x$lr <<-FALSE}
+  })
+  observe({
+    if (input$checkbox_n6){dpmsr_set$x$loess <<-TRUE}else{dpmsr_set$x$loess <<-FALSE}
+  })
+  observe({
+    if (input$checkbox_n7){dpmsr_set$x$vsn <<-TRUE}else{dpmsr_set$x$vsn <<-FALSE}
+  })
+  observe({
+    if (input$checkbox_n8){dpmsr_set$x$ti <<-TRUE}else{dpmsr_set$x$ti <<-FALSE}
+  })
+  observe({
+    if (input$checkbox_n9){dpmsr_set$x$mi <<-TRUE}else{dpmsr_set$x$mi <<-FALSE}
+  })    
+  observe({
+    if (input$checkbox_n10){dpmsr_set$x$ai <<-TRUE}else{dpmsr_set$x$ai <<-FALSE}
+  })
+  observe({
+    if (input$checkbox_n11){dpmsr_set$x$protein <<-TRUE}else{dpmsr_set$x$protein <<-FALSE}
+  })
+  
+  observe({
+    dpmsr_set$x$protein_norm_list <<-  input$protein_norm_list
+  })
+  
+  #-impute-----------------------------------------------------------------------------------------------------      
+  observe({
+    if (input$radio_impute ==1){dpmsr_set$x$impute_method <<-"Duke"}
+    else if (input$radio_impute ==2){dpmsr_set$x$impute_method <<-"Floor"}
+    else if (input$radio_impute ==3){dpmsr_set$x$impute_method <<-"Minimum"}
+    else if (input$radio_impute ==4){dpmsr_set$x$impute_method <<-"Average"}
+    else if (input$radio_impute ==5){dpmsr_set$x$impute_method <<-"KNN"}
+    else if (input$radio_impute ==6){dpmsr_set$x$impute_method <<-"LocalLeastSquares"}
+    else if (input$radio_impute ==7){dpmsr_set$x$impute_method <<-"MLE"}    
+    else if (input$radio_impute ==8){dpmsr_set$x$impute_method <<-"Bottom5"}   
+  })
+  
+  observe({
+    if (input$checkbox_impute_ptm){dpmsr_set$x$peptide_ptm_impute <<- TRUE
+    }else{dpmsr_set$x$peptide_ptm_impute <<- FALSE}
+  })
+  
+  observe({
+    dpmsr_set$x$area_floor <<-  input$impute_floor
+  })
+  
+  observe({
+    if (input$checkbox_missing_50){dpmsr_set$x$missing_50 <<-TRUE}else{dpmsr_set$x$missing_50 <<- FALSE}
+  })
+  
+  #-stats-----------------------------------------------------------------------------------------------------      
+  
+  observe({
+    dpmsr_set$x$comp_number <<- input$comp_number
+  })
+  
+  observe({
+    if (input$pair_comp){dpmsr_set$x$pair_comp <<-TRUE}else{dpmsr_set$x$pair_comp <<- FALSE}
+  })
+  
+  observe({
+    dpmsr_set$x$pvalue_cutoff <<- input$pvalue_cutoff
+  })
+  
+  observe({
+    dpmsr_set$x$foldchange_cutoff <<- input$foldchange_cutoff
+  })
+  
+  observe({
+    dpmsr_set$x$comp1N <<- input$comp_1N
+  })
+  
+  observe({
+    dpmsr_set$x$comp1D <<- input$comp_1D
+  })
+  
+  observe({
+    dpmsr_set$x$comp2N <<- input$comp_2N
+  })
+  
+  observe({
+    dpmsr_set$x$comp2D <<- input$comp_2D
+  })
+  
+  observe({
+    dpmsr_set$x$comp3N <<- input$comp_3N
+  })
+  
+  observe({
+    dpmsr_set$x$comp3D <<- input$comp_3D
+  })
+  
+  observe({
+    dpmsr_set$x$comp4N <<- input$comp_4N
+  })
+  
+  observe({
+    dpmsr_set$x$comp4D <<- input$comp_4D
+  })
+  
+  observe({
+    dpmsr_set$x$comp5N <<- input$comp_5N
+  })
+  observe({
+    dpmsr_set$x$comp5D <<- input$comp_5D
+  })
+  
+  observe({
+    dpmsr_set$x$comp6N <<- input$comp_6N
+  })
+  observe({
+    dpmsr_set$x$comp6D <<- input$comp_6D
+  })
+  
+  observe({
+    if (input$checkbox_out_ptm){dpmsr_set$x$peptide_ptm_norm<<-TRUE
+    }else{dpmsr_set$x$peptide_ptm_norm<<-FALSE}
+  })
+  
+  observe({
+    dpmsr_set$x$report_grep <<-  input$report_grep
+  })
+  
+  observe({
+    if (input$checkbox_report_accession){dpmsr_set$x$accession_report_out <<-TRUE
+    }else{dpmsr_set$x$accession_report_out <<-FALSE}
+  })
+  
+  observe({
+    dpmsr_set$x$accession_report_list <<-  input$report_accession
+  })
+  #-Plots-----------------------------------------------------------------------------------------------------    
+  observe({
+    dpmsr_set$x$adh_list <<-  input$adh_list
+  })
+  observe({
+    dpmsr_set$x$bait_list <<-  input$bait_list
+  })
+  observe({
+    dpmsr_set$x$avidin_list <<-  input$avidin_list
+  })
+  observe({
+    dpmsr_set$x$carbox_list <<-  input$carbox_list
+  })
+  observe({
+    dpmsr_set$x$bira_list <<-  input$bira_list
+  })
+  observe({
+    dpmsr_set$x$protein1_list <<-  input$protein1_list
+  })
+  observe({
+    dpmsr_set$x$protein2_list <<-  input$protein2_list
+  })
+  observe({
+    dpmsr_set$x$protein3_list <<-  input$protein3_list
+  })
+  observe({
+    dpmsr_set$x$protein4_list <<-  input$protein4_list
+  })
+}
+
+
