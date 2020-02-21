@@ -283,7 +283,7 @@ observeEvent(input$save_dpmsr_set, {
 #------------------------------------------------------------------------------------------------------------- 
 observeEvent(input$load_dpmsr_set, { 
   showModal(modalDialog("Working...", footer = NULL))  
-  dpmsr_file <- parseFilePaths(roots=c(wd="."), input$dpmsr_set_file)
+  dpmsr_file <- parseFilePaths(volumes, input$dpmsr_set_file)
   load(file = dpmsr_file$datapath, envir = .GlobalEnv)
   
   update_shiny_defaults(session)
