@@ -9,9 +9,14 @@ project_overview <- function(){
   df_peptide$Carbamidomethyl <- grepl("Carbamidomethyl", df_peptide$Modifications)
   df_peptide$Phospho <- grepl("Phospho", df_peptide$Modifications)
   df_peptide$GG <- grepl("GlyGly", df_peptide$Modifications)
-  df_peptide$semi <- grepl("^\\[.*(R|K).*\\]", df_peptide$Annotated.Sequence) * ( grepl("(R|K).\\[.*\\]$", df_peptide$Annotated.Sequence) | 
-                                                                                     grepl("\\[-\\]$", df_peptide$Annotated.Sequence) )
-
+  if("Annotated.Sequence" %in% colnames(df_peptide)){
+    df_peptide$semi <- grepl("^\\[.*(R|K).*\\]", df_peptide$Annotated.Sequence) * 
+                            ( grepl("(R|K).\\[.*\\]$", df_peptide$Annotated.Sequence) | 
+                            grepl("\\[-\\]$", df_peptide$Annotated.Sequence) )
+  } else {
+    df_peptide$semi <- 1
+  }
+  
   stat_list <-list()
   stat_list[["MSMS"]] <- nrow(dpmsr_set$data$data_raw_msms)
   stat_list[["PSM"]] <- nrow(dpmsr_set$data$data_raw_psm)
@@ -66,6 +71,7 @@ project_overview <- function(){
     theme(axis.text.x = element_text(angle=65, vjust=0.6))
     file_name <- str_c(dpmsr_set$file$qc_dir, "PSM_inj_summary.png")
     ggsave(file_name, width=5, height=3)
+    
     
 #----------------------------------------    
     

@@ -1,8 +1,4 @@
-create_dir <- function(name){
-  if(dir.exists(file.path(".", name))) { unlink(file.path(".", name), recursive = TRUE, force=TRUE)}
-  ifelse(!dir.exists(file.path(".", name)), dir.create(file.path(".", name)), FALSE)
-  return(str_c(".//", name, "//"))
-}
+
 
 #----------------------------------------------------------------------------------------
 # create final excel documents
@@ -117,15 +113,55 @@ save_data <- function(data_file){
 }
 
 #----------------------------------------------------------------------------------------
+create_dir <- function(name){
+  if(is_dir(name)) {dir_delete(name)
+    }else{
+    dir_create(name)
+    }
+  name <- str_replace_all(name, "/", "//")
+  name <- str_c(name, "//")
+  return(name)
+}
+
+create_dir_old <- function(name){
+  if(is_dir(name)) { 
+    unlink(file.path(".", name), recursive = TRUE, force=TRUE)} 
+    ifelse (!dir.exists(file.path(".", name)), dir_create(name))
+  name <- str_replace_all(name, "/", "//")
+  name <- str_c(".", name, "//")
+  return(name)
+}
+
+# name<-dpmsr_set$file$data_dir
+# dir.exists(file.path(name))
+# dir.create(file.path(".", name))
+# name<-substring(name,2)
+# name <- str_replace_all(name, "//", "/")
+# name <- dpmsr_set$x$file_prefix
+# dir_create(test)
+# is_dir(test)
+# dir_create("testdir/testdir")
+# dir_delete("testdir")
+# 
+# 
+# np <- dpmsr_set$x$new_path
+# np<-substring(np,2)
+# np<-str_c(np,"/test")
+# dir_create(dpmsr_set$file$data_dir)
+#----------------------------------------------------------------------------------------
 file_set <- function(){
-  dpmsr_set$file$data_dir <<- dpmsr_set$x$file_prefix
+  dpmsr_set$file$data_path <<- dpmsr_set$x$new_path
+  dpmsr_set$file$data_dir <<- str_c(dpmsr_set$file$data_path, dpmsr_set$x$file_prefix)
   dpmsr_set$file$output_dir <<- create_dir(dpmsr_set$file$data_dir)
-  dpmsr_set$file$file_prefix1 <<- str_c(dpmsr_set$file$output_dir, dpmsr_set$x$file_prefix)
-  dpmsr_set$file$backup_dir <<- create_dir(str_c(dpmsr_set$file$data_dir,"//Backup"))
-  dpmsr_set$file$extra_dir <<- create_dir(str_c(dpmsr_set$file$data_dir,"//Extra"))
+  dpmsr_set$file$backup_dir <<- create_dir(str_c(dpmsr_set$file$data_dir,"/Backup"))
+  dpmsr_set$file$extra_dir <<- create_dir(str_c(dpmsr_set$file$data_dir,"/Extra"))
+  dpmsr_set$file$qc_dir <<- create_dir(str_c(dpmsr_set$file$data_dir,"/QC"))
   dpmsr_set$file$extra_prefix <<- str_c(dpmsr_set$file$extra_dir,dpmsr_set$x$file_prefix) 
-  dpmsr_set$file$file_prefix3 <<- str_c(dpmsr_set$file$output_dir3, dpmsr_set$x$file_prefix)
-  dpmsr_set$file$qc_dir <<- create_dir(str_c(dpmsr_set$file$data_dir,"//QC"))
+  
+  #dpmsr_set$file$file_prefix1 <<- str_c(dpmsr_set$file$output_dir, dpmsr_set$x$file_prefix)
+
+  #dpmsr_set$file$file_prefix3 <<- str_c(dpmsr_set$file$output_dir3, dpmsr_set$x$file_prefix)
+
   #if (psm_peptide_fdr == FALSE){file.copy(input_data, str_c(output_dir2, basename(input_data)))}
   #file.copy(study_design, str_c(output_dir2, basename(study_design)))
   #file.copy("Quant Setup_v8.R", str_c(output_dir2, "Quant Setup_v8.R"))
@@ -138,3 +174,10 @@ file_set <- function(){
   #app_dir <- create_dir(str_c(data_dir,"//Backup//Quant"))
   #file.copy("Quant//app.R", str_c(app_dir, "app.R"))
 }
+
+
+
+
+
+
+

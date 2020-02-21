@@ -15,15 +15,17 @@ function(input, output, session) {
     output$text_n1 <- renderText("Check all Normalization Strategies")
     output$text_i1 <- renderText("Select Imputation Method")
     
-    shinyFileChoose(input,'design_file', roots=c(root='.'), filetypes=c('','xlsx'))
-    shinyFileChoose(input, 'design_file', session=session, roots=c(wd='.'), filetypes=c('', 'xlsx'))
-    shinyFileChoose(input,'raw_files', roots=c(wd='.'), session=session, filetypes=c('','txt'), defaultPath='', defaultRoot='wd')
-    #shinyFileChoose(input,'dpmsr_set_file', roots=c(wd='.'), session=session, filetypes=c('','dpmsr_set'), defaultPath='', defaultRoot='wd')
+    volumes <- c(wd='.', Home = fs::path_home(), "R Installation" = R.home(), getVolumes()())
     
-    shinyFileChoose(input,'dpmsr_set_file', roots=c(wd='.'), session=session, 
+    shinyFileChoose(input, 'design_file', session=session, roots=volumes, filetypes=c('', 'xlsx'))
+    
+    shinyFileChoose(input,'raw_files', roots=volumes, session=session, 
+                    filetypes=c('','txt'), defaultPath='', defaultRoot='wd')
+    
+    shinyFileChoose(input,'dpmsr_set_file', roots=volumes, session=session, 
                     filetypes=c('','dpmsr_set'), defaultPath='', defaultRoot='wd')
     
-    shinyFileChoose(input,'motif_fasta', roots=c(wd='.'), session=session, 
+    shinyFileChoose(input,'motif_fasta', roots=volumes, session=session, 
                      filetypes=c('','txt'), defaultPath='', defaultRoot='wd')
     
     # test to see if dpmsr_set exisits - if so will update widgets with defaults
@@ -45,7 +47,12 @@ function(input, output, session) {
   
 #------------------------------------------------------------------------------------------------------  
   observeEvent(input$action_load_design, {
-    load_dpmsr_set(session, input)
+    load_dpmsr_set(session, input, volumes)
+    #reassign these to update volumes with path from design_file
+    shinyFileChoose(input,'raw_files', roots=dpmsr_set$x$volumes, session=session,
+                    filetypes=c('','txt'), defaultPath='', defaultRoot='wd')
+    shinyFileChoose(input,'motif_fasta', roots=dpmsr_set$x$volumes, session=session, 
+                    filetypes=c('','txt'), defaultPath='', defaultRoot='wd')
     set_sample_groups()
     file_set()
     save_design(session, input)
@@ -61,7 +68,7 @@ function(input, output, session) {
     showModal(modalDialog("Working...", footer = NULL))
     #inFile2 <- input$file_raw_data
     #load_data(input$radio_input, inFile2$datapath)
-    load_data(session, input)
+    load_data(session, input, volumes)
     prepare_data(session, input)
     project_overview()
     removeModal()

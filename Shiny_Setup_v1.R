@@ -1,13 +1,17 @@
 
-load_dpmsr_set <- function(session, input){
+load_dpmsr_set <- function(session, input, volumes){
   design_list <- c("General", "QC", "Fill_Norm", "Filters", "Protein", "TMT_PTM")
-  design_data <- input$design_file
-  design_name <- unlist(design_data$files[[as.character(0)]][2])
-  design<-read_excel(design_name, sheet="SampleList")
+  design_data <- parseFilePaths(volumes, input$design_file)
+  new_path <- str_extract(design_data$datapath, "^/.*/")
+  #new_path <- substr(new_path, 1, nchar(new_path)-1)
+  #new_path <- str_c(".", new_path)
+  volumes["wd"] <- new_path
+  design<-read_excel(design_data$datapath, sheet="SampleList")
+  save_data(design_data$datapath)
   dpmsr_set <<- list(design = design)
   temp_list<-list()
   for(i in design_list){
-    design_tab<-read_excel(design_name, sheet=i, col_names = FALSE, skip = 1)
+    design_tab<-read_excel(design_data$datapath, sheet=i, col_names = FALSE, skip = 1)
     for(j in 1:nrow(design_tab)){
       lname <- design_tab[j,1]
       ldata <- design_tab[j,2]
@@ -15,6 +19,8 @@ load_dpmsr_set <- function(session, input){
     }
   }
   dpmsr_set$x <<- temp_list
+  dpmsr_set$x$new_path <<- new_path
+  dpmsr_set$x$volumes <<- volumes
 }
 
 
@@ -46,10 +52,10 @@ load_design <- function(session, input){
 
 
 #----------------------------------------------------------------------------------------
-load_data <- function(session, input){
-  raw_data <- input$raw_files
-  for (i in 0:(length(raw_data$files)-1)   ){
-    raw_name <- unlist(raw_data$files[[as.character(i)]][2])
+load_data <- function(session, input, volumes){
+  raw_data <<- parseFilePaths(dpmsr_set$x$volumes, input$raw_files)
+  for (i in 1:nrow(raw_data) ){
+    raw_name <- raw_data$datapath[i]
     if (grepl("_PeptideGroups.txt", raw_name)){
         dpmsr_set$data$data_raw_peptide <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
         save_data(raw_name)

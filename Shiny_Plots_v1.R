@@ -227,7 +227,7 @@ histogram_plot <- function()
   title<-as.character(dpmsr_set$x$file_prefix)
   plottitle<-"Total Intensity Histogram"
   testthis1 <- as.matrix(log2(x))
-  intensity_cutoff <- dpmsr_set$x$int_cutoff
+  intensity_cutoff <- as.numeric(dpmsr_set$x$int_cutoff)
   
   x_mean <- mean(testthis1, na.rm=TRUE)
   x_stdev <- sd(testthis1, na.rm=TRUE)

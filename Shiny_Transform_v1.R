@@ -38,7 +38,7 @@ protein_to_peptide <- function(){
   
   peptide_final <- peptide_final[order(peptide_final$Master.Protein.Accessions, peptide_final$Sequence),]
   peptide_out <- peptide_final %>% dplyr::select(Confidence, Master.Protein.Accessions, Master.Protein.Descriptions, Sequence, Modifications,
-                                                 Top.Apex.RT.in.min, Ions.Score.by.Search.Engine.Mascot, contains("Percolator.q.Value"), contains("Abundance.F"))
+                                                 RT.in.min.by.Search.Engine.Mascot, Ions.Score.by.Search.Engine.Mascot, contains("Percolator.q.Value"), contains("Abundance.F"))
   colnames(peptide_out)[1:8] <- c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Retention.Time", "Ion.Score", "q-Value")
   peptide_out <- subset(peptide_out, Accession %in% master_accessions )
   Simple_Excel(peptide_out, str_c(dpmsr_set$file$extra_prefix,"_ProteinPeptide_to_Peptide_Raw.xlsx", collapse = " "))
@@ -60,12 +60,13 @@ return(protein_out)
 peptide_to_peptide <- function(){
   peptide_groups <- dpmsr_set$data$data_raw_peptide
   peptide_out <- peptide_groups %>% dplyr::select(Confidence, Master.Protein.Accessions, Master.Protein.Descriptions, Sequence, Modifications,
-                                                 Top.Apex.RT.in.min, Ions.Score.by.Search.Engine.Mascot, contains("Percolator.q.Value"), contains("Abundance.F"))
+                                                 RT.in.min.by.Search.Engine.Mascot, Ions.Score.by.Search.Engine.Mascot, contains("Percolator.q.Value"), contains("Abundance.F"))
   colnames(peptide_out)[1:8] <- c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Retention.Time", "Ion.Score", "q-Value")
   Simple_Excel(peptide_out, str_c(dpmsr_set$file$extra_prefix,"_Peptide_to_Peptide_Raw.xlsx", collapse = " "))
   return(peptide_out)
 }
 
+#Top.Apex.RT.in.min,
 #----------------------------------------------------------------------------------------
 isoform_to_isoform <- function(){
   peptide_groups <- dpmsr_set$data$data_raw_isoform
@@ -249,22 +250,33 @@ add_imputed_column <- function(df){
     test2 <- data.frame(ungroup(test2))
     test2 <- test2[3:ncol(test2)]
     test2[test2==0] <- "-"
-    dpmsr_set$data$protein_missing <<- unite(test2, "", sep=".", remove = TRUE, na.rm=FALSE)
+    test2 <- test2 %>% mutate_all(as.character)
+    while (ncol(test2)>1) {
+      test2[,1] <- str_c(test2[,1], ".", test2[,2])
+      test2[,2] <- NULL
+    }
+    dpmsr_set$data$protein_missing <<- test2[,1]
   }
   
   #imputed column for peptide output
   df_annotation <- df[1:dpmsr_set$y$info_columns]
   df <- df[(dpmsr_set$y$info_columns+1):ncol(df)]
-  df[df>0] <- 1
+  df_data <- df
+  df[df>0] <- "1"
   df[is.na(df)] <- "-"
-  df_annotation$PD_Detected_Peptides <- unite(df, "", sep=".", remove = TRUE, na.rm=FALSE)
-  df<- cbind(df_annotation,df)
+  df <- df %>% mutate_all(as.character)
+  while (ncol(df)>1) {
+    df[,1] <- str_c(df[,1], ".", df[,2])
+    df[,2] <- NULL
+  }
+  df_annotation$PD_Detected_Peptides <- df[,1]
+  df<- cbind(df_annotation,df_data)
   #add another column to info columns
-  dpmsr_set$y$info_columns <<- dpmsr_set$y$info_columns + 1
   return(df)
 }
 
 
 
-
-
+# df<-dpmsr_set$data$data_to_norm
+# df$PD_Detected_Peptides<-NULL
+# dpmsr_set$y$info_columns<-ncol(df) - dpmsr_set$y$sample_number

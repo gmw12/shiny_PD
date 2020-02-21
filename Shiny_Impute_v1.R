@@ -151,14 +151,15 @@ impute_multi <- function(data_in, distribution_data){
   }
   
   #saving original data with imputed data frame for trouble shooting
-  df2 <- get(dpmsr_set$y$sample_groups$Group[1])
-  for(i in 2:dpmsr_set$y$group_number)  {df2 <- cbind(df2, get(dpmsr_set$y$sample_groups$Group[i]))}
+  df3 <- get(dpmsr_set$y$sample_groups$Group[1])
+  for(i in 2:dpmsr_set$y$group_number)  {df3 <- cbind(df3, get(dpmsr_set$y$sample_groups$Group[i]))}
   
-  if (dpmsr_set$x$impute_method == "LocalLeastSquares"){df2 <- impute_lls(df2)}
-  if (dpmsr_set$x$impute_method == "KNN"){df2 <- impute_knn(df2)}  
-  df2 <- data.frame(2^df2)
-  df2[df2 ==1 ] <- 0
-  return(df2)
+  if (dpmsr_set$x$impute_method == "LocalLeastSquares"){df3 <- impute_lls(df)}
+  if (dpmsr_set$x$impute_method == "KNN"){df3 <- impute_knn(df)}  
+  
+  df3 <- data.frame(2^df3)
+  df3[df3 ==1 ] <- 0
+  return(df3)
 }
 
 #--------------------------------------------------------------------------------

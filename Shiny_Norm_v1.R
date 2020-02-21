@@ -31,8 +31,9 @@ norm_prep <- function(){
   }
 
   #add column for missing value (impute) statistics before datasets expand
+  dpmsr_set$data$norm_data <<- add_imputed_column(dpmsr_set$data$norm_data)
   dpmsr_set$data$data_to_norm <<- add_imputed_column(dpmsr_set$data$data_to_norm)
-  
+  dpmsr_set$y$info_columns <<- ncol(dpmsr_set$data$norm_data)-dpmsr_set$y$sample_number
 }
 
 
