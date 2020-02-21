@@ -16,7 +16,8 @@ function(input, output, session) {
     output$text_i1 <- renderText("Select Imputation Method")
     
     volumes <- c(wd='.', Home = fs::path_home(), "R Installation" = R.home(), getVolumes()())
-    
+    #uncomment for titan_black VM, and comment above line
+    #volumes <- c(dd='/home/dpmsr/shared', wd='.', Home = fs::path_home(), "R Installation" = R.home(), getVolumes()())
     shinyFileChoose(input, 'design_file', session=session, roots=volumes, filetypes=c('', 'xlsx'))
     
     shinyFileChoose(input,'raw_files', roots=volumes, session=session, 
@@ -326,7 +327,9 @@ observeEvent(input$load_dpmsr_set, {
 #      
     output$fasta <- renderText({
       if (req(typeof(input$motif_fasta)=="list")) {
-        unlist(input$motif_fasta$files[[as.character(0)]][2])
+        motif_path <- parseFilePaths(dpmsr_set$x$volumes, input$motif_fasta)
+        basename(motif_path$datapath)
+        #unlist(input$motif_fasta$files[[as.character(0)]][2])
       }
     })
   

@@ -516,7 +516,7 @@ ui <- fluidPage(
                  actionButton("save_dpmsr_set", label = "Save dpmsr_set", width = 300,
                               style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
                  hr(),
-                 shinyFilesButton('dpmsr_set_file', label='Choose Design File', title='Choose dpmsr_set File', multiple=FALSE,
+                 shinyFilesButton('dpmsr_set_file', label='Choose dpmsr_set File', title='Choose dpmsr_set File', multiple=FALSE,
                                   style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
                  
                  # fileInput("dpmsr_set_file2", "Choose dpmsr_set File", multiple = FALSE, accept = "dpmsr",

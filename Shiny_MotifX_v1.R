@@ -6,9 +6,10 @@ run_motifx <- function(input, output, data_in){
   require(rmotifx)
 
   plot_dir <- str_c(dpmsr_set$file$output_dir, input$select_final_data_motif, "//")
-  
-  fasta_txt_file <- input$motif_fasta
-  fasta_txt_file <- unlist(fasta_txt_file$files[[as.character(0)]][2])
+  motif_path <- parseFilePaths(dpmsr_set$x$volumes, input$motif_fasta)
+  fasta_txt_file <- motif_path$datapath
+  #fasta_txt_file <- input$motif_fasta
+  #fasta_txt_file <- unlist(fasta_txt_file$files[[as.character(0)]][2])
   #---------Create background data ----------------------------------------
   # Set parameters for extractBackground (s - sequence list; c - central character; w - width of motifs
   parsed_ref <- read.table(fasta_txt_file, header=FALSE, row.names=NULL, sep="\t")

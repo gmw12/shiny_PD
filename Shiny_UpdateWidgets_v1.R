@@ -178,6 +178,9 @@ update_shiny_defaults <- function(session){
   updateTextInput(session, "protein4_list", value = as.character(dpmsr_set$x$protein4_list ))
 
   updateSelectInput(session, "select_data_comp", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
+  
+  updateSelectInput(session, "select_data_comp_motif", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
+  updateSelectInput(session, "select_final_data_motif", choices = names(dpmsr_set$data$final), selected= "impute")
 }
 
 

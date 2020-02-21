@@ -130,7 +130,7 @@ collapse_peptide <- function(peptide_data){
   if ((dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Peptide") 
       && dpmsr_set$x$final_data_output == "Protein"){
             test2 <- add_column(test2, dpmsr_set$data$protein_missing, .after = "Peptides")
-            dpmsr_set$y$info_columns_final <<- dpmsr_set$y$info_columns_final+1
+            dpmsr_set$y$info_columns_final <<- ncol(test2)-dpmsr_set$y$sample_number
             names(test2)[4] <- "PD_Detected_Peptides"
   }
   return(test2)

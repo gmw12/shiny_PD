@@ -7,7 +7,6 @@ load_dpmsr_set <- function(session, input, volumes){
   #new_path <- str_c(".", new_path)
   volumes["wd"] <- new_path
   design<-read_excel(design_data$datapath, sheet="SampleList")
-  save_data(design_data$datapath)
   dpmsr_set <<- list(design = design)
   temp_list<-list()
   for(i in design_list){
@@ -21,6 +20,7 @@ load_dpmsr_set <- function(session, input, volumes){
   dpmsr_set$x <<- temp_list
   dpmsr_set$x$new_path <<- new_path
   dpmsr_set$x$volumes <<- volumes
+  save_data(design_data$datapath)
 }
 
 
