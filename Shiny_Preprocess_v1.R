@@ -26,7 +26,7 @@ preprocess_data <- function(){
     dpmsr_set$data$data_protein <<- df
   } 
   
-  if (dpmsr_set$x$peptide_isoform) {
+  if (as.logical(dpmsr_set$x$peptide_isoform)) {
     df <- order_columns(dpmsr_set$data$data_peptide_isoform)
     colnames(df)[(dpmsr_set$y$info_columns+1):ncol(df)] <- dpmsr_set$design$Header1
     df <- filter_data(df)

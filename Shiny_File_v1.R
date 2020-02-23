@@ -53,11 +53,11 @@ Final_Excel <- function() {
       raw_protein <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_Protein_to_Protein_Raw.xlsx"))
       raw_peptide <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_ProteinPeptide_to_Peptide_Raw.xlsx"))
       
-      if(dpmsr_set$x$peptide_isoform && dpmsr_set$x$raw_data_input=="Peptide"){
+      if(as.logical(dpmsr_set$x$peptide_isoform) && dpmsr_set$x$raw_data_input=="Peptide"){
         raw_peptide <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_Isoform_to_Isoform_Raw.xlsx"))
       }
       
-      if(!dpmsr_set$x$peptide_isoform && dpmsr_set$x$raw_data_input=="Peptide"){
+      if(!as.logical(dpmsr_set$x$peptide_isoform) && dpmsr_set$x$raw_data_input=="Peptide"){
         raw_peptide <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_Peptide_to_Peptide_Raw.xlsx"))
       }
       
@@ -68,7 +68,7 @@ Final_Excel <- function() {
       writeData(wb, sheet = nextsheet, raw_peptide) 
       nextsheet <- nextsheet +1
     }else if (dpmsr_set$x$raw_data_input=="Peptide"){
-      if(dpmsr_set$x$peptide_isoform){
+      if(as.logical(dpmsr_set$x$peptide_isoform)){
         raw_peptide <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_Isoform_to_Isoform_Raw.xlsx"))
       }else{
         raw_peptide <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_Peptide_to_Peptide_Raw.xlsx"))

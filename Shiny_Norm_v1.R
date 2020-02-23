@@ -1,7 +1,7 @@
 norm_prep <- function(){
   
   if ((dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Peptide") 
-      && !dpmsr_set$x$peptide_isoform) {
+      && !as.logical(dpmsr_set$x$peptide_isoform)) {
     dpmsr_set$data$norm_data <<- remove_duplicates(dpmsr_set$data$data_peptide)  
     if (as.logical(dpmsr_set$x$peptide_ptm_norm)){
       dpmsr_set$data$norm_data <<- dpmsr_set$data$norm_data[grep(dpmsr_set$x$peptide_grep, 
@@ -13,7 +13,7 @@ norm_prep <- function(){
   
   
   if ((dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Peptide") 
-      && dpmsr_set$x$peptide_isoform) {
+      && as.logical(dpmsr_set$x$peptide_isoform)) {
     dpmsr_set$data$norm_data <<- remove_duplicates(dpmsr_set$data$data_peptide)
     if (as.logical(dpmsr_set$x$peptide_ptm_norm)){
       dpmsr_set$data$norm_data <<- dpmsr_set$data$norm_data[grep(dpmsr_set$x$peptide_grep, 

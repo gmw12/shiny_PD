@@ -72,12 +72,9 @@ function(input, output, session) {
     load_data(session, input, volumes)
     prepare_data(session, input)
     project_overview()
-    removeModal()
-
     inputloaddata_render(session, input, output)
-
     updateTabsetPanel(session, "nlp1", selected = "tp_overview")
-    
+    removeModal()
   })
 
 #------------------------------------------------------------------------------------------------------  
@@ -149,7 +146,9 @@ function(input, output, session) {
     updateSelectInput(session, "norm_type", choices = names(dpmsr_set$data$final) , selected= "impute")
     updateSelectInput(session, "volcano_select", choices = names(dpmsr_set$data$final), selected = "impute")
     updateSelectInput(session, "select_data_comp", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
+    updateSelectInput(session, "select_data_comp_motif", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
     updateSelectInput(session, "select_final_data", choices = names(dpmsr_set$data$final), selected= "impute")
+    updateSelectInput(session, "select_final_data_motif", choices = names(dpmsr_set$data$final), selected= "impute")
     updateSelectInput(session, "select_oneprotein_norm", choices = names(dpmsr_set$data$final), selected= "impute")
     updateSelectInput(session, "select_onepeptide_norm", choices = names(dpmsr_set$data$final), selected= "impute")
     

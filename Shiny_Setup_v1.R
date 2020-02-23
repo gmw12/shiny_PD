@@ -1,7 +1,7 @@
 
 load_dpmsr_set <- function(session, input, volumes){
   design_list <- c("General", "QC", "Fill_Norm", "Filters", "Protein", "TMT_PTM")
-  design_data <- parseFilePaths(volumes, input$design_file)
+  design_data <<- parseFilePaths(volumes, input$design_file)
   new_path <- str_extract(design_data$datapath, "^/.*/")
   #new_path <- substr(new_path, 1, nchar(new_path)-1)
   #new_path <- str_c(".", new_path)
@@ -20,7 +20,7 @@ load_dpmsr_set <- function(session, input, volumes){
   dpmsr_set$x <<- temp_list
   dpmsr_set$x$new_path <<- new_path
   dpmsr_set$x$volumes <<- volumes
-  save_data(design_data$datapath)
+  dpmsr_set$x$design_name <<- design_data$datapath
 }
 
 
@@ -53,7 +53,7 @@ load_design <- function(session, input){
 
 #----------------------------------------------------------------------------------------
 load_data <- function(session, input, volumes){
-  raw_data <<- parseFilePaths(dpmsr_set$x$volumes, input$raw_files)
+  raw_data <- parseFilePaths(dpmsr_set$x$volumes, input$raw_files)
   for (i in 1:nrow(raw_data) ){
     raw_name <- raw_data$datapath[i]
     if (grepl("_PeptideGroups.txt", raw_name)){
@@ -85,6 +85,7 @@ load_data <- function(session, input, volumes){
         save_data(raw_name)
       }
   }
+  save_data(dpmsr_set$x$design_name)
 }
 
 #----------------------------------------------------------------------------------------
