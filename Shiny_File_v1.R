@@ -157,7 +157,7 @@ file_set <- function(){
   dpmsr_set$file$extra_dir <<- create_dir(str_c(dpmsr_set$file$data_dir,"/Extra"))
   dpmsr_set$file$qc_dir <<- create_dir(str_c(dpmsr_set$file$data_dir,"/QC"))
   dpmsr_set$file$extra_prefix <<- str_c(dpmsr_set$file$extra_dir,dpmsr_set$x$file_prefix) 
-  
+  dpmsr_set$file$string <<- create_dir(str_c(dpmsr_set$file$data_dir,"/String"))
   #dpmsr_set$file$file_prefix1 <<- str_c(dpmsr_set$file$output_dir, dpmsr_set$x$file_prefix)
 
   #dpmsr_set$file$file_prefix3 <<- str_c(dpmsr_set$file$output_dir3, dpmsr_set$x$file_prefix)

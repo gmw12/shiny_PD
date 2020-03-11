@@ -37,6 +37,35 @@ run_motifx <- function(input, output, data_in){
     Simple_Excel(motifx_all, str_c(plot_dir, "MotifX_", input$select_data_comp_motif, ".xlsx"))
     }
   
+  #---------
+  
+  if(input$pval_filter == 0 & input$fc_filter == 0) {
+    df_protein <- subset(data_in, Accession %in% input$protein_filter)
+      
+      
+    filter_df <- subset(df_protein, df_protein[ ,str_c(as.character(input$select_data_comp_motif),"_FC")] >= 0)
+    
+    FC <- "Up"
+    ptm_data <- create_motifx_input(filter_df, parsed_ref)
+    motifx_S <- motifx_calc(s, "S", w, "Up", ptm_data, parsed_ref, pval_motif, input$pval_filter, input$fc_filter)
+    motifx_T <- motifx_calc(s, "T", w, "Up", ptm_data, parsed_ref, pval_motif, input$pval_filter, input$fc_filter)
+    motifx_all <- rbind(motifx_S, motifx_T)
+    
+    filter_df <- subset(df_protein, df_protein[ ,str_c(as.character(input$select_data_comp_motif),"_FC")] <= 0)
+    
+    FC <- "Down"
+    ptm_data <- create_motifx_input(filter_df, parsed_ref)
+    motifx_S <- motifx_calc(s, "S", w, "Down", ptm_data, parsed_ref, pval_motif, input$pval_filter, input$fc_filter)
+    motifx_T <- motifx_calc(s, "T", w, "Down", ptm_data, parsed_ref, pval_motif, input$pval_filter, input$fc_filter)
+    motifx_all <- rbind(motifx_all, motifx_S, motifx_T)
+    
+    Simple_Excel(motifx_all, str_c(plot_dir, "MotifX_", input$select_data_comp_motif, ".xlsx"))
+  }
+  
+  
+  
+  
+  
   return(motifx_all)
 }
 

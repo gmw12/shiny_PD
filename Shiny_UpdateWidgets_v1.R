@@ -181,6 +181,17 @@ update_shiny_defaults <- function(session){
   
   updateSelectInput(session, "select_data_comp_motif", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
   updateSelectInput(session, "select_final_data_motif", choices = names(dpmsr_set$data$final), selected= "impute")
+  
+  updateSelectInput(session, "select_data_comp_wiki", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
+  updateSelectInput(session, "select_final_data_wiki", choices = names(dpmsr_set$data$final), selected= "impute")
+  updateSelectInput(session, "select_data_comp_profile", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
+  updateSelectInput(session, "select_final_data_profile", choices = names(dpmsr_set$data$final), selected= "impute")
+  updateSelectInput(session, "select_data_comp_go", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
+  updateSelectInput(session, "select_final_data_go", choices = names(dpmsr_set$data$final), selected= "impute")
+  updateSelectInput(session, "select_data_comp_string", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
+  updateSelectInput(session, "select_final_data_string", choices = names(dpmsr_set$data$final), selected= "impute")
+  updateSelectInput(session, "select_data_comp_string_enrich", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
+  #updateSelectInput(session, "select_final_data_string_enrich", choices = names(dpmsr_set$data$final), selected= "impute")
 }
 
 
@@ -200,8 +211,111 @@ selection_updates_new_start <- function(session, input, output){
   updateSelectInput(session, "select_final_data", choices = names(dpmsr_set$data$final), selected= "impute")
   updateSelectInput(session, "select_data_comp_motif", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
   updateSelectInput(session, "select_final_data_motif", choices = names(dpmsr_set$data$final), selected= "impute")
+  updateSelectInput(session, "select_data_comp_wiki", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
+  updateSelectInput(session, "select_final_data_wiki", choices = names(dpmsr_set$data$final), selected= "impute")
+  updateSelectInput(session, "select_data_comp_profile", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
+  updateSelectInput(session, "select_final_data_profile", choices = names(dpmsr_set$data$final), selected= "impute")
+  updateSelectInput(session, "select_data_comp_go", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
+  updateSelectInput(session, "select_final_data_go", choices = names(dpmsr_set$data$final), selected= "impute")
+  updateSelectInput(session, "select_data_comp_string", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
+  updateSelectInput(session, "select_final_data_string", choices = names(dpmsr_set$data$final), selected= "impute")
+  updateSelectInput(session, "select_data_comp_string_enrich", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
+  #updateSelectInput(session, "select_final_data_string_enrich", choices = names(dpmsr_set$data$final), selected= "impute")
+  
   updateSelectInput(session, "select_oneprotein_norm", choices = names(dpmsr_set$data$final), selected= "impute")
   updateSelectInput(session, "select_onepeptide_norm", choices = names(dpmsr_set$data$final), selected= "impute")
+  
+  
+  updateSliderInput(session, "comp_number", value=as.numeric(dpmsr_set$x$comp_number))
+  
+  updateSelectInput(session, "comp_1N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp1N)
+  updateSelectInput(session, "comp_1D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp1D)
+  
+  updateSelectInput(session, "comp_2N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp2N)
+  updateSelectInput(session, "comp_2D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp2D)
+  
+  updateSelectInput(session, "comp_3N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp3N)
+  updateSelectInput(session, "comp_3D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp3D)
+  
+  updateSelectInput(session, "comp_4N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp4N)
+  updateSelectInput(session, "comp_4D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp4D)
+  
+  updateSelectInput(session, "comp_5N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp5N)
+  updateSelectInput(session, "comp_5D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp5D)
+  
+  updateSelectInput(session, "comp_6N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp6N)
+  updateSelectInput(session, "comp_6D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp6D)
+  
+  updateCheckboxInput(session, "pair_comp", value = as.logical(dpmsr_set$x$pair_comp))
+  updateNumericInput(session, "pvalue_cutoff", value = as.numeric(dpmsr_set$x$pvalue_cutoff  ))
+  updateNumericInput(session, "foldchange_cutoff", value = as.numeric(dpmsr_set$x$foldchange_cutoff ))
+  
+  
+  
+  
+  
+  
+  
 }
+
+
+#----------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------
+
+selection_update_after_stats <- function(session, input, output){
+  #update pulldown for proteinQC plots
+  updateSelectInput(session, "norm_type", choices = names(dpmsr_set$data$final) , selected= "impute")
+  updateSelectInput(session, "volcano_select", choices = names(dpmsr_set$data$final), selected = "impute")
+  updateSelectInput(session, "select_data_comp", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
+  updateSelectInput(session, "select_final_data", choices = names(dpmsr_set$data$final), selected= "impute")
+  updateSelectInput(session, "select_data_comp_motif", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
+  updateSelectInput(session, "select_final_data_motif", choices = names(dpmsr_set$data$final), selected= "impute")
+  updateSelectInput(session, "select_data_comp_wiki", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
+  updateSelectInput(session, "select_final_data_wiki", choices = names(dpmsr_set$data$final), selected= "impute")
+  updateSelectInput(session, "select_data_comp_profile", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
+  updateSelectInput(session, "select_final_data_profile", choices = names(dpmsr_set$data$final), selected= "impute")
+  updateSelectInput(session, "select_data_comp_go", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
+  updateSelectInput(session, "select_final_data_go", choices = names(dpmsr_set$data$final), selected= "impute")
+  updateSelectInput(session, "select_data_comp_string", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
+  updateSelectInput(session, "select_final_data_string", choices = names(dpmsr_set$data$final), selected= "impute")
+  updateSelectInput(session, "select_data_comp_string_enrich", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
+  #updateSelectInput(session, "select_final_data_string_enrich", choices = names(dpmsr_set$data$final), selected= "impute")
+  
+  updateSelectInput(session, "select_oneprotein_norm", choices = names(dpmsr_set$data$final), selected= "impute")
+  updateSelectInput(session, "select_onepeptide_norm", choices = names(dpmsr_set$data$final), selected= "impute")
+  
+  
+  
+  updateTabsetPanel(session, "nlp1", selected = "tp8") 
+  
+  updateSliderInput(session, "comp_number", value=as.numeric(dpmsr_set$x$comp_number))
+  
+  updateSelectInput(session, "comp_1N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp1N)
+  updateSelectInput(session, "comp_1D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp1D)
+  
+  updateSelectInput(session, "comp_2N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp2N)
+  updateSelectInput(session, "comp_2D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp2D)
+  
+  updateSelectInput(session, "comp_3N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp3N)
+  updateSelectInput(session, "comp_3D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp3D)
+  
+  updateSelectInput(session, "comp_4N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp4N)
+  updateSelectInput(session, "comp_4D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp4D)
+  
+  updateSelectInput(session, "comp_5N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp5N)
+  updateSelectInput(session, "comp_5D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp5D)
+  
+  updateSelectInput(session, "comp_6N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp6N)
+  updateSelectInput(session, "comp_6D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp6D)
+  
+  updateCheckboxInput(session, "pair_comp", value = as.logical(dpmsr_set$x$pair_comp))
+  updateNumericInput(session, "pvalue_cutoff", value = as.numeric(dpmsr_set$x$pvalue_cutoff  ))
+  updateNumericInput(session, "foldchange_cutoff", value = as.numeric(dpmsr_set$x$foldchange_cutoff ))
+  
+}
+
+
+
+
 
 
