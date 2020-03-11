@@ -141,18 +141,8 @@ function(input, output, session) {
     create_plots()
     
     inputstartstats_render(session, input, output)
-    
-    #update pulldown for proteinQC plots
-    updateSelectInput(session, "norm_type", choices = names(dpmsr_set$data$final) , selected= "impute")
-    updateSelectInput(session, "volcano_select", choices = names(dpmsr_set$data$final), selected = "impute")
-    updateSelectInput(session, "select_data_comp", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
-    updateSelectInput(session, "select_data_comp_motif", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
-    updateSelectInput(session, "select_final_data", choices = names(dpmsr_set$data$final), selected= "impute")
-    updateSelectInput(session, "select_final_data_motif", choices = names(dpmsr_set$data$final), selected= "impute")
-    updateSelectInput(session, "select_oneprotein_norm", choices = names(dpmsr_set$data$final), selected= "impute")
-    updateSelectInput(session, "select_onepeptide_norm", choices = names(dpmsr_set$data$final), selected= "impute")
-    
-    updateTabsetPanel(session, "nlp1", selected = "tp8") 
+    selection_update_after_stats(session, input, output)
+ 
     Final_Excel()
     removeModal()
     }) # end of observe stat button
@@ -313,9 +303,7 @@ observeEvent(input$load_dpmsr_set, {
       })
       removeModal()
     })
-    
-    
-# 
+
 #      observe({
 #        if (!is.null(input$motif_fasta)){
 #          fasta_txt_file <- input$motif_fasta
@@ -331,6 +319,223 @@ observeEvent(input$load_dpmsr_set, {
         #unlist(input$motif_fasta$files[[as.character(0)]][2])
       }
     })
+    #-------------------------------------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------------------------------------
+    observeEvent(input$set_pathway, {
+      showModal(modalDialog("Working...", footer = NULL))  
+      set_pathway(input, output, session)
+      removeModal()
+      updateTabsetPanel(session, "nlp1", selected = "wiki")
+    }
+    )
+    #-------------------------------------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------------------------------------
+    observeEvent(input$wiki_show, {
+      showModal(modalDialog("Working...", footer = NULL))  
+      
+      wiki_df <- dpmsr_set$data$final[[input$select_final_data_wiki]]
+      wiki_data <<- run_wiki(input, output, wiki_df)
+      wiki_data <<- wiki_list_data[[1]]
+      
+      output$wiki_table<- renderRHandsontable({
+        rhandsontable(wiki_data, rowHeaders = NULL, readOnly = TRUE) %>%
+          hot_cols(colWidths = 80, halign = "htCenter" ) %>%
+          hot_col(col = "ID", halign = "htCenter", colWidths = 120) %>%
+          hot_col(col = "Description", halign = "htCenter", colWidths = 250) %>%
+          hot_col(col = "pvalue", halign = "htCenter", colWidths = 150, format = '0.000000') %>% 
+          hot_col(col = "p.adjust", halign = "htCenter", colWidths = 150, format = '0.000000') %>% 
+          hot_col(col = "qvalue", halign = "htCenter", colWidths = 100, format = '0.00000') %>% 
+          hot_col(col = "geneID", halign = "htCenter", colWidths = 400)
+      })
+      removeModal()
+      }
+    )
+    
+    #-------------------------------------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------------------------------------
+    observeEvent(input$profile_show, {
+      showModal(modalDialog("Working...", footer = NULL))  
+      
+      profile_df <- dpmsr_set$data$final[[input$select_final_data_profile]]
+      profile_data <- run_profile(input, output, profile_df)
+      
+      go_profile_result <<- profile_data@result[1:5]
+      go_profile_result <<- go_profile_result[order(-go_profile_result$Count),]
+      
+      output$go_profile_table <- renderRHandsontable({
+        rhandsontable(go_profile_result, rowHeaders = NULL, readOnly = TRUE) %>%
+          hot_cols(colWidths = 80, halign = "htCenter" ) %>%
+          hot_col(col = "ID", halign = "htCenter", colWidths = 120) %>%
+          hot_col(col = "Description", halign = "htCenter", colWidths = 250) %>%
+          hot_col(col = "Count", halign = "htCenter", colWidths = 50) %>%
+          hot_col(col = "GeneRatio", halign = "htCenter", colWidths = 100) %>%
+          hot_col(col = "geneID", halign = "htCenter", colWidths = 150)
+      })
+      
+      output$go_profile_plot <- renderPlot({
+        barplot(go_profile_data, title = str_c("Go Profile ", input$select_ont_profile, " level=", input$select_level_profile), 
+                drop=TRUE, showCategory=12, order=TRUE)
+      })
+      
+      removeModal()
+    }
+    )
+    #-------------------------------------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------------------------------------
+    observeEvent(input$go_show, {
+      showModal(modalDialog("Working...", footer = NULL))  
+      
+      go_df <- dpmsr_set$data$final[[input$select_final_data_go]]
+      #go_data <<- try(run_go_analysis(input, output, go_df), silent = FALSE)
+      go_data <- run_go_analysis(input, output, go_df)
+      #go_data <- goresult
+      setup_go_volcano(input, output, go_df)
+      #go_data <- try(go_data[order(go_data$pvalue),], silent = TRUE)
+      
+      output$go_table <- renderRHandsontable({
+        rhandsontable(go_data, rowHeaders = NULL, readOnly = FALSE) %>%
+          hot_cols(colWidths = 80, halign = "htCenter" ) %>%
+          hot_col(col = "GO.ID", halign = "htCenter", colWidths = 100) %>%
+          hot_col(col = "Term", halign = "htCenter", colWidths = 200) %>%
+          hot_col(col = "Rank in classicFisher", halign = "htCenter", colWidths = 200)   %>%
+          hot_col(col = "classicFisher", halign = "htCenter", colWidths = 100)  
+      })
+      
+      # output$wiki_plot <- renderPlot({
+      #   barplot(wiki_data, title = str_c("WikiPathways ", input$select_ont_wiki, " level=", input$select_level_wiki), 
+      #           drop=TRUE, showCategory=12, order=TRUE)
+      # })
+      
+      removeModal()
+    }
+    )   
+    #-------------------------------------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------------------------------------
+    observeEvent(input$go_volcano, {
+      showModal(modalDialog("Working...", footer = NULL))  
+
+      volcano_data <- create_go_volcano(input, output, session)
+      removeModal()
+      
+      #output$scatterplot <- renderPlot({
+      volcano_go_plot <- reactive({
+        ggplot(volcano_data, aes(x = log_fc, y = log_pvalue)) +
+          theme_minimal() +
+          geom_point(alpha=0.4, size=input$plot_dot_size, color = input$volcano_dot_color) +
+          xlab(input$plot_x_axis_label) + ylab(input$plot_y_axis_label) +
+          scale_colour_gradient(low = input$volcano_dot_color, high = input$volcano_dot_color) +
+          ggtitle(input$plot_title)+    
+          xlim(-max(volcano_data$log_fc), max(volcano_data$log_fc)) +
+          theme(plot.title = element_text(size=input$plot_title_size, hjust = 0.5),
+                axis.title = element_text(size=input$plot_label_size, color="black"),
+                axis.text.x = element_text(size=10, color="black"),
+                axis.text.y = element_text(size=10,  color="black"),
+                legend.position = "none")
+      })
+      
+      output$volcano_go_plot <- renderPlot({
+        req(volcano_go_plot())
+        volcano_go_plot()
+      })
+      
+      output$Download <- downloadHandler(
+        filename = function(){
+          str_c(dpmsr_set$file$string, "GoVolcano_", input$select_data_comp_go, "_", input$go_volcano_id, "_", 
+                input$select_ont_go, ".png", collapse = " ")
+        },
+        content = function(file){
+          req(volcano_go_plot())
+          ggsave(file, plot = volcano_go_plot(), device = 'png')
+        }
+      )
+      
+      
+      
+      
+      
+      
+      output$hover_info <- renderUI({
+        hover <- input$plot_hover
+        point <- nearPoints(volcano_data, hover, threshold = 5, maxpoints = 1, addDist = TRUE)
+        if (nrow(point) == 0) return(NULL)
+        
+        # calculate point position INSIDE the image as percent of total dimensions
+        # from left (horizontal) and from top (vertical)
+        left_pct <- (hover$x - hover$domain$left) / (hover$domain$right - hover$domain$left)
+        top_pct <- (hover$domain$top - hover$y) / (hover$domain$top - hover$domain$bottom)
+        
+        # calculate distance from left and bottom side of the picture in pixels
+        left_px <- hover$range$left + left_pct * (hover$range$right - hover$range$left)
+        top_px <- hover$range$top + top_pct * (hover$range$bottom - hover$range$top)
+        
+        # create style property fot tooltip
+        # background color is set so tooltip is a bit transparent
+        # z-index is set so we are sure are tooltip will be on top
+        style <- paste0("position:absolute; z-index:100; background-color: rgba(245, 245, 245, 0.85); ",
+                        "left:", left_px + 2, "px; top:", top_px + 2, "px;")
+        
+        # actual tooltip created as wellPanel
+        wellPanel(
+          style = style,
+          p(HTML(paste0("<b> Accession: </b>", point$Accession, "<br/>",
+                        "<b> FC: </b>", point$foldchange, "<br/>",
+                        "<b> pvalue: </b>", point$pvalue, "<br/>")))
+        )
+      })
+      
+      
+    }
+    )   
+    #-------------------------------------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------------------------------------
+    observeEvent(input$setup_string, {
+      showModal(modalDialog("Working...", footer = NULL))  
+      setup_string(input, output, dpmsr_set$data$final[[input$select_final_data_string]])
+      removeModal()
+    }
+    ) 
+    
+    
+    #-------------------------------------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------------------------------------
+    observeEvent(input$go_string, {
+      showModal(modalDialog("Working...", footer = NULL))  
+      
+      string_list <- run_string(input, output)
+      
+      output$string_plot <- renderImage({
+        list(src=string_list$string_file_name,  
+             contentType = 'image/png', width=2000, height=2000, alt="this is alt text")
+      }, deleteFile = FALSE)
+      
+      output$string_link <- renderText({string_list$linkthis})
+      
+      removeModal()
+    }
+    ) 
+    
+    #-------------------------------------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------------------------------------
+    observeEvent(input$go_string_enrich, {
+      showModal(modalDialog("Working...", footer = NULL))  
+      
+      string_result <- run_string_enrich(input, output, dpmsr_set$data$final[[input$select_final_data_string]])
+      
+      output$string_table<- renderRHandsontable({
+        rhandsontable(string_result, rowHeaders = NULL, readOnly = TRUE) %>%
+          hot_cols(colWidths = 80, halign = "htCenter" ) %>%
+          hot_col(col = "term_id", halign = "htCenter", colWidths = 100) %>%
+          hot_col(col = "proteins", halign = "htCenter", colWidths = 100) %>%  
+          hot_col(col = "hits", halign = "htCenter", colWidths = 100)  %>% 
+          hot_col(col = "pvalue", halign = "htCenter", colWidths = 180, format = '0.0000000000000') %>% 
+          hot_col(col = "pvalue_fdr", halign = "htCenter", colWidths = 180, format = '0.0000000000000') %>% 
+          hot_col(col = "term_description", halign = "htCenter", colWidths = 600)
+      })
+      
+      
+      removeModal()
+    }
+    )    
   
 }
 

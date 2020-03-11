@@ -14,6 +14,13 @@ set_pathway <- function(input, output, session){
     return(tax_db)
   }
   
+  # rat org.Rn.eg.db
+  #zebra fish org.Dr.eg.db
+  #arabidopsis org.At.tair.db
+  #yeast org.Sc.sgd.db
+  
+  
+  
   gmt_get <- function(tax_choice){
     if (tax_choice == "Human"){wp.gmt <- rWikiPathways::downloadPathwayArchive(organism="Homo sapiens", format = "gmt")
     wp2gene <- clusterProfiler::read.gmt(wp.gmt)

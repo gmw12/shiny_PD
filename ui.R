@@ -506,86 +506,355 @@ ui <- fluidPage(
                )
           ),
     
-    tabPanel("Extra", value = "tp11",
-      navbarPage("Extra:", id ="np_extra",
-        tabPanel("save_load", value = "tp_save", align="center",
-                 tags$h1("Save/Load dpmsr_set files..."),
+    tabPanel("Pathway", value = "pathway",
+      navbarPage("Pathway:", id ="path",
+        tabPanel("Organism", value = "tp_save", align="center",
+                 tags$h1("Select organism for pathway analysis/enrichment..."),
                  hr(),
+                 selectInput("select_organism", label = "organism", 
+                             choices = list("Human", "Mouse", "Rat", "Danio", "Arabidopsis", "Ecoli"), 
+                             selected = "Human"),
                  br(),
-                 br(),
-                 actionButton("save_dpmsr_set", label = "Save dpmsr_set", width = 300,
-                              style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
-                 hr(),
-                 shinyFilesButton('dpmsr_set_file', label='Choose dpmsr_set File', title='Choose dpmsr_set File', multiple=FALSE,
-                                  style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
-                 
-                 # fileInput("dpmsr_set_file2", "Choose dpmsr_set File", multiple = FALSE, accept = "dpmsr",
-                 #           width = NULL, buttonLabel = "Browse...",
-                 #           placeholder = "No file selected"),                               
-                 br(),
-                 br(),
-                 br(),
-                 actionButton("load_dpmsr_set", label = "Load dpmsr_set", width = 300, 
+                 actionButton("set_pathway", label = "Set Pathway", width = 300, 
                               style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
         ),
-         tabPanel("MotifX", id="motif",
-                  fluidRow( 
-                    
-                    column(width=1, offset =0,
-                           selectInput("select_final_data_motif", label = "Normalization", width = 150,
-                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
-                                       selected = 1)
-                    ),
-                    column(width=1, offset =0,  
-                           numericInput("pval_filter", label="  pvalue", value = 0.05, width = 100)
-                    ),
-                    column(width=1, offset =0,  
-                           numericInput("fc_filter", label="    FC", value = 2, width = 100)
-                    ),
-
-                    column(width=2, offset =0,
-                           selectInput("select_data_comp_motif", label = "comparison", 
-                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
-                                       selected = 1)
-                    ),
-                    column(width=2, offset =0,
-                           shinyFilesButton('motif_fasta', label='Select Motif-X FASTA', title='Please select motif-x formated text file', multiple=FALSE,
-                                     style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
-                           textOutput("fasta"),
-                           tags$head(tags$style("#fasta{color: blue; font-size: 16px; font-style: bold;}")),
-                    ),
-                    column(width=2, offset =0,  
-                           numericInput("pval_motif", label="MotifX pval (x1e-5)", value =1, width = 150)
-                    ),
-                    column(width=1, offset =0,
-                           actionButton("motif_show", label = "Send to MotifX", width = 150,
+        
+        tabPanel("WikiPathways", id="wiki",
+                 fluidRow( 
+                   
+                   column(width=2, offset =0,
+                          selectInput("select_final_data_wiki", label = "Normalization", width = 150,
+                                      choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
+                                      selected = 1)
+                   ),
+                   column(width=1, offset =0,  
+                          numericInput("pval_filter_wiki", label="  pvalue", value = 0.05, width = 100)
+                   ),
+                   column(width=1, offset =0,  
+                          numericInput("fc_filter_wiki", label="    FC", value = 2, width = 100)
+                   ),
+                   
+                   column(width=2, offset =0,
+                          selectInput("select_data_comp_wiki", label = "comparison", 
+                                      choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
+                                      selected = 1)
+                   ),
+                   column(width=1, offset =0,
+                          actionButton("wiki_show", label = "Find WikiPathway", width = 150,
+                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                   )
+                 ),
+                 
+                 fluidRow(
+                   hr(),
+                  tags$head(tags$style("#data_final{color: blue;
+                                 font-size: 12px;
+                                  }"
+                     )
+                   ),
+                   rHandsontableOutput("wiki_table")
+                   )
+          ),
+        
+        tabPanel("Go Profile", id="go_profile",
+                 fluidRow( 
+                   
+                   column(width=2, offset =0,
+                          selectInput("select_final_data_profile", label = "Normalization", width = 150,
+                                      choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
+                                      selected = 1)
+                   ),
+                   column(width=1, offset =0,  
+                          numericInput("pval_filter_profile", label="  pvalue", value = 0.05, width = 100)
+                   ),
+                   column(width=1, offset =0,  
+                          numericInput("fc_filter_profile", label="    FC", value = 2, width = 100)
+                   ),
+                   
+                   column(width=2, offset =0,
+                          selectInput("select_data_comp_profile", label = "comparison", 
+                                      choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
+                                      selected = 1)
+                   ),
+                   column(width=2, offset =0,
+                          selectInput("select_ont_profile", label = "ontology", 
+                                      choices = list("CC", "BP", "MF"), 
+                                      selected = "BP")
+                   ),
+                   column(width=2, offset =0,
+                          selectInput("select_level_profile", label = "ontology level", 
+                                      choices = list("1", "2", "3", "4", "5", "6"), 
+                                      selected = "3")
+                   ),
+                   column(width=1, offset =0,
+                          actionButton("profile_show", label = "Find Go Profile", width = 150,
+                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                   )
+                 ),  
+                 fluidRow(
+                   hr(),
+                   column(width=6, offset =0,
+                          tags$head(tags$style("#data_final{color: blue;
+                                     font-size: 12px;
+                                     }"
+                          )
+                          ),
+                          rHandsontableOutput("go_profile_table")
+                   ),
+                   column(width=6, offset =0,
+                          plotOutput("go_profile_plot")               
+                   )
+                 )
+        ),
+        
+        tabPanel("Go Analysis", id="go",
+                 fluidRow( 
+                   
+                   column(width=1, offset =0,
+                          selectInput("select_final_data_go", label = "Normalization", width = 150,
+                                      choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
+                                      selected = 1)
+                   ),
+                   column(width=1, offset =0,  
+                          numericInput("pval_filter_go", label="  pvalue", value = 0.05, width = 200)
+                   ),
+                   column(width=1, offset =0,  
+                          numericInput("fc_filter_go", label="    FC", value = 2, width = 200)
+                   ),
+                   
+                   column(width=3, offset =0,
+                          selectInput("select_data_comp_go", label = "comparison", 
+                                      choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
+                                      selected = 1)
+                   ),
+                   column(width=1, offset =0,
+                          selectInput("select_ont_go", label = "ontology", 
+                                      choices = list("CC", "BP", "MF"), 
+                                      selected = "BP")
+                   ),
+                   # column(width=1, offset =0,
+                   #        selectInput("select_algorithm", label = "algorithm", 
+                   #                    choices = list("classic", "elim", "weight", "weight01"), 
+                   #                    selected = "classic")
+                   # ),
+                   column(width=1, offset =0,
+                          actionButton("go_show", label = "Go Analysis", width = 100,
+                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                   )
+                 ),
+                 
+                 fluidRow(
+                   hr(),
+                     tags$head(tags$style("#data_final{color: blue;
+                                 font-size: 12px;
+                                  }"
+                          )
+                          ),
+                          rHandsontableOutput("go_table")
+                 )
+           ), #end of go analysis
+        
+        tabPanel("Go Volcano", id="go_volcano",
+                 fluidRow(
+                   column(width=2, offset =0,
+                          textInput("go_volcano_id", label="GO ID", value = "", width = 200),
+                          textInput("plot_y_axis_label", label="y axis label", value = "-log_pvalue", width = 200),
+                          textInput("plot_x_axis_label", label="x axis label", value = "log_FC", width = 200),
+                          textInput("plot_title", label="plot title", value = "Go Volcano", width = 200),
+                          colourInput("volcano_dot_color", "Select Color", "blue"),
+                          actionButton("go_volcano", label = "Volcano", width = 100,
                                         style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
-                    )
-                  ),
-                  
-                  fluidRow(
-                    hr(),
-                    tags$head(tags$style("#data_final{color: blue;
+                          ),  
+                   column(width=2, offset =0,
+                          sliderInput("plot_dot_size", label = h5("Point Size"), min = 1, 
+                                      max = 10, value = 2),
+                          sliderInput("plot_label_size", label = h5("Label Size"), min = 1, 
+                                      max = 50, value = 20),
+                          sliderInput("plot_title_size", label = h5("Title Size"), min = 10, 
+                                      max = 50, value = 20),   
+                          downloadButton('Download')
+                   ),
+                   column(width=8, offset =0,  
+                     div(
+                       style = "position:relative",
+                       plotOutput("volcano_go_plot", width = 800, height = 600,
+                                  hover = hoverOpts("plot_hover", delay = 100, delayType = "debounce")),
+                       uiOutput("hover_info")
+                     )
+                   )
+                 )
+        ), #end of go volcano 
+        
+        
+        tabPanel("StringDB", id="string",
+                 fluidRow( 
+                   column(width=1, offset =0,
+                          selectInput("select_final_data_string", label = "Normalization", width = 150,
+                                      choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
+                                      selected = 1)
+                   ),
+                   column(width=2, offset =0,
+                          actionButton("setup_string", label = "String Setup", width = 150,
+                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                   ),
+                   column(width=1, offset =0,  
+                          numericInput("pval_filter_string", label="  pvalue", value = 0.05, width = 200)
+                   ),
+                   column(width=1, offset =0,  
+                          numericInput("fc_filter_string", label="    FC", value = 2, width = 200)
+                   ),
+                   column(width=3, offset =0,
+                          selectInput("select_data_comp_string", label = "comparison", 
+                                      choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
+                                      selected = 1)
+                   ),
+                   column(width=1, offset =0,
+                          selectInput("protein_number", label = "#Proteins", 
+                                      choices = list(10, 50, 100, 150, 200, 250, 300, 350, 400), 
+                                      selected = 200)
+                   ),                   
+                   column(width=2, offset =0,
+                          actionButton("go_string", label = "String Analysis", width = 150,
+                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                   )
+                 ),
+                 fluidRow(
+                   hr(),
+                   tags$head(tags$style("#data_final{color: blue;
+                                 font-size: 12px;
+                                  }"
+                   )
+                   ),
+                   textOutput("string_link"),
+                   plotOutput("string_plot")  
+                   #rHandsontableOutput("string_table")
+                 )
+        ), #end of string analysis
+        
+        tabPanel("StringDB_enrich", id="string_enrich",
+                 fluidRow( 
+                   column(width=1, offset =0,  
+                          numericInput("pval_filter_string_enrich", label="  pvalue", value = 0.05, width = 200)
+                   ),
+                   column(width=1, offset =0,  
+                          numericInput("fc_filter_string_enrich", label="    FC", value = 2, width = 200)
+                   ),
+                   
+                   column(width=3, offset =0,
+                          selectInput("select_data_comp_string_enrich", label = "comparison", 
+                                      choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
+                                      selected = 1)
+                   ),
+                   column(width=1, offset =0,
+                          selectInput("select_string_enrich", label = "Enrichment", 
+                                      choices = list("Process", "Component", "Function", "KEGG", "Pfam", "InterPro"), 
+                                      selected = "Process")
+                   ),
+                   column(width=1, offset =0,
+                          selectInput("select_methodMT", label = "methodMT", 
+                                      choices = list("fdr", "bonferroni"), 
+                                      selected = "fdr")
+                   ),
+                   column(width=2, offset =0,
+                          actionButton("go_string_enrich", label = "String Enrichment", width = 150,
+                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                   )
+                 ),
+                 
+                 fluidRow(
+                   hr(),
+                   tags$head(tags$style("#data_final{color: blue;
+                                 font-size: 12px;
+                                  }"
+                   )
+                   ),
+                   rHandsontableOutput("string_table") 
+                 )
+        ) #end of string analysis        
+        
+        
+      ) # end of navbarpage
+    ), # end of tab panel Pathway
+    
+    
+    
+    
+    
+    
+    
+    tabPanel("Extra", value = "tp11",
+             navbarPage("Extra:", id ="np_extra",
+                        tabPanel("save_load", value = "tp_save", align="center",
+                                 tags$h1("Save/Load dpmsr_set files..."),
+                                 hr(),
+                                 br(),
+                                 br(),
+                                 actionButton("save_dpmsr_set", label = "Save dpmsr_set", width = 300,
+                                              style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                                 hr(),
+                                 shinyFilesButton('dpmsr_set_file', label='Choose dpmsr_set File', title='Choose dpmsr_set File', multiple=FALSE,
+                                                  style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                                 
+                                 # fileInput("dpmsr_set_file2", "Choose dpmsr_set File", multiple = FALSE, accept = "dpmsr",
+                                 #           width = NULL, buttonLabel = "Browse...",
+                                 #           placeholder = "No file selected"),                               
+                                 br(),
+                                 br(),
+                                 br(),
+                                 actionButton("load_dpmsr_set", label = "Load dpmsr_set", width = 300, 
+                                              style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                        ),
+                        tabPanel("MotifX", id="motif",
+                                 fluidRow( 
+                                   
+                                   column(width=1, offset =0,
+                                          selectInput("select_final_data_motif", label = "Normalization", width = 150,
+                                                      choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
+                                                      selected = 1)
+                                   ),
+                                   column(width=1, offset =0,  
+                                          numericInput("pval_filter", label="  pvalue", value = 0.05, width = 100)
+                                   ),
+                                   column(width=1, offset =0,  
+                                          numericInput("fc_filter", label="    FC", value = 2, width = 100)
+                                   ),
+                                   
+                                   column(width=2, offset =0,
+                                          selectInput("select_data_comp_motif", label = "comparison", 
+                                                      choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
+                                                      selected = 1)
+                                   ),
+                                   column(width=1, offset =0,  
+                                          textInput("protein_filter", label="Specific Protein", value ="", width = 150)
+                                   ),
+                                   column(width=2, offset =0,
+                                          shinyFilesButton('motif_fasta', label='Select Motif-X FASTA', title='Please select motif-x formated text file', multiple=FALSE,
+                                                           style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                                          textOutput("fasta"),
+                                          tags$head(tags$style("#fasta{color: blue; font-size: 16px; font-style: bold;}"))
+                                   ),
+                                   column(width=2, offset =0,  
+                                          numericInput("pval_motif", label="MotifX pval (x1e-5)", value =1, width = 150)
+                                   ),
+                                   column(width=1, offset =0,
+                                          actionButton("motif_show", label = "Send to MotifX", width = 150,
+                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                                   )
+                                 ),
+                                 
+                                 fluidRow(
+                                   hr(),
+                                   tags$head(tags$style("#data_final{color: blue;
                                  font-size: 12px;
                                  }"
-                    )
-                    ),
-                    rHandsontableOutput("motif_table")
-                  )
-                  
-                  
-                  
-                  
-                  
-                  
-                  
-                  
-        
-         )
-        
-      )
-    )
-    
+                                   )
+                                   ),
+                                   rHandsontableOutput("motif_table")
+                                 )
+                        )           
+                        
+             )
+    ) # end of tab panel Extra   
     
  ) #end of navlistpanel
 ) #end of ui
