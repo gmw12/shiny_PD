@@ -334,8 +334,8 @@ observeEvent(input$load_dpmsr_set, {
       showModal(modalDialog("Working...", footer = NULL))  
       
       wiki_df <- dpmsr_set$data$final[[input$select_final_data_wiki]]
-      wiki_data <<- run_wiki(input, output, wiki_df)
-      wiki_data <<- wiki_list_data[[1]]
+      wiki_data <- run_wiki(input, output, wiki_df)
+      #wiki_data <- wiki_data[[1]]
       
       output$wiki_table<- renderRHandsontable({
         rhandsontable(wiki_data, rowHeaders = NULL, readOnly = TRUE) %>%
@@ -359,8 +359,8 @@ observeEvent(input$load_dpmsr_set, {
       profile_df <- dpmsr_set$data$final[[input$select_final_data_profile]]
       profile_data <- run_profile(input, output, profile_df)
       
-      go_profile_result <<- profile_data@result[1:5]
-      go_profile_result <<- go_profile_result[order(-go_profile_result$Count),]
+      go_profile_result <- profile_data@result[1:5]
+      go_profile_result <- go_profile_result[order(-go_profile_result$Count),]
       
       output$go_profile_table <- renderRHandsontable({
         rhandsontable(go_profile_result, rowHeaders = NULL, readOnly = TRUE) %>%
@@ -373,7 +373,7 @@ observeEvent(input$load_dpmsr_set, {
       })
       
       output$go_profile_plot <- renderPlot({
-        barplot(go_profile_data, title = str_c("Go Profile ", input$select_ont_profile, " level=", input$select_level_profile), 
+        barplot(profile_data, title = str_c("Go Profile ", input$select_ont_profile, " level=", input$select_level_profile), 
                 drop=TRUE, showCategory=12, order=TRUE)
       })
       

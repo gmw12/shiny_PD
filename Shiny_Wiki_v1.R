@@ -45,7 +45,7 @@ run_profile <- function(input, output, data_in){
   if(input$pval_filter_profile != 0 & input$fc_filter_profile > 0) {
     go_df <- subset(data_in, data_in[ ,str_c(as.character(input$select_data_comp_profile),"_Pval")] <= as.numeric(input$pval_filter) &
                       (data_in[ ,str_c(as.character(input$select_data_comp_profile),"_FC")] >= as.numeric(input$fc_filter) ))
-    atest <<- go_df$Accession
+    atest <- go_df$Accession
   }
   
   if(input$pval_filter_profile != 0 & input$fc_filter_profile < 0) {

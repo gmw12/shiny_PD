@@ -1,7 +1,7 @@
 
 load_dpmsr_set <- function(session, input, volumes){
   design_list <- c("General", "QC", "Fill_Norm", "Filters", "Protein", "TMT_PTM")
-  design_data <<- parseFilePaths(volumes, input$design_file)
+  design_data <- parseFilePaths(volumes, input$design_file)
   new_path <- str_extract(design_data$datapath, "^/.*/")
   #new_path <- substr(new_path, 1, nchar(new_path)-1)
   #new_path <- str_c(".", new_path)
