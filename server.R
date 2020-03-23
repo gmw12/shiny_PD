@@ -4,7 +4,7 @@ options(shiny.maxRequestSize=100*1024^2)
 
 source("Shiny_Startup_v1.R")
 
-function(input, output, session) {
+shinyServer(function(input, output, session) {
     useShinyjs()
     dpmsr_present <- reactiveValues()
     dpmsr_present$test <- exists("dpmsr_set")
@@ -539,5 +539,5 @@ observeEvent(input$load_dpmsr_set, {
   
 }
 
-
+)
 

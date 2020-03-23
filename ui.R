@@ -4,7 +4,7 @@ library(shinyjs)
 library(shinyWidgets)
 library(rhandsontable)
 
-ui <- fluidPage(
+shinyUI(fluidPage(
   useShinyjs(),
   setBackgroundColor("DarkGray", shinydashboard = TRUE),
   setBackgroundColor("LightGray", shinydashboard = FALSE),
@@ -661,7 +661,7 @@ ui <- fluidPage(
                           textInput("plot_y_axis_label", label="y axis label", value = "-log_pvalue", width = 200),
                           textInput("plot_x_axis_label", label="x axis label", value = "log_FC", width = 200),
                           textInput("plot_title", label="plot title", value = "Go Volcano", width = 200),
-                          colourInput("volcano_dot_color", "Select Color", "blue"),
+                          colourpicker::colourInput("volcano_dot_color", "Select Color", "blue"),
                           actionButton("go_volcano", label = "Volcano", width = 100,
                                         style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
                           ),  
@@ -858,3 +858,4 @@ ui <- fluidPage(
     
  ) #end of navlistpanel
 ) #end of ui
+)
