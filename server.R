@@ -1,4 +1,3 @@
-rm(list = ls())
 
 options(shiny.maxRequestSize=100*1024^2)
 
@@ -10,14 +9,21 @@ shinyServer(function(input, output, session) {
     dpmsr_present$test <- exists("dpmsr_set")
     
     shinyjs::disable("action_load_design")
+    shinyjs::disable("action_load_dpmsr_set")
     shinyjs::disable("load_data")
     
     output$text_n1 <- renderText("Check all Normalization Strategies")
     output$text_i1 <- renderText("Select Imputation Method")
     
-    volumes <- c(wd='.', Home = fs::path_home(), "R Installation" = R.home(), getVolumes()())
-    #uncomment for titan_black VM, and comment above line
-    #volumes <- c(dd='/home/dpmsr/shared', wd='.', Home = fs::path_home(), "R Installation" = R.home(), getVolumes()())
+    if(Sys.info()["sysname"]=="Darwin" ){
+      volumes <- c(dd='/Users/gregwaitt/Documents/Data', wd='.', Home = fs::path_home(),  getVolumes()())
+      #volumes <- c(wd='.', Home = fs::path_home(), "R Installation" = R.home(), getVolumes()())
+    }else{
+      #for titan_black VM
+      volumes <- c(dd='/home/dpmsr/shared', wd='.', Home = fs::path_home(), getVolumes()())
+    }
+    
+
     shinyFileChoose(input, 'design_file', session=session, roots=volumes, filetypes=c('', 'xlsx'))
     
     shinyFileChoose(input,'raw_files', roots=volumes, session=session, 
@@ -32,6 +38,7 @@ shinyServer(function(input, output, session) {
     # test to see if dpmsr_set exisits - if so will update widgets with defaults
     observe({
       if (dpmsr_present$test){
+        cat(file=stderr(), "dpmsr_set already exists...", "\n")
         update_shiny_defaults(session)
         update_dpmsr_set_from_widgets(session, input)
         inputloaddata_render(session, input, output)
@@ -45,9 +52,18 @@ shinyServer(function(input, output, session) {
     
     # function home to shinyjs hide/enable observers
     hide_enable(session, input)
-  
+ 
+  #------------------------------------------------------------------------------------------------------  
+    observeEvent(input$action_clear, {
+      cat(file=stderr(), "clean old data", "\n")
+      rm(list = ls(envir = .GlobalEnv), pos = .GlobalEnv, inherits = FALSE)
+      cat(file=stderr(), "reload libraries and functions", "\n")
+      source("Shiny_Startup_v1.R")
+    })    
+     
 #------------------------------------------------------------------------------------------------------  
   observeEvent(input$action_load_design, {
+    cat(file=stderr(), "load design triggered", "\n")
     load_dpmsr_set(session, input, volumes)
     #reassign these to update volumes with path from design_file
     shinyFileChoose(input,'raw_files', roots=dpmsr_set$x$volumes, session=session,
@@ -66,7 +82,8 @@ shinyServer(function(input, output, session) {
 #------------------------------------------------------------------------------------------------------   
 #------------------------------------------------------------------------------------------------------    
   observeEvent(input$load_data, {
-    showModal(modalDialog("Working...", footer = NULL))
+    cat(file=stderr(), "load data triggered", "\n")
+    showModal(modalDialog("Loading Data...", footer = NULL))
     #inFile2 <- input$file_raw_data
     #load_data(input$radio_input, inFile2$datapath)
     load_data(session, input, volumes)
@@ -80,14 +97,23 @@ shinyServer(function(input, output, session) {
 #------------------------------------------------------------------------------------------------------  
 #------------------------------------------------------------------------------------------------------  
   observeEvent(input$filter_apply, {
-    showModal(modalDialog("Working...", footer = NULL))
+    cat(file=stderr(), "filter apply triggered", "\n")
+    showModal(modalDialog("Applying Filters...", footer = NULL))
+    cat(file=stderr(), "preprocess data", "\n")
     preprocess_data()
-
     removeModal()
     updateTabsetPanel(session, "nlp1", selected = "tp5")
     
     bar_plot(dpmsr_set$data$data_peptide[(dpmsr_set$y$info_columns+1):ncol(dpmsr_set$data$data_peptide)],"Raw", dpmsr_set$file$qc_dir)
     box_plot(dpmsr_set$data$data_peptide[(dpmsr_set$y$info_columns+1):ncol(dpmsr_set$data$data_peptide)],"Raw", dpmsr_set$file$qc_dir)
+
+    showModal(modalDialog("Preparing Data for Norm...", footer = NULL))
+    cat(file=stderr(), "prepare data for normalization", "\n")
+    norm_prep()
+    removeModal()
+    showModal(modalDialog("Preparing Data for Histogram Plot...", footer = NULL))
+    histogram_plot()
+    removeModal()
     
     inputfilterapply_render(session, input, output)
   })
@@ -95,9 +121,10 @@ shinyServer(function(input, output, session) {
 #------------------------------------------------------------------------------------------------------  
 #------------------------------------------------------------------------------------------------------  
   observeEvent(input$norm1, {
-    showModal(modalDialog("Working...", footer = NULL))
-    norm_prep()
-    histogram_plot()
+    cat(file=stderr(), "normalization triggered", "\n")
+    showModal(modalDialog("Normalizing Data...", footer = NULL))
+    #norm_prep()
+    #histogram_plot()
     
     inputnorm_render(session, input, output)
     
@@ -118,26 +145,44 @@ shinyServer(function(input, output, session) {
     dpmsr_set$y$norm_list2 <<- norm_list2[lapply(norm_list2, length) > 0]
     apply_norm()
     removeModal()
+    if (input$checkbox_tmt){
+      tmt_spqc_prep()
+      updateTabsetPanel(session, "nlp1", selected = "tp_tmt")
+    }else{
     updateTabsetPanel(session, "nlp1", selected = "tp6")
+    }
   })
 
 #------------------------------------------------------------------------------------------------------   
 #------------------------------------------------------------------------------------------------------  
   observeEvent(input$impute1, {
-    showModal(modalDialog("Working...", footer = NULL))  
+    cat(file=stderr(), "impute triggered", "\n")
+    showModal(modalDialog("Imputing Missing Data...", footer = NULL))  
     apply_impute()
     removeModal()
     updateTabsetPanel(session, "nlp1", selected = "tp7")
   })
   
+#------------------------------------------------------------------------------------------------------   
+#------------------------------------------------------------------------------------------------------  
+    observeEvent(input$tmt_irs_go, {
+      cat(file=stderr(), "TMT IRS started...", "\n")
+      showModal(modalDialog("IRS Normalization...", footer = NULL))  
+      tmt_spqc_normalize(dpmsr_set$data$normalized$sl)
+      removeModal()
+    })
     
 #------------------------------------------------------------------------------------------------------    
 #------------------------------------------------------------------------------------------------------  
   observeEvent(input$start_stats, {
-    showModal(modalDialog("Working...", footer = NULL))  
+    cat(file=stderr(), "stats triggered", "\n")
+    showModal(modalDialog("Preparing Stats...", footer = NULL))  
     set_comp_groups()
+    cat(file=stderr(), "stats - apply_stats", "\n")
     apply_stats()
+    cat(file=stderr(), "stats - qc_apply", "\n")
     qc_apply()
+    cat(file=stderr(), "stats - create_plots", "\n")
     create_plots()
     
     inputstartstats_render(session, input, output)
@@ -271,6 +316,7 @@ observeEvent(input$save_dpmsr_set, {
 #-------------------------------------------------------------------------------------------------------------      
 #------------------------------------------------------------------------------------------------------------- 
 observeEvent(input$load_dpmsr_set, { 
+  cat(file=stderr(), "load dpmsr_set triggered", "\n")
   showModal(modalDialog("Working...", footer = NULL))  
   dpmsr_file <- parseFilePaths(volumes, input$dpmsr_set_file)
   load(file = dpmsr_file$datapath, envir = .GlobalEnv)
@@ -485,11 +531,14 @@ observeEvent(input$load_dpmsr_set, {
       
       
     }
-    )   
+    )  
+    
+    
     #-------------------------------------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------------------------------------
     observeEvent(input$setup_string, {
-      showModal(modalDialog("Working...", footer = NULL))  
+      cat(file=stderr(), "string_setup triggered", "\n")
+      showModal(modalDialog("String setup...", footer = NULL))  
       setup_string(input, output, dpmsr_set$data$final[[input$select_final_data_string]])
       removeModal()
     }
@@ -499,7 +548,8 @@ observeEvent(input$load_dpmsr_set, {
     #-------------------------------------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------------------------------------
     observeEvent(input$go_string, {
-      showModal(modalDialog("Working...", footer = NULL))  
+      cat(file=stderr(), "go string triggered", "\n")
+      showModal(modalDialog("String Analysis...", footer = NULL))  
       
       string_list <- run_string(input, output)
       
@@ -531,11 +581,10 @@ observeEvent(input$load_dpmsr_set, {
           hot_col(col = "pvalue_fdr", halign = "htCenter", colWidths = 180, format = '0.0000000000000') %>% 
           hot_col(col = "term_description", halign = "htCenter", colWidths = 600)
       })
-      
-      
       removeModal()
     }
-    )    
+    )
+    
   
 }
 

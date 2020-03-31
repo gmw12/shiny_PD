@@ -1,236 +1,209 @@
-
+tmt_spqc_prep <- function(){
+  # create subdirectory to store csv and plots
+  dpmsr_set$file$TMT_dir <<- create_dir(str_c(dpmsr_set$file$data_dir,"/TMT_IRS"))
+  bar_plot_TMT(dpmsr_set$data$normalized$sl, str_c("TMT_IRS_Step0"), dpmsr_set$file$TMT_dir, dpmsr_set$design)
+  
+}
 #-------------------------------------------------------------------------------------
 # TMT SPQC - normalize TMT, SL, IRS
 #-------------------------------------------------------------------------------------
-tmt_spqc_normalize <- function(){
-  
-  sets_tmt <- as.numeric(design_info[36,2])
-  tmt_kit <- as.numeric(design_info[37,2])
-  filter_peptides <- as.logical(design_info[38,2])
-  sd_factor <- as.numeric(design_info[39,2])
-  
-  all_data <- forward_data
-  
-  # create subdirectory to store csv and plots
-  TMT_dir <- create_dir(str_c(data_dir,"//TMT_IRS"))
-  TMT_prefix <- TMT_dir #str_c(TMT_dir, "_")
-  testthis <- str_c(TMT_dir, basename(input_data))
-  #file.copy(input_data, str_c(TMT_dir, basename(input_data)))
-  #file.copy(study_design, str_c(TMT_dir, basename(study_design)))
-  
-  #function Bar plot-------------------------------------------------
-  barplot_TMT <- function(x,y) {
-    x[is.na(x)] <- 0.0
-    x <- colSums(x)
-    png(filename=str_c(TMT_dir, y, "_barplot.png"), width = 888, height = 571)  
-    barplot(x, 
-            col = color_list,
-            names.arg = treatment_groups,
-            cex.names = .8,
-            las=2,
-            main = y)
-    dev.off()
+tmt_spqc_normalize <- function(data_in){
+  #Reset incase reanlayzing in same session
+  if(dpmsr_set$x$raw_data_input == "Protein_Peptide" || dpmsr_set$x$raw_data_input == "Peptide")
+  {
+    dpmsr_set$y$state <<- "Peptide" 
   }
+  sets_tmt <- as.numeric(dpmsr_set$x$tmt_spqc_sets)
+  tmt_kit <- as.numeric(dpmsr_set$x$tmt_spqc_channels)
+  sd_factor <- as.numeric(dpmsr_set$x$tmt_spqc_sd_factor_filter)
+
+  dpmsr_set$y$info_columns <<- ncol(data_in) - dpmsr_set$y$sample_number
+#--------------------------------------------------------------------------------------------------------------  
   
-  # function create column to flag and delete rows with no data
-  delete_empty_row <- function(data_in){
-    data_in$na_count <- apply(data_in[(info_count+1):ncol(data_in)], 1, function(x) sum(is.na(x)))
-    data_in <- subset(data_in, data_in$na_count != tmt_kit)
-    data_in <- data_in[1:(info_count + tmt_kit)]
-    return(data_in)
-  }
-  
-  
-  #--- collapse peptide to protein-------------------------------------------------------------
-  collapse_peptide_tmt <- function(peptide_data){
-    peptide_annotate <- peptide_data[, c("Accession", "Description")]
-    peptide_data <- peptide_data[(info_count+1):ncol(peptide_data)]
-    peptide_annotate$Peptides <- 1
-    peptide_annotate$Peptides <- as.numeric(peptide_annotate$Peptides)
-    test1 <- cbind(peptide_annotate, peptide_data)
-    test2 <- test1 %>% group_by(Accession, Description) %>% summarise_all(list(sum))
-    test2 <- ungroup(test2)
-    test2 %>% mutate_if(is.numeric, ~round(., 1))
-    return(test2)
+#---Step 1-2, split combined data into indiv sets, remove empty rows------------------------------------------------------------
+  cat(file=stderr(), "TMT IRS step1,2...", "\n")
+  for(i in 1:sets_tmt){
+    #create design for each TMT set
+    irs_design <- dpmsr_set$design[dpmsr_set$design$Set==i,]
+    assign(str_c("TMT",i,"_design"), irs_design)
+    #assign(str_c("Test",i,"_design"), irs_design, envir = .GlobalEnv)
+    #create df for each TMT set
+    irs_set <- data_in[,(dpmsr_set$y$info_columns + dpmsr_set$design[dpmsr_set$design$Set==i,]$PD_Order)]
+    irs_set <- cbind(data_in[1:dpmsr_set$y$info_columns], irs_set)
+    assign(str_c("Test_",i,"_Step1_data"), irs_set, envir = .GlobalEnv)
+    assign(str_c("IRS_",i,"_Step1_data"), irs_set)
+    Simple_Excel(irs_set, str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Step1.xlsx", collapse = " "))
+    bar_plot_TMT(irs_set, str_c("TMT", i, "_IRS_Step1"),dpmsr_set$file$TMT_dir,irs_design)
+    #remove empty rows 
+    irs_set$na_count <- apply(irs_set[(dpmsr_set$y$info_columns+1):ncol(irs_set)], 1, function(x) sum(!is.na(x)))
+    irs_set <- subset(irs_set, irs_set$na_count > 1)
+    irs_set$na_count <- NULL
+    #irs_set[is.na(irs_set)] <- 0.0
+    #assign(str_c("Test_",i,"_Step2_data"), irs_set, envir = .GlobalEnv)
+    assign(str_c("IRS_",i,"_Step2_data"), irs_set)
+    Simple_Excel(irs_set, str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Step2.xlsx", collapse = " "))
+    #bar_plot_TMT(irs_set, str_c("TMT", i, "_IRS_Step2"), dpmsr_set$file$TMT_dir,irs_design)
   } 
   
-  #break down PD output to peptide only with protein assignments
-  if(protein_peptide_input)
-  {
-    tmt_data <- protein_to_peptide(all_data)
-  }else{
-    tmt_data <- all_data
-  }
+#----------------------------------------------------------------------------------------------------    
   
-  excel_order <- sample_info$PD_Order
-  info_count <- ncol(tmt_data) - sample_number
-  info_columns <- tmt_data[1:info_count]
-  original_info_headers <- names(info_columns)
-  all_peptide <- tmt_data #temp
-  #all_peptide <-  all_peptide[(info_count+1):ncol(all_peptide)][, (excel_order)]
-  tmt_data <-  tmt_data[(info_count+1):ncol(tmt_data)]
-  
-  
-  if(protein_peptide_input)
-  {
-    input_type <- "Peptide"
-    output_type <- "Protein"
-    raw_peptide <- cbind(info_columns, all_peptide)
-    Simple_Excel(raw_peptide, str_c(TMT_prefix, "TMT_raw_", input_type, ".xlsx"))
-  }else if (data_input_type =="TMT SPQC Phos"){
-    input_type <- "Peptide"
-    output_type <- "Peptide"
-  }else{
-    input_type <- "Protein"
-    output_type <- "Protein"
-  }
-  
-  barplot_TMT(tmt_data, str_c("Raw_", input_type))
-  
-  
-  # split combined data from PD into individual sets
-  start_col<-1
-  for(i in 1:sets_tmt){
-    irs_set <- subset(sample_info, sample_info$Set==i)
-    irs_set$setorder <- seq(start_col, (nrow(irs_set)+start_col-1))
-    irs_set$sequence <- seq(1, nrow(irs_set))
-    temp_data <- cbind(info_columns, tmt_data[ ,irs_set$PD_Order])
-    temp_data <- delete_empty_row(temp_data)
-    temp_data[is.na(temp_data)] <- 0.0
-    assign(str_c("Raw",i,"_input"), temp_data)
-    assign(str_c("IRS",i,"_set"), irs_set)
-    treatment_groups<-irs_set$Group
-    color_list<-irs_set$colorlist
-    barplot_TMT(temp_data[(info_count+1):ncol(temp_data)], str_c("Raw_", input_type, "_",i))
-    start_col <- start_col + tmt_kit
-  }
-  
-  
-  # SL normalize sets, using target created from all TMT sets
-  #sum each channel and then take mean of all channels
-  temp_data <- get(str_c("Raw",1,"_input"))
-  target <- colSums(temp_data[(info_count+1):ncol(temp_data)])
-  for(i in 2:sets_tmt){
-    temp_data <- get(str_c("Raw",i,"_input"))
-    target <- c(target, colSums(temp_data[(info_count+1):ncol(temp_data)]))
-  }
-  target <- mean(target)
+#---Step3, Impute missing values with random value from bottom 5% of measured values
+  cat(file=stderr(), "TMT IRS step3...", "\n")
+  data_dist <- as.vector(t(data_in[(dpmsr_set$y$info_columns+1):ncol(data_in)]))
+  data_dist <- data_dist[!is.na(data_dist)]
+  data_dist <- data_dist[data_dist>0]
+  data_dist <- data.frame(data_dist)
+  data_dist <- log2(data_dist)
+  data_dist$bin <- ntile(data_dist, 20)  
+  data_dist <- data_dist[data_dist$bin==1,]
+  bottom5_max <- max(data_dist$data_dist)
+  bottom5_min <- min(data_dist$data_dist)
   
   for(i in 1:sets_tmt){
-    temp_data <- get(str_c("Raw",i,"_input"))
-    irs_info <- temp_data[1:info_count]
-    temp_data <- temp_data[(info_count+1):ncol(temp_data)]
-    norm_facs <- target / colSums(temp_data)
-    temp_sl <- sweep(temp_data, 2, norm_facs, FUN = "*")
-    color_list<-irs_set$colorlist
-    barplot_TMT(temp_sl, str_c("SL_" , input_type, "_",i))
-    temp_sl <- cbind(irs_info, temp_sl)
-    assign(str_c("Norm",i,"_SL_input"), temp_sl)
-    Simple_Excel(temp_sl, str_c(TMT_prefix, "Norm",i, "_SL_", input_type, ".xlsx"))
-  }
+    irs_df_temp <- get(str_c("IRS_",i,"_Step2_data"))
+    irs_info <- irs_df_temp[1:dpmsr_set$y$info_columns]
+    irs_df_temp <- irs_df_temp[(dpmsr_set$y$info_columns+1):ncol(irs_df_temp)]
+    irs_df_temp <- log2(irs_df_temp)
   
-  #Filter data based on CV of SPQC if requested, collapse peptide to protein
+    for (j in 1:nrow(irs_df_temp)){
+      for (k in 1:ncol(irs_df_temp)){
+        if ( is.na(irs_df_temp[j,k])) {irs_df_temp[j,k] <- runif(1, bottom5_min, bottom5_max) } 
+      }
+    }
+    irs_df_temp <- 2^irs_df_temp
+    irs_df_temp <- cbind(irs_info, irs_df_temp)
+    assign(str_c("IRS_",i,"_Step3_data"), irs_df_temp)
+    Simple_Excel(irs_set, str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Step3.xlsx", collapse = " "))
+    #bar_plot_TMT(irs_set, str_c("TMT", i, "_IRS_Step3"), dpmsr_set$file$TMT_dir,irs_design)
+}
+
+
+#----------------------------------------------------------------------------------------------------  
+
+#---Step4------Filter data based on CV of SPQC if requested, collapse peptide to protein
+  cat(file=stderr(), "TMT IRS step4...", "\n")
   for(i in 1:sets_tmt){
-    temp_data <- get(str_c("Norm",i,"_SL_input"))
-    if (filter_peptides){
-      irs_set <- get(str_c("IRS",i,"_set"))
+    if (as.logical(dpmsr_set$x$tmt_filter_peptide)){
+      filter_data <- get(str_c("IRS_",i,"_Step3_data"))
+      irs_design <- get(str_c("TMT",i,"_design"))
       spqc_set <- subset(irs_set, irs_set$Group == "SPQC")
-      spqc_count <- nrow(spqc_set)
-      #this assumes the spqc are orded in the front of the set
-      if (spqc_count >1){
-        temp_data$average <- apply(temp_data[(info_count+1):(info_count+spqc_count)], 1, FUN = mean)
-        temp_data$stddev <- apply(temp_data[(info_count+1):(info_count+spqc_count)], 1, FUN = sd)
-        temp_data$cv <- temp_data$stddev / temp_data$average * 100
-        temp_data$bin <- ntile(temp_data$average, 5)  
-        #histogram_tmt(temp_data$cv,"Set_CV","Log2 CV Distribution") 
-        sd_info <- subset(temp_data) %>% group_by(bin) %>% 
+      spqc_temp <- filter_data %>% dplyr::select(contains("SPQC"))
+      spqc_count <- ncol(spqc_temp)
+      
+      if (spqc_count>1){
+        spqc_temp$average <- apply(spqc_temp[1:spqc_count], 1, FUN = mean)
+        spqc_temp$stddev <- apply(spqc_temp[1:spqc_count], 1, FUN = sd)
+        spqc_temp$cv <- spqc_temp$stddev / spqc_temp$average * 100
+        spqc_temp$bin <- ntile(spqc_temp$average, 5)  
+        sd_info <- subset(spqc_temp) %>% group_by(bin) %>% 
           summarize(min = min(average), max = max(average), min_cv= min(cv), max_cv = max(cv), av_cv = mean(cv), sd_cv = sd(cv))
-        temp_data$maxcv <- NA  
-        for (j in 1:nrow(temp_data)){
-          temp_data$maxcv[j] <- sd_info$av_cv[temp_data$bin[j]] + (sd_factor * sd_info$sd_cv[temp_data$bin[j]])
-        }
-        temp_data <- subset(temp_data, temp_data$cv < temp_data$maxcv)
-      }else{
-        temp_data <- subset(temp_data, temp_data[spqc_set$sequence]>0)
+        spqc_temp$maxcv <- lapply(spqc_temp$bin, function(x) (sd_info$av_cv[x] + (as.numeric(dpmsr_set$x$tmt_spqc_sd_factor_filter) * sd_info$sd_cv[x] )))
+        spqc_temp$maxcv <- as.numeric(spqc_temp$maxcv)
+        spqc_temp$pass <- spqc_temp$maxcv - spqc_temp$cv
+        filter_data <- cbind(filter_data, spqc_temp$pass)
+        filter_data <- subset(filter_data, filter_data$`spqc_temp$pass` >0)
+        filter_data$`spqc_temp$pass` <- NULL
       }
       
-      temp_data <- temp_data[1:(info_count+tmt_kit)]
-      color_list<-irs_set$colorlist
-      barplot_TMT(temp_data[(info_count+1):ncol(temp_data)], str_c("Norm_Peptide_Filtered_",i))
-      assign(str_c("Norm",i,"_SL_filtered_peptide"), temp_data)
-      Simple_Excel(temp_data, str_c(TMT_prefix, 'Norm_filtered',i,'_peptide.xlsx'))
-    }
-    
-    #collapse to protein level
-    if (protein_peptide_input)  {
-      temp_protein <- collapse_peptide_tmt(temp_data)
+      assign(str_c("IRS_",i,"_Step4_data"), filter_data)
+      Simple_Excel(filter_data, str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Step4.xlsx", collapse = " "))
+      bar_plot_TMT(filter_data, str_c("TMT", i, "_IRS_Step4"), dpmsr_set$file$TMT_dir, get(str_c("TMT",i,"_design")))
     }else{
-      temp_protein <- temp_data
-    }
-    #barplot_TMT(temp_protein[], str_c("SL_Protein_Filtered_",i))
-    assign(str_c("IRS",i,"_output"), temp_protein)
-    if (filter_peptides){
-      barplot_TMT(temp_protein[(ncol(temp_protein)-tmt_kit+1):ncol(temp_protein)], str_c("SL_", output_type, "_Filtered_",i))
-      Simple_Excel(temp_protein, str_c(TMT_prefix, "SL_Filtered",i, "_", output_type, ".xlsx"))
-    }else {
-      barplot_TMT(temp_protein[(ncol(temp_protein)-tmt_kit+1):ncol(temp_protein)], str_c("SL_", output_type, "_",i))
-      Simple_Excel(temp_protein, str_c(TMT_prefix, "SL_",i, "_", output_type, ".xlsx"))
+      assign(str_c("Test_",i,"_Step4_data"), get(str_c("IRS_",i,"_Step3_data")), envir = .GlobalEnv) 
+      assign(str_c("IRS_",i,"_Step4_data"), get(str_c("IRS_",i,"_Step3_data")) )
     }
   }
-  
-  
-  #identify common proteins or peptides
-  if (output_type == "Protein")
+
+
+#----------------------------------------------------------------------------------------------------  
+
+#---Step5----collapse peptide to protein  
+  cat(file=stderr(), "TMT IRS step5...", "\n")
+  if (dpmsr_set$y$state=="Peptide" && dpmsr_set$x$final_data_output == "Protein"){
+    for(i in 1:sets_tmt){
+        if (exists(str_c("IRS_",i,"_Step4_data"))){
+          peptide_data <- get(str_c("IRS_",i,"_Step4_data"))
+        }else{
+          peptide_data <- get(str_c("IRS_",i,"_Step3_data"))
+        }
+        peptide_annotate <- peptide_data[, c("Accession", "Description")]
+        peptide_annotate$Peptides <- 1
+        peptide_annotate$Peptides <- as.numeric(peptide_annotate$Peptides)
+        peptide_data <- peptide_data[(dpmsr_set$y$info_columns+1):ncol(peptide_data)]
+        peptide_data[is.na(peptide_data)] <- 0
+        peptide_data <- cbind(peptide_annotate, peptide_data)
+        protein_data <- peptide_data %>% group_by(Accession, Description) %>% summarise_all(list(sum))
+        protein_data <- data.frame(ungroup(protein_data))
+        assign(str_c("IRS_",i,"_Step5_data"), protein_data)
+        assign(str_c("Test_",i,"_Step5_data"), protein_data, envir = .GlobalEnv)
+        Simple_Excel(protein_data, str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Step5.xlsx", collapse = " "))
+        #bar_plot_TMT(protein_data, str_c("TMT", i, "_IRS_Step5"), dpmsr_set$file$TMT_dir, get(str_c("TMT",i,"_design")))
+    }
+    #set info column for protein data
+    dpmsr_set$y$info_columns<<-3
+  }else{
+    assign(str_c("IRS_",i,"_Step5_data"), get(str_c("IRS_",i,"_Step4_data")))
+  }
+ 
+#----------------------------------------------------------------------------------------------------    
+
+#---Step6--identify common proteins or peptides
+  cat(file=stderr(), "TMT IRS step6...", "\n")
+  if (dpmsr_set$x$final_data_output == "Protein")
   {
-    common_data <- unlist(data.frame(get("IRS1_output")[ , "Accession"]))
+    # create vector of common accession for protein dataframes
+    common_data <- unlist(data.frame(get("IRS_1_Step5_data"))[ , "Accession"])
     for(i in 2:sets_tmt){
-      common_data2 <- unlist(data.frame(get(str_c("IRS",i,"_output"))[ , "Accession"]))
+      common_data2 <- unlist(data.frame(get(str_c("IRS_",i,"_Step5_data"))[ , "Accession"]))
       common_data <- intersect(common_data, common_data2)
     }
     for(i in 1:sets_tmt){
-      temp_data <- get(str_c("IRS",i,"_output"))
+      temp_data <- get(str_c("IRS_",i,"_Step5_data"))
       temp_data <- subset(temp_data, temp_data$Accession %in% common_data)
       temp_data <- temp_data[order(temp_data$Accession),]
-      barplot_TMT(temp_data[(ncol(temp_data)-tmt_kit+1):ncol(temp_data)], str_c("SL_Common", output_type, "_Filtered_",i))
-      assign(str_c("IRS",i,"_common"), subset(temp_data, temp_data$Accession %in% common_data))
+      assign(str_c("IRS_",i,"_Step6_data"), temp_data)
+      Simple_Excel(temp_data, str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Step6.xlsx", collapse = " "))
+      #bar_plot_TMT(temp_data, str_c("TMT", i, "_IRS_Step6"), dpmsr_set$file$TMT_dir, get(str_c("TMT",i,"_design")))
+      #combine peptide count from multiple sets into one column for output later
+      if(i==1){
+        peptide_count <- temp_data$Peptides
+      }else{
+        peptide_count <- str_c(peptide_count, ", ", temp_data$Peptides)
+      }
     }
   }else{
-    IRS1_output$uniqueID <- paste(IRS1_output$`Master Protein Accessions`, IRS1_output$`Annotated Sequence`, IRS1_output$Modifications)
-    common_data <- unlist(data.frame(get("IRS1_output")[ , "uniqueID"]))
+    # for peptide - NOT TESTED
+    IRS_1_Step5_data$uniqueID <- paste(IRS_1_Step5_data$Accession, IRS_1_Step5_data$Sequence, IRS_1_Step5_data$Modifications)
+    common_data <- unlist(IRS_1_Step5_data$uniqueID)
     for(i in 2:sets_tmt){
-      temp_IRS <- get(str_c("IRS",i,"_output"))
-      temp_IRS$uniqueID <- paste(temp_IRS$`Master Protein Accessions`, temp_IRS$`Annotated Sequence`, temp_IRS$Modifications)
-      assign(str_c("IRS",i,"_output"), temp_IRS)
-      common_data2 <- unlist(data.frame(get(str_c("IRS",i,"_output"))[ , "uniqueID"]))
+      temp_IRS <- get(str_c("IRS_",i,"_Step5_data"))
+      temp_IRS$uniqueID <- paste(temp_IRS$Accession, temp_IRS$Sequence, temp_IRS$Modifications)
+      assign(str_c("IRS_",i,"_Step5_data"), temp_IRS)
+      common_data2 <- unlist(temp_IRS$uniqueID)
       common_data <- intersect(common_data, common_data2)
     }
     for(i in 1:sets_tmt){
-      temp_data <- get(str_c("IRS",i,"_output"))
+      temp_data <- get(str_c("IRS_",i,"_Step5_data"))
       temp_data <- subset(temp_data, temp_data$uniqueID %in% common_data)
       temp_data <- temp_data[order(temp_data$uniqueID),]
       temp_data$uniqueID <- NULL
-      barplot_TMT(temp_data[(ncol(temp_data)-tmt_kit+1):ncol(temp_data)], str_c("SL_Common", output_type, "_Filtered_",i))
-      assign(str_c("IRS",i,"_common"), temp_data)
-      #assign(str_c("IRS",i,"_common"), subset(temp_data, temp_data$Accession %in% common_data))
+      assign(str_c("IRS_",i,"_Step6_data"), temp_data)
+      Simple_Excel(temp_data, str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Step6.xlsx", collapse = " "))
+      #bar_plot_TMT(temp_data, str_c("TMT", i, "_IRS_Step6"), dpmsr_set$file$TMT_dir, get(str_c("TMT",i,"_design")))
     }
   } 
   
+
+#----------------------------------------------------------------------------------------------------    
   
-  
-  
-  #reset info columns for protein level data
-  irs_info <- data.frame(IRS1_common[1:(ncol(IRS1_common)-tmt_kit)])
-  info_count <- ncol(irs_info)
-  
+#---Step7--IRS normalization-------------------------------------------------------------------
+  cat(file=stderr(), "TMT IRS step7...", "\n")
   #create SPQC data frames for each set, with sums
   for(i in 1:sets_tmt){
-    spqc_data <- get(str_c("IRS",i,"_common"))
-    irs_set <- get(str_c("IRS",i,"_set"))
-    spqc_set <- subset(irs_set, irs_set$Group == "SPQC")
-    spqc_set$sequence <- spqc_set$sequence + info_count
-    spqc_data <- spqc_data[, (spqc_set$sequence)]
-    spqc_data$sums <- rowSums(spqc_data)
-    assign(str_c("SPQC",i,"_data"), spqc_data)
+    irs_data <- get(str_c("IRS_",i,"_Step6_data"))
+    spqc_temp <- irs_data %>% dplyr::select(contains("SPQC"))
+    spqc_temp$sums <- rowSums(spqc_temp)
+    assign(str_c("SPQC",i,"_data"), spqc_temp)
   }
   
   #create dataframe with SPQC sums, add column with geometric mean (of sums of each protein per set)
@@ -250,37 +223,122 @@ tmt_spqc_normalize <- function(){
   
   #apply IRS norm to each set
   for(i in 1:sets_tmt){
-    temp_data <- get(str_c('IRS',i,'_common'))[(info_count+1):(info_count+tmt_kit)]
+    temp_data <- get(str_c("IRS_",i,"_Step6_data"))
+    #temp_data <- get(str_c("IRS_",i,"_Step6_data"))[(dpmsr_set$y$info_columns+1):(dpmsr_set$y$info_columns+tmt_kit)]
     spqc_data <- get(str_c('SPQC',i,'_data'))
-    temp_data <- temp_data/spqc_data$fact
-    barplot_TMT(temp_data[(ncol(temp_data)-tmt_kit+1):ncol(temp_data)], str_c("SL_IRS_Common", output_type, "_Filtered_",i))
-    assign(str_c("IRS",i,"_final"), temp_data)
-    Simple_Excel(temp_data, str_c(TMT_prefix, "IRS_SL_Filtered",i, "_", output_type, ".xlsx"))
+    temp_data[(dpmsr_set$y$info_columns+1):(dpmsr_set$y$info_columns+tmt_kit)] <- temp_data[(dpmsr_set$y$info_columns+1):(dpmsr_set$y$info_columns+tmt_kit)]/spqc_data$fact
+    assign(str_c("IRS_",i,"_Step7_data"), temp_data)
+    Simple_Excel(temp_data, str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Step7.xlsx", collapse = " "))
+    #bar_plot_TMT(temp_data, str_c("TMT", i, "_IRS_Step7"), dpmsr_set$file$TMT_dir, get(str_c("TMT",i,"_design")))
   }
   
+  
+  #----------------------------------------------------------------------------------------------------    
+  
+  #---Step8--Recombine Data------------------------------------------------------------------- 
+  
   #recombine sets for output
-  final_SL_IRS <- IRS1_final
+  final_SL_IRS <- IRS_1_Step7_data
   for(i in 2:sets_tmt){
-    final_SL_IRS <- cbind(final_SL_IRS, get(str_c("IRS",i,"_final")))
+    final_SL_IRS <- cbind(final_SL_IRS, get(str_c("IRS_",i,"_Step7_data"))[(dpmsr_set$y$info_columns+1):(dpmsr_set$y$info_columns+tmt_kit)] )
   }
+  final_SL_IRS$Peptides <- peptide_count
+  
   #reorder combined set in original order
-  set_original <- IRS1_set
+  set_original <- TMT1_design
   for(i in 2:sets_tmt){
-    irs_set <- get(str_c('IRS',i,'_set'))
+    irs_set <- get(str_c('TMT',i,'_design'))
     set_original <- rbind(set_original, irs_set) 
   }
   set_original$reorder <- seq(1,(tmt_kit*sets_tmt))
   set_original <- set_original[order(set_original$PD_Order),]
+  final_info_columns <- final_SL_IRS[1:dpmsr_set$y$info_columns] 
+  final_SL_IRS<-final_SL_IRS[(dpmsr_set$y$info_columns+1):ncol(final_SL_IRS)] 
   final_SL_IRS <- final_SL_IRS[ ,set_original$reorder]
-  #colnames(irs_info)<-original_info_headers
-  final_SL_IRS <- cbind(irs_info, final_SL_IRS)
+  final_SL_IRS <- cbind(final_info_columns, final_SL_IRS)
   
-  Simple_Excel(final_SL_IRS, str_c(TMT_prefix, "TMT_SL_IRS_Norm.xlsx"))
+  Simple_Excel(final_SL_IRS, str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Final.xlsx", collapse = " "))
+  bar_plot_TMT(final_SL_IRS, str_c("TMT_IRS_Final"), dpmsr_set$file$TMT_dir, dpmsr_set$design)
   
-  treatment_groups<-sample_info$Group
-  color_list<-sample_info$colorlist
-  barplot_TMT(final_SL_IRS[(info_count+1):ncol(final_SL_IRS)], str_c("Final_SL_IRS_Common", output_type, "_Filtered_"))
-  
-  return(final_SL_IRS)
-}
 
+
+#--------------------------------------------------------------------
+#Combined Bar plot-------------------------------------------------
+for(j in 1:7){
+    step <- str_c("Step", j)
+    for(i in 1:sets_tmt){
+     plot_data <- get(str_c("IRS_",i,"_",step,"_data"))
+     plot_design <- get(str_c("TMT",i,"_design"))
+     info_columns <- ncol(plot_data) - nrow(plot_design)
+     plot_data<- plot_data[(info_columns+1):ncol(plot_data)]
+     namex <- plot_design$Label
+     datay <- colSums(plot_data, na.rm = TRUE)
+     if(i==1){
+        df2 <- data.frame(namex)
+        df2$Total_Intensity <- datay
+        plot_design_all <- plot_design
+     }else{
+        df3 <- data.frame(namex)
+        df3$Total_Intensity <- datay
+        df2 <- rbind(df2,df3)
+        plot_design_all <- rbind(plot_design_all, plot_design)
+      }
+    }
+    colnames(df2) <- c("Sample", "Total_Intensity")
+    df2$Sample <- factor(df2$Sample, levels = df2$Sample)
+    file_name <- str_c(dpmsr_set$file$TMT_dir, "TMT_IRS_", step, "_barplot.png")
+    ymax <- max(datay)
+    ggplot(data=df2, aes(x=Sample, y=Total_Intensity)) +
+      geom_bar(stat="identity", fill=plot_design_all$colorlist)+ theme_classic() + 
+      ggtitle(str_c("TMT_IRS_", step)   ) + 
+      xlab(NULL)+
+      ylab(NULL)+
+      #scale_y_discrete(labels = NULL) +
+      coord_cartesian(ylim=NULL, expand = TRUE) +
+      theme(plot.title = element_text(hjust = 0.5), 
+            axis.text.x = element_text(size=5, angle = 90,  color="black"),
+            axis.text.y = element_text(size=5,  color="black"),
+      ) 
+    ggsave(file_name, width=5, height=4)
+}
+  #save files
+  dpmsr_set$data$impute$impute <<- final_SL_IRS 
+  dpmsr_set$data$impute$sl <<- final_SL_IRS 
+  dpmsr_set$y$state <<- "Protein"
+  dpmsr_set$y$info_columns_final <<- 3
+  return()
+}    
+    
+    
+
+#-----------------------------
+# TNT specific functions
+#-----------------------------
+
+
+#Bar plot-------------------------------------------------
+bar_plot_TMT <- function(df,plot_title,plot_dir,irs_design) {
+  info_columns <- ncol(df) - nrow(irs_design)
+  df <- df[(info_columns+1):ncol(df)]
+  namex <- irs_design$Label
+  datay <- colSums(df, na.rm = TRUE)
+  df2 <- data.frame(namex)
+  df2$Total_Intensity <- datay
+  colnames(df2) <- c("Sample", "Total_Intensity")
+  df2$Sample <- factor(df2$Sample, levels = df2$Sample)
+  file_name <- str_c(plot_dir, plot_title, "_barplot.png")
+  ymax <- max(datay)
+  ggplot(data=df2, aes(x=Sample, y=Total_Intensity)) +
+    geom_bar(stat="identity", fill=irs_design$colorlist)+ theme_classic() + 
+    ggtitle(plot_title) + 
+    xlab(NULL)+
+    ylab(NULL)+
+    #scale_y_discrete(labels = NULL) +
+    coord_cartesian(ylim=NULL, expand = TRUE) +
+    theme(plot.title = element_text(hjust = 0.5), 
+          axis.text.x = element_text(size=5, angle = 90,  color="black"),
+          axis.text.y = element_text(size=5,  color="black"),
+    ) 
+  ggsave(file_name, width=5, height=4)
+  return("done")
+}

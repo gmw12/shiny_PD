@@ -77,11 +77,9 @@ setup_go_volcano <- function(input, output, data_in){
     myGENE2GO_lookup$Go[i] <- test_str
   }
   
-  Simple_Excel(myGENE2GO_lookup, "myGENE2GO_lookup.xlsx")
-  
+  #Simple_Excel(myGENE2GO_lookup, "myGENE2GO_lookup.xlsx")
   dpmsr_set$data$pathway$mergedf <<- merge(x=volcano_df, y=myGENE2GO_lookup, by.x="Accession", by.y="Accession")
-  
-  Simple_Excel(dpmsr_set$data$pathway$mergedf, "merged_df.xlsx")
+  #Simple_Excel(dpmsr_set$data$pathway$mergedf, "merged_df.xlsx")
   
 }
 

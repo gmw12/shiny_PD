@@ -20,7 +20,7 @@ update_shiny_defaults <- function(session){
   updateCheckboxInput(session, "checkbox_isoform", value = isoform) 
   
   if (as.logical(dpmsr_set$x$tmt_spqc_norm)) {tmtnorm <- 1}else{tmtnorm<-0}
-  updateCheckboxInput(session, "check_tmt", value = tmtnorm) 
+  updateCheckboxInput(session, "checkbox_tmt", value = tmtnorm) 
   
   if (as.logical(dpmsr_set$x$peptide_ptm_out) ) {ptmreport <- 1}else{ptmreport<-0}
   updateCheckboxInput(session, "checkbox_out_ptm", value = ptmreport) 
@@ -93,7 +93,7 @@ update_shiny_defaults <- function(session){
     else if(dpmsr_set$x$impute_method == "KNN"){impute_method <- 5}
     else if(dpmsr_set$x$impute_method == "LocalLeastSquares"){impute_method <- 6}
     else if(dpmsr_set$x$impute_method == "MLE"){impute_method <- 7}
-    else if(dpmsr_set$x$impute_method == "Bottom5"){impute_method <- 8}
+    else if(dpmsr_set$x$impute_method == "BottomX"){impute_method <- 8}
   updateRadioButtons(session, "radio_impute", selected = impute_method )
   
   if (as.logical(dpmsr_set$x$peptide_ptm_impute) ) {ptmreport <- 1}else{ptmreport<-0}
@@ -101,9 +101,19 @@ update_shiny_defaults <- function(session){
   
   updateNumericInput(session, "impute_floor", value = as.numeric(dpmsr_set$x$area_floor))
   
+  updateNumericInput(session, "bottom_x", value = as.numeric(dpmsr_set$x$bottom_x))
+  
   if (as.logical(dpmsr_set$x$missing_50)) {missing_50 <- 1}else{missing_50<-0}
   updateCheckboxInput(session, "checkbox_missing_50", value = as.logical(dpmsr_set$x$missing_50))
   
+  #----------------------------------------------------------------------------------
+  
+  updateNumericInput(session, "tmt_sets", value = as.numeric(dpmsr_set$x$tmt_spqc_sets))
+  updateNumericInput(session, "tmt_channels", value = as.numeric(dpmsr_set$x$tmt_spqc_channels))
+  updateNumericInput(session, "tmt_filter_sd", value = as.numeric(dpmsr_set$x$tmt_spqc_sets))
+  
+  if (as.logical(dpmsr_set$x$tmt_filter_peptide)) {tmt_filter <- 1}else{tmt_filter<-0}
+  updateCheckboxInput(session, "checkbox_tmt_filter", value = tmt_filter)
   
   #----------------------------------------------------------------------------------
   
@@ -190,6 +200,7 @@ update_shiny_defaults <- function(session){
   updateSelectInput(session, "select_final_data_go", choices = names(dpmsr_set$data$final), selected= "impute")
   updateSelectInput(session, "select_data_comp_string", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
   updateSelectInput(session, "select_final_data_string", choices = names(dpmsr_set$data$final), selected= "impute")
+  updateSelectInput(session, "select_final_data_report", choices = names(dpmsr_set$data$final), selected= "impute")
   updateSelectInput(session, "select_data_comp_string_enrich", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
   #updateSelectInput(session, "select_final_data_string_enrich", choices = names(dpmsr_set$data$final), selected= "impute")
 }
@@ -220,7 +231,8 @@ selection_updates_new_start <- function(session, input, output){
   updateSelectInput(session, "select_data_comp_string", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
   updateSelectInput(session, "select_final_data_string", choices = names(dpmsr_set$data$final), selected= "impute")
   updateSelectInput(session, "select_data_comp_string_enrich", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
-  #updateSelectInput(session, "select_final_data_string_enrich", choices = names(dpmsr_set$data$final), selected= "impute")
+  updateSelectInput(session, "select_final_data_report", choices = names(dpmsr_set$data$final), selected= "impute")
+   #updateSelectInput(session, "select_final_data_string_enrich", choices = names(dpmsr_set$data$final), selected= "impute")
   
   updateSelectInput(session, "select_oneprotein_norm", choices = names(dpmsr_set$data$final), selected= "impute")
   updateSelectInput(session, "select_onepeptide_norm", choices = names(dpmsr_set$data$final), selected= "impute")
@@ -250,12 +262,6 @@ selection_updates_new_start <- function(session, input, output){
   updateNumericInput(session, "pvalue_cutoff", value = as.numeric(dpmsr_set$x$pvalue_cutoff  ))
   updateNumericInput(session, "foldchange_cutoff", value = as.numeric(dpmsr_set$x$foldchange_cutoff ))
   
-  
-  
-  
-  
-  
-  
 }
 
 
@@ -278,6 +284,7 @@ selection_update_after_stats <- function(session, input, output){
   updateSelectInput(session, "select_final_data_go", choices = names(dpmsr_set$data$final), selected= "impute")
   updateSelectInput(session, "select_data_comp_string", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
   updateSelectInput(session, "select_final_data_string", choices = names(dpmsr_set$data$final), selected= "impute")
+  updateSelectInput(session, "select_final_data_report", choices = names(dpmsr_set$data$final), selected= "impute")
   updateSelectInput(session, "select_data_comp_string_enrich", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
   #updateSelectInput(session, "select_final_data_string_enrich", choices = names(dpmsr_set$data$final), selected= "impute")
   

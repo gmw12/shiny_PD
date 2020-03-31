@@ -1,5 +1,6 @@
 
 apply_impute <- function(){
+  cat(file=stderr(), "apply_impute function...", "\n")
   ncores <- detectCores()
   norm_list <- dpmsr_set$y$norm_list
   dpmsr_set$data$impute <<- mclapply(norm_list, impute_parallel, mc.cores = ncores)
@@ -32,7 +33,7 @@ impute_only <-  function(data_out){
   distribution_data <- data_out
   annotation_data <- data_out[1:dpmsr_set$y$info_columns]
   data_out <- data_out[(dpmsr_set$y$info_columns+1):ncol(data_out)]
-  if (dpmsr_set$x$impute_method == "Duke" || dpmsr_set$x$impute_method == "Bottom5" ||
+  if (dpmsr_set$x$impute_method == "Duke" ||
       dpmsr_set$x$impute_method == "KNN" || dpmsr_set$x$impute_method =="LocalLeastSquares"){
     data_out <- impute_multi(data_out, distribution_data)
   } else if (dpmsr_set$x$impute_method== "Floor") {
@@ -43,6 +44,8 @@ impute_only <-  function(data_out){
     data_out <- impute_minimum(data_out)
   } else if (dpmsr_set$x$impute_method == "MLE") {
     data_out <- impute_mle(data_out)  
+  } else if (dpmsr_set$x$impute_method == "BottomX") {
+    data_out <- impute_bottomx(data_out, distribution_data)  
   } else {
     data_out[is.na(data_out)] <- 0.0}
   data_out<-data.frame(lapply(data_out, as.numeric))
@@ -53,43 +56,42 @@ impute_only <-  function(data_out){
 
 #--------------------------------------------------------------------------------
 # imputation of missing data
-impute_multi <- function(data_in, distribution_data){
+impute_multi <- function(data_in, distribution_in){
   #Use all data for distribution or only ptm
   if (as.logical(dpmsr_set$x$peptide_ptm_impute)){
-    distribution_data <- distribution_data[grep(dpmsr_set$x$peptide_grep, distribution_data$Modifications),]
-  }  
+    distribution_data <- distribution_in[grep(dpmsr_set$x$peptide_grep, distribution_data$Modifications),]
+  }else{
+    distribution_data <- distribution_in
+  }
   distribution_data <- distribution_data[(dpmsr_set$y$info_columns+1):ncol(distribution_data)] 
   distribution_data <- log(distribution_data,2)
-  distribution_data[is.na(distribution_data)] <- 0.0
+  #distribution_data[is.na(distribution_data)] <- 0.0
   
   data_in <- log(data_in,2)
-  data_in[is.na(data_in)] <- 0.0
-  #data_in[data_in==-Inf] = 0
-  count_align <-0
-  count_onemissing <- 0
-  count_censor <- 0
-  
+  #data_in[is.na(data_in)] <- 0.0
+
   for(i in 1:dpmsr_set$y$group_number){
     # calculate stats for each sample group
     #assign(dpmsr_set$y$sample_groups$Group[i], data.frame(data_in[c(dpmsr_set$y$sample_groups$start[i]:dpmsr_set$y$sample_groups$end[i])]))
     #df <- get(dpmsr_set$y$sample_groups$Group[i])
     df <- data.frame(data_in[c(dpmsr_set$y$sample_groups$start[i]:dpmsr_set$y$sample_groups$end[i])])
-    df$sum <- rowSums(df)
+    df$sum <- rowSums(df, na.rm = TRUE)
     df$rep <- dpmsr_set$y$sample_groups$Count[i]
     df$min <- dpmsr_set$y$sample_groups$Count[i]/2
-    df$missings <- rowSums(df[1:dpmsr_set$y$sample_groups$Count[i]] == 0.0)
-    df$average <- apply(df[1:dpmsr_set$y$sample_groups$Count[i]], 1, FUN = function(x) {mean(x[x > 0])})
+    df$missings <- rowSums(is.na(df[1:dpmsr_set$y$sample_groups$Count[i]]))
+    df$average <- apply(df[1:dpmsr_set$y$sample_groups$Count[i]], 1, FUN = function(x) {mean(x, na.rm=TRUE)})
     
     #separate calc for distribution data - for low ptm sets where impute cold be skewed if keep the high abundance data
     df2 <- data.frame(distribution_data[c(dpmsr_set$y$sample_groups$start[i]:dpmsr_set$y$sample_groups$end[i])])
-    df2$sum <- rowSums(df2)
-    df2$rep <- dpmsr_set$y$sample_groups$Count[i]
-    df2$min <- dpmsr_set$y$sample_groups$Count[i]/2
-    df2$missings <- rowSums(df2[1:dpmsr_set$y$sample_groups$Count[i]] == 0.0)
-    df2$average <- apply(df2[1:dpmsr_set$y$sample_groups$Count[i]], 1, FUN = function(x) {mean(x[x > 0])})
-    df2$sd <- apply(df2[1:dpmsr_set$y$sample_groups$Count[i]], 1, FUN = function(x) {sd(x[x > 0])})
+    #df2$sum <- rowSums(df2, na.rm = TRUE)
+    #df2$rep <- dpmsr_set$y$sample_groups$Count[i]
+    #df2$min <- dpmsr_set$y$sample_groups$Count[i]/2
+    #df2$missings <- rowSums(is.na(df2[1:dpmsr_set$y$sample_groups$Count[i]]))
+    df2$average <- apply(df2[1:dpmsr_set$y$sample_groups$Count[i]], 1, FUN = function(x) {mean(x, na.rm=TRUE)})
+    df2$sd <- apply(df2[1:dpmsr_set$y$sample_groups$Count[i]], 1, FUN = function(x) {sd(x, na.rm=TRUE)})
     df2$bin <- ntile(df2$average, 20)  
-    sd_info <- subset(df2, missings ==0) %>% group_by(bin) %>% summarize(min = min(average), max = max(average), sd = mean(sd))
+    #sd_info <- subset(df2, missings ==0) %>% group_by(bin) %>% summarize(min = min(average), max = max(average), sd = mean(sd))
+    sd_info <- subset(df2, !is.na(sd)) %>% group_by(bin) %>% summarize(min = min(average), max = max(average), sd = mean(sd))
     for (x in 1:19){sd_info$max[x] <- sd_info$min[x+1]}
     sd_info$max[nrow(sd_info)] <- 100
     sd_info$min2 <- sd_info$min
@@ -99,58 +101,36 @@ impute_multi <- function(data_in, distribution_data){
     
     # if the number of missing values <= minimum then will impute based on normal dist of measured values
     if (dpmsr_set$x$impute_method == "Duke"){  
-      for (j in 1:nrow(data_in)){
-        for (k in 1:dpmsr_set$y$sample_groups$Count[i]){
-          if (df[j,k] == 0.0 && df$missings[j] <= df$min[j]) {
-            findsd <- sd_info %>% filter(df$average[j] >= min2, df$average[j]<= max)
-            nf <-  rnorm(1, 0, 1)
-            testsd <- findsd$sd 
-            df[j,k] = df$average[j] + (nf*findsd$sd)
-            count_onemissing <- count_onemissing+1
-           }
-         }
-       }
-    }
-    
-    # Bottom 5 - missing <= minimum will impute at background level, bottom 5%, random normal distribution
-    if(dpmsr_set$x$impute_method == "Bottom5"){
-      for (j in 1:nrow(data_in)){
-        for (k in 1:dpmsr_set$y$sample_groups$Count[i]){
-          if (df[j,k] == 0.0) { 
-            df[j,k] = runif(1, sd_info$min[1], sd_info$max[1])
-            count_censor <- count_censor +1}
-        }
-      }
-    }
-    
-    # if number of missing greater than minimum and measured value is above intensity cuttoff then remove measured value
-    if (dpmsr_set$x$missing_50){
-      for (j in 1:nrow(data_in)){
-        for (k in 1:dpmsr_set$y$sample_groups$Count[i]){
-          if (df[j,k] > 1 && df$missings[j] > df$min[j]) {
-            if (df[j,k] > log(dpmsr_set$x$int_cutoff,2)) {
-              df[j,k] = 0.0
-              count_align <- count_align+1}
+      find_rows <- which(df$missings >0 & df$missings<=df$min)
+        for (j in find_rows){
+          findsd <- sd_info %>% filter(df$average[j] >= min2, df$average[j]<= max)
+          for (k in 1:dpmsr_set$y$sample_groups$Count[i]){
+            if (is.na(df[j,k])) {
+              nf <-  rnorm(1, 0, 1)
+              df[j,k] = df$average[j] + (nf*findsd$sd[1])
             }
           }
         }
       }
+    
 
-    # missing > minimum will impute at background level, bottom 5%, random normal distribution
-    for (j in 1:nrow(data_in)){
-      for (k in 1:dpmsr_set$y$sample_groups$Count[i]){
-        if (df[j,k] == 0.0 && df$missings[j] > df$min[j]) { 
-          df[j,k] = runif(1, sd_info$min[1], sd_info$max[1])
-          count_censor <- count_censor +1}
+    # if number of missing greater than minimum and measured value is above intensity cuttoff then remove measured value
+    if (dpmsr_set$x$missing_50){
+      find_rows <- which(df$missings>df$min)
+      for (j in find_rows){
+        for (k in 1:dpmsr_set$y$sample_groups$Count[i]){
+            if (!is.na(df[j,k]) && df[j,k] > log(dpmsr_set$x$int_cutoff,2)) {
+              df[j,k] <- NA
+            }
+         }
+        }
       }
-    }
-
     
     #save group dataframe
     assign(dpmsr_set$y$sample_groups$Group[i], df[1:dpmsr_set$y$sample_groups$Count[i]])
   }
   
-  #saving original data with imputed data frame for trouble shooting
+  #saving original data with imputed data frame for return
   df3 <- get(dpmsr_set$y$sample_groups$Group[1])
   for(i in 2:dpmsr_set$y$group_number)  {df3 <- cbind(df3, get(dpmsr_set$y$sample_groups$Group[i]))}
   
@@ -158,8 +138,44 @@ impute_multi <- function(data_in, distribution_data){
   if (dpmsr_set$x$impute_method == "KNN"){df3 <- impute_knn(df)}  
   
   df3 <- data.frame(2^df3)
-  df3[df3 ==1 ] <- 0
+
+  if (dpmsr_set$x$impute_method == "Duke"){df3 <- impute_bottomx(df3, distribution_in)}
+  
   return(df3)
+}
+
+
+#--------------------------------------------------------------------------------
+# imputation of missing data
+impute_bottomx <- function(data_in, distribution_data){
+  cat(file=stderr(), "apply_bottomx function...", "\n")
+  #Use all data for distribution or only ptm
+  if (as.logical(dpmsr_set$x$peptide_ptm_impute)){
+    distribution_data <- distribution_data[grep(dpmsr_set$x$peptide_grep, distribution_data$Modifications),]
+  }  
+  distribution_data <- distribution_data[(dpmsr_set$y$info_columns+1):ncol(distribution_data)] 
+  distribution_data <- log(distribution_data,2)
+  
+  
+  #calc 100 bins for Bottom X%
+  data_dist <- as.vector(t(distribution_data))
+  data_dist <- data_dist[!is.na(data_dist)]
+  data_dist <- data_dist[data_dist>0]
+  data_dist <- data.frame(data_dist)
+  data_dist$bin <- ntile(data_dist, 100)  
+  bottomx_min <- min(data_dist[data_dist$bin==1,]$data_dist)
+  bottomx_max <- max(data_dist[data_dist$bin==as.numeric(dpmsr_set$x$bottom_x),]$data_dist)
+  
+  data_in <- log(data_in,2)
+  test <- apply(is.na(data_in), 2, which)
+  
+  for(n in names(test)){
+    for(l in (test[[n]]))
+      data_in[[n]][l] <- runif(1, bottomx_min, bottomx_max)
+  }
+  
+  data_in <- data.frame(2^data_in)
+  return(data_in)
 }
 
 #--------------------------------------------------------------------------------

@@ -3,11 +3,14 @@
 #----------------------------------------------------------------------
  hide_enable <- function(session, input){
    
-   
    observeEvent(input$design_file, {
       shinyjs::enable("action_load_design")
   })
   
+   observeEvent(input$dpmsr_set_file, {
+     shinyjs::enable("action_load_dpmsr_set")
+   })
+   
    observeEvent(input$raw_files, {
      shinyjs::enable("load_data")
    })
@@ -74,8 +77,6 @@
   
   
   
-  
-  
   observe({
     if (!input$checkbox_filtercv) {
       shinyjs::hide("text_filtercvgroup")
@@ -86,6 +87,77 @@
     }
   })  
   
+  
+  observe({
+    if (input$checkbox_tmt) {
+      updateCheckboxInput(session, "checkbox_n2", value = FALSE) 
+      updateCheckboxInput(session, "checkbox_n3", value = FALSE) 
+      updateCheckboxInput(session, "checkbox_n4", value = FALSE) 
+      updateCheckboxInput(session, "checkbox_n5", value = FALSE) 
+      updateCheckboxInput(session, "checkbox_n6", value = FALSE) 
+      updateCheckboxInput(session, "checkbox_n7", value = FALSE) 
+      updateCheckboxInput(session, "checkbox_n8", value = FALSE) 
+      updateCheckboxInput(session, "checkbox_n9", value = FALSE) 
+      updateCheckboxInput(session, "checkbox_n10", value = FALSE) 
+      updateCheckboxInput(session, "checkbox_n11", value = FALSE) 
+      shinyjs::hide("checkbox_n2")
+      shinyjs::hide("checkbox_n3")
+      shinyjs::hide("checkbox_n4")
+      shinyjs::hide("checkbox_n5")
+      shinyjs::hide("checkbox_n6")
+      shinyjs::hide("checkbox_n7")
+      shinyjs::hide("checkbox_n8")
+      shinyjs::hide("checkbox_n9")
+      shinyjs::hide("checkbox_n10")
+      shinyjs::hide("checkbox_n11")
+    } else {
+      shinyjs::show("checkbox_n2")
+      shinyjs::show("checkbox_n3")
+      shinyjs::show("checkbox_n4")
+      shinyjs::show("checkbox_n5")
+      shinyjs::show("checkbox_n6")
+      shinyjs::show("checkbox_n7")
+      shinyjs::show("checkbox_n8")
+      shinyjs::show("checkbox_n9")
+      shinyjs::show("checkbox_n10")
+      shinyjs::show("checkbox_n11")
+    }
+  })  
+  
+  
+  observe({
+    if (input$checkbox_tmt){
+    hideTab(inputId = "nlp1", target = "tp6")
+    showTab(inputId = "nlp1", target = "tp_tmt")
+  }else{
+    showTab(inputId = "nlp1", target = "tp6")
+    hideTab(inputId = "nlp1", target = "tp_tmt")
+       }
+  })
+  
+  
+  observe({
+    if (!input$checkbox_out_ptm){
+      hideTab(inputId = "nlp1", target = "tp_phos")
+    }else{
+      showTab(inputId = "nlp1", target = "tp_phos")
+    }
+  })
+  
+  
+  
+  
+  
+  observe({
+    if (input$checkbox_n3){
+      updateCheckboxInput(session, "checkbox_n1", value = TRUE) 
+      shinyjs::disable("checkbox_n1")
+    }else{
+      shinyjs::enable("checkbox_n1")
+    }
+  })
+  
+  
   observe({
     if (!input$checkbox_n11){
       shinyjs::hide("protein_norm_list")
@@ -93,6 +165,16 @@
       shinyjs::show("protein_norm_list")
     }
   })
+  
+  observe({
+    if (!input$checkbox_tmt_filter){
+      shinyjs::hide("tmt_filter_sd")
+    }else {
+      shinyjs::show("tmt_filter_sd")
+    }
+  })
+  
+  
   
   
   observe({
@@ -222,13 +304,6 @@
       shinyjs::show("protein_plot_select")
     }
     
-    observe({
-      if (is.null(input$dpmsr_set_file) || input$dpmsr_set_file == "") {
-        shinyjs::disable("load_dpmsr_set")
-      } else {
-        shinyjs::enable("load_dpmsr_set")
-      }
-    })
     
     observe({
       

@@ -61,11 +61,11 @@ Final_Excel <- function() {
         raw_peptide <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_Peptide_to_Peptide_Raw.xlsx"))
       }
       
-      addWorksheet(wb, "Raw Protein Data")
-      writeData(wb, sheet = nextsheet, raw_protein)
-      nextsheet <- nextsheet +1
       addWorksheet(wb, "Raw Peptide Data")
-      writeData(wb, sheet = nextsheet, raw_peptide) 
+      writeData(wb, sheet = nextsheet, raw_peptide)
+      nextsheet <- nextsheet +1
+      addWorksheet(wb, "Raw Protein Data")
+      writeData(wb, sheet = nextsheet, raw_protein) 
       nextsheet <- nextsheet +1
     }else if (dpmsr_set$x$raw_data_input=="Peptide"){
       if(as.logical(dpmsr_set$x$peptide_isoform)){
@@ -114,7 +114,9 @@ save_data <- function(data_file){
 
 #----------------------------------------------------------------------------------------
 create_dir <- function(name){
-  if(is_dir(name)) {dir_delete(name)
+  if(is_dir(name)) {
+    dir_delete(name)
+    dir_create(name)
     }else{
     dir_create(name)
     }

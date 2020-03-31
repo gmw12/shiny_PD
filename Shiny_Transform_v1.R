@@ -128,7 +128,7 @@ collapse_peptide <- function(peptide_data){
   test2 <- data.frame(ungroup(test2))
   #add imputed column info
   if ((dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Peptide") 
-      && dpmsr_set$x$final_data_output == "Protein"){
+      && dpmsr_set$x$final_data_output == "Protein" && !as.logical(dpmsr_set$x$tmt_spqc_norm)   ){
             test2 <- add_column(test2, dpmsr_set$data$protein_missing, .after = "Peptides")
             dpmsr_set$y$info_columns_final <<- ncol(test2)-dpmsr_set$y$sample_number
             names(test2)[4] <- "PD_Detected_Peptides"
@@ -236,43 +236,49 @@ peptide_psm_set_fdr <- function(){
 
 #----------------------------------------------------------------------------------------
 add_imputed_column <- function(df){
-  #imputed column for protein output
-  if ((dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Peptide") 
-      && dpmsr_set$x$final_data_output == "Protein"){
-    peptide_data <- df
-    peptide_annotate <- peptide_data[1:(dpmsr_set$y$info_columns)]
-    peptide_data <- peptide_data[(dpmsr_set$y$info_columns+1):ncol(peptide_data)]
-    peptide_data[is.na(peptide_data)] <- 0
-    peptide_data[peptide_data>0] <- 1
-    peptide_annotate <- peptide_annotate[, c("Accession", "Description")]
-    test1 <- cbind(peptide_annotate, peptide_data)
-    test2 <- test1 %>% group_by(Accession, Description) %>% summarise_all(list(sum))
-    test2 <- data.frame(ungroup(test2))
-    test2 <- test2[3:ncol(test2)]
-    test2[test2==0] <- "-"
-    test2 <- test2 %>% mutate_all(as.character)
-    while (ncol(test2)>1) {
-      test2[,1] <- str_c(test2[,1], ".", test2[,2])
-      test2[,2] <- NULL
-    }
-    dpmsr_set$data$protein_missing <<- test2[,1]
+  #check to see if this was already completed, if so skip step
+  if("PD_Detected_Peptides" %in% colnames(df)){
+    return(df)
+  }else{
+      #imputed column for protein output
+      if ((dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Peptide") 
+          && dpmsr_set$x$final_data_output == "Protein"){
+        peptide_data <- df
+        peptide_annotate <- peptide_data[1:(dpmsr_set$y$info_columns)]
+        peptide_data <- peptide_data[(dpmsr_set$y$info_columns+1):ncol(peptide_data)]
+        peptide_data[is.na(peptide_data)] <- 0
+        peptide_data[peptide_data>0] <- 1
+        peptide_annotate <- peptide_annotate[, c("Accession", "Description")]
+        test1 <- cbind(peptide_annotate, peptide_data)
+        test2 <- test1 %>% group_by(Accession, Description) %>% summarise_all(list(sum))
+        test2 <- data.frame(ungroup(test2))
+        test2 <- test2[3:ncol(test2)]
+        test2[test2==0] <- "-"
+        test2 <- test2 %>% mutate_all(as.character)
+        while (ncol(test2)>1) {
+          test2[,1] <- str_c(test2[,1], ".", test2[,2])
+          test2[,2] <- NULL
+        }
+        dpmsr_set$data$protein_missing <<- test2[,1]
+      }
+      
+      #imputed column for peptide output
+      df_annotation <- df[1:dpmsr_set$y$info_columns]
+      df <- df[(dpmsr_set$y$info_columns+1):ncol(df)]
+      df_data <- df
+      df[df>0] <- "1"
+      df[is.na(df)] <- "-"
+      df <- df %>% mutate_all(as.character)
+      while (ncol(df)>1) {
+        df[,1] <- str_c(df[,1], ".", df[,2])
+        df[,2] <- NULL
+      }
+      
+      df_annotation$PD_Detected_Peptides <- df[,1]
+      df<- cbind(df_annotation,df_data)
+      #add another column to info columns
+      return(df)
   }
-  
-  #imputed column for peptide output
-  df_annotation <- df[1:dpmsr_set$y$info_columns]
-  df <- df[(dpmsr_set$y$info_columns+1):ncol(df)]
-  df_data <- df
-  df[df>0] <- "1"
-  df[is.na(df)] <- "-"
-  df <- df %>% mutate_all(as.character)
-  while (ncol(df)>1) {
-    df[,1] <- str_c(df[,1], ".", df[,2])
-    df[,2] <- NULL
-  }
-  df_annotation$PD_Detected_Peptides <- df[,1]
-  df<- cbind(df_annotation,df_data)
-  #add another column to info columns
-  return(df)
 }
 
 

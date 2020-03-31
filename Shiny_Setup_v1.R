@@ -1,13 +1,15 @@
 
 load_dpmsr_set <- function(session, input, volumes){
-  design_list <- c("General", "QC", "Fill_Norm", "Filters", "Protein", "TMT_PTM")
+  design_list <- c("General", "QC", "Fill_Norm", "Filters", "Protein", "TMT_PTM", "Report")
   design_data <- parseFilePaths(volumes, input$design_file)
   new_path <- str_extract(design_data$datapath, "^/.*/")
   #new_path <- substr(new_path, 1, nchar(new_path)-1)
   #new_path <- str_c(".", new_path)
   volumes["wd"] <- new_path
   design<-read_excel(design_data$datapath, sheet="SampleList")
+  protocol<-read_excel(design_data$datapath, sheet="Protocol", skip = 13)
   dpmsr_set <<- list(design = design)
+  dpmsr_set$protocol <<- protocol
   temp_list<-list()
   for(i in design_list){
     design_tab<-read_excel(design_data$datapath, sheet=i, col_names = FALSE, skip = 1)
@@ -21,6 +23,7 @@ load_dpmsr_set <- function(session, input, volumes){
   dpmsr_set$x$new_path <<- new_path
   dpmsr_set$x$volumes <<- volumes
   dpmsr_set$x$design_name <<- design_data$datapath
+  cat(file=stderr(), "dpmsr_set created...", "\n")
 }
 
 
@@ -33,7 +36,7 @@ dpmsr_set_create <- function(design){
 #----------------------------------------------------------------------------------------
 #load design elements into dpmsr_set
 load_design <- function(session, input){
-  design_list <- c("General", "QC", "Fill_Norm", "Filters", "Protein", "TMT_PTM")
+  design_list <- c("General", "QC", "Fill_Norm", "Filters", "Protein", "TMT_PTM", "Report")
   for(x in design_list){
     for(i in 1:nrow(dpmsr_set$design[[x]]) ){
       dpmsr_set$x[[dpmsr_set$design[[x]][i,1]]] <<- dpmsr_set$design[[x]][i,2]
@@ -57,30 +60,39 @@ load_data <- function(session, input, volumes){
   for (i in 1:nrow(raw_data) ){
     raw_name <- raw_data$datapath[i]
     if (grepl("_PeptideGroups.txt", raw_name)){
+        cat(file=stderr(), "loading raw peptide data...", "\n")
         dpmsr_set$data$data_raw_peptide <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
         save_data(raw_name)
       } else if (grepl("_Proteins.txt", raw_name)){
+        cat(file=stderr(), "loading raw protein data...", "\n")
         dpmsr_set$data$data_raw_protein <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
         save_data(raw_name)
       } else if (grepl("_PSMs.txt", raw_name)){
+        cat(file=stderr(), "loading raw psm data...", "\n")
         dpmsr_set$data$data_raw_psm <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
         save_data(raw_name)
       } else if (grepl("MSMSSpectrumInfo.txt", raw_name)){
+        cat(file=stderr(), "loading raw msms data...", "\n")
         dpmsr_set$data$data_raw_msms <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
         save_data(raw_name)
       } else if (grepl("InputFiles.txt", raw_name)){
+        cat(file=stderr(), "loading raw inputfile data...", "\n")
         dpmsr_set$data$data_raw_inputfiles <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
         save_data(raw_name)
       } else if (grepl("_DecoyPeptideGroups.txt", raw_name)){
+        cat(file=stderr(), "loading raw decoy peptide data...", "\n")
           dpmsr_set$data$data_raw_decoypeptide <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
           save_data(raw_name)
       } else if (grepl("_DecoyProteins.txt", raw_name)){
+        cat(file=stderr(), "loading raw decoy protein data...", "\n")
           dpmsr_set$data$data_raw_decoyprotein <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
           save_data(raw_name)
       } else if (grepl("_DecoyPSMs.txt", raw_name)){
+        cat(file=stderr(), "loading raw decoy psm data...", "\n")
           dpmsr_set$data$data_raw_decoypsm <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
           save_data(raw_name)
       } else if (grepl("_PeptideIsoforms.txt", raw_name)){
+        cat(file=stderr(), "loading raw peptide isoform data...", "\n")
         dpmsr_set$data$data_raw_isoform <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
         save_data(raw_name)
       }

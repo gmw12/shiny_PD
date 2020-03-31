@@ -44,6 +44,13 @@ inputnorm_render <- function(session, input, output){
   
   output$text_i2 <- renderText(str_c("Intensity cutoff:  ", as.character(dpmsr_set$x$int_cutoff)))
   
+  output$tmt_sl <- renderImage({
+    list(src=str_c(dpmsr_set$file$TMT_dir,"TMT_IRS_", input$tmt_step, "_barplot.png"), contentType = 'image/png', width=600, height=500, alt="this is alt text")
+  }, deleteFile = FALSE)
+  
+  output$histogram_tmt <- renderImage({
+    list(src=str_c(dpmsr_set$file$qc_dir,"Intensity_Histogram.png"), contentType = 'image/png', width=600, height=500, alt="this is alt text")
+  }, deleteFile = FALSE)
   
 }
 

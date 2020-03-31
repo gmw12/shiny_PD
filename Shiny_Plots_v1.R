@@ -223,11 +223,22 @@ Cluster_plot <- function(x,y, plot_dir) {
 #Histogram for total intensity-------------------------------------------------
 histogram_plot <- function()
 {
+  cat(file=stderr(), "histogram plot function called", "\n")
   x<-dpmsr_set$data$data_to_norm[(dpmsr_set$y$info_columns+1):ncol(dpmsr_set$data$data_to_norm)]
   title<-as.character(dpmsr_set$x$file_prefix)
   plottitle<-"Total Intensity Histogram"
   testthis1 <- as.matrix(log2(x))
   intensity_cutoff <- as.numeric(dpmsr_set$x$int_cutoff)
+  
+  data_dist <- as.vector(t(testthis1))
+  data_dist <- data_dist[!is.na(data_dist)]
+  data_dist <- data_dist[data_dist>0]
+  data_dist <- data.frame(data_dist)
+  data_dist$bin <- ntile(data_dist, 100)  
+  #data_dist <- data_dist[data_dist$bin==1,]
+  bottom1_max <- max(data_dist[data_dist$bin==1,]$data_dist)
+  bottom2_max <- max(data_dist[data_dist$bin==2,]$data_dist)
+  bottom5_max <- max(data_dist[data_dist$bin==5,]$data_dist)
   
   x_mean <- mean(testthis1, na.rm=TRUE)
   x_stdev <- sd(testthis1, na.rm=TRUE)
@@ -241,17 +252,32 @@ histogram_plot <- function()
   testgather <- subset(testgather, testgather$value>0)
   testgather$value <- log2(testgather$value)
   dpmsr_set$x$int_cutoff <<- trunc(2^intensity_cutoff)
+  my_legend1 <- grid.text("Default Minimum Intensity: 5e+06", x=.80, y=.95, gp=gpar(col="green4", fontsize=8))
+  my_legend2 <- grid.text(str_c("Calc Minimum Intensity: ", dpmsr_set$x$int_cutoff), x=.80, y=.90, gp=gpar(col="red", fontsize=8))
+  my_legend3 <- grid.text(str_c("Mean +/- Stdev: ", (trunc((2^x_mean),0))," +/- ",  (trunc((2^x_stdev),0))  ), x=.80, y=.85, gp=gpar(col="black", fontsize=8))
+  my_legend4 <- grid.text(str_c("Bottom5=", trunc((2^bottom5_max),0)), x=.80, y=.80, gp=gpar(col="coral", fontsize=8))
+  my_legend5 <- grid.text(str_c("Bottom2=", trunc((2^bottom2_max),0)), x=.80, y=.75, gp=gpar(col="coral", fontsize=8))
+  my_legend6 <- grid.text(str_c("Bottom1=", trunc((2^bottom1_max),0)), x=.80, y=.70, gp=gpar(col="coral", fontsize=8))
   
   ggplot(testgather, aes(value))+
+   theme(plot.title = element_text(hjust = 0.5),
+         legend.position = "top")+ 
     geom_histogram(bins=100, fill="blue") +
     geom_vline(aes(xintercept = intensity_cutoff), color='red'   ) +
-    geom_vline(aes(xintercept = log2(5000000)), color='green') +
+    geom_vline(aes(xintercept = log2(5000000)), color='green4') +
     geom_vline(aes(xintercept = x_mean)) +
     geom_vline(aes(xintercept = (x_mean + x_stdev))) +
     geom_vline(aes(xintercept = (x_mean - x_stdev))) +
+    geom_vline(aes(xintercept = bottom5_max), color='coral') +
+    geom_vline(aes(xintercept = bottom2_max), color='coral') +
+    geom_vline(aes(xintercept = bottom1_max), color='coral') +
     ggtitle(plottitle)+
-    theme(plot.title = element_text(hjust = 0.5),
-          legend.position = "none") 
+    annotation_custom(my_legend1)+
+    annotation_custom(my_legend2)+
+    annotation_custom(my_legend3)+
+    annotation_custom(my_legend4)+
+    annotation_custom(my_legend5)+
+    annotation_custom(my_legend6)
   ggsave(str_c(dpmsr_set$file$qc_dir,"Intensity_Histogram.png"), width=5, height=4)
   #ggsave(file_name, width=5, height=4)
 }

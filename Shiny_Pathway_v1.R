@@ -19,14 +19,16 @@ set_pathway <- function(input, output, session){
   #arabidopsis org.At.tair.db
   #yeast org.Sc.sgd.db
   
-  
+  #listOrganisms()
   
   gmt_get <- function(tax_choice){
-    if (tax_choice == "Human"){wp.gmt <- rWikiPathways::downloadPathwayArchive(organism="Homo sapiens", format = "gmt")
-    wp2gene <- clusterProfiler::read.gmt(wp.gmt)
-    }
-    if (tax_choice == "Mouse"){wp.gmt <- rWikiPathways::downloadPathwayArchive(organism="Mus musculus", format = "gmt")
-    wp2gene <- clusterProfiler::read.gmt(wp.gmt)
+    if (tax_choice == "Human"){
+      wp.gmt <- rWikiPathways::downloadPathwayArchive(organism="Homo sapiens", format = "gmt", destpath = dpmsr_set$file$string)
+      wp2gene <- clusterProfiler::read.gmt(str_c(dpmsr_set$file$string,wp.gmt))
+      }
+    if (tax_choice == "Mouse"){
+      wp.gmt <- rWikiPathways::downloadPathwayArchive(organism="Mus musculus" , format = "gmt", destpath = dpmsr_set$file$string)
+      wp2gene <- clusterProfiler::read.gmt(str_c(dpmsr_set$file$string,wp.gmt))
     }
     return(wp2gene)
   }
@@ -35,7 +37,7 @@ set_pathway <- function(input, output, session){
   dpmsr_set$pathway$tax_db <<- db_get(tax_choice)
   
   dpmsr_set$pathway$wp2gene <<- gmt_get(tax_choice)
-  dpmsr_set$pathway$wp2gene <<-   dpmsr_set$pathway$wp2gene %>% tidyr::separate(ont, c("name","version","wpid","org"), "%")
+  dpmsr_set$pathway$wp2gene <<- dpmsr_set$pathway$wp2gene %>% tidyr::separate(ont, c("name","version","wpid","org"), "%")
 
   
   #---ViseaGo/topGo Setup----------------------------

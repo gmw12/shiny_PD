@@ -24,9 +24,9 @@ update_dpmsr_set_from_widgets <- function(session, input){
     if (input$checkbox_isoform){dpmsr_set$x$peptide_isoform<<-TRUE}else{dpmsr_set$x$peptide_isoform<<-FALSE}
   })
   
-  observe({
-    if (input$checkbox_tmt){dpmsr_set$x$peptide_isoform<<-TRUE}else{dpmsr_set$x$peptide_isoform<<-FALSE}
-  })
+  # observe({
+  #   if (input$checkbox_tmt){dpmsr_set$x$peptide_isoform<<-TRUE}else{dpmsr_set$x$peptide_isoform<<-FALSE}
+  # })
   
 
   observe({
@@ -108,7 +108,11 @@ update_dpmsr_set_from_widgets <- function(session, input){
     else if (input$radio_impute ==5){dpmsr_set$x$impute_method <<-"KNN"}
     else if (input$radio_impute ==6){dpmsr_set$x$impute_method <<-"LocalLeastSquares"}
     else if (input$radio_impute ==7){dpmsr_set$x$impute_method <<-"MLE"}    
-    else if (input$radio_impute ==8){dpmsr_set$x$impute_method <<-"Bottom5"}   
+    else if (input$radio_impute ==8){dpmsr_set$x$impute_method <<-"BottomX"}   
+  })
+  
+  observe({
+    dpmsr_set$x$bottom_x <<- input$bottom_x
   })
   
   observe({

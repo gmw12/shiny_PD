@@ -1,9 +1,20 @@
 setup_string <- function(input, output, data_in){
   
   dpmsr_set$string$string_db <<- NULL
+  tax_choice <- input$select_organism
   
-  dpmsr_set$string$string_db <<- STRINGdb$new( version="10", species=9606,
+  #string_species <- get_STRING_species(version=10)
+  
+  if(input$select_organism=="Human"){
+          dpmsr_set$string$string_db <<- STRINGdb$new( version="10", species=9606,
                                                score_threshold=0, input_directory="")
+  }
+  
+  if(input$select_organism=="Mouse"){
+    dpmsr_set$string$string_db <<- STRINGdb$new( version="10", species=10090,
+                                                 score_threshold=0, input_directory="")
+  } 
+  
   
   for (i in 1:dpmsr_set$x$comp_number){
     comp_name <- dpmsr_set$y$comp_groups$comp_name[i]
@@ -20,6 +31,7 @@ setup_string <- function(input, output, data_in){
   
   backgroundV <- dpmsr_set$string[[dpmsr_set$y$comp_groups$comp_name[1]]]$STRING_id 
   dpmsr_set$string$string_db$set_background(backgroundV)
+  cat(file=stderr(), "function setup_string complete...", "\n")
 }  
   
 #-------------------------------------------------------------------
@@ -31,6 +43,12 @@ run_string <- function(input, output){
   
   df <- dpmsr_set$string[[input_comp]]
   df <- subset(df, pvalue < input_pval)
+  if(input_fc >0){
+    df <- subset(df, logFC >= input_fc)
+  }else{
+    df <- subset(df, logFC <= input_fc)
+  }
+  
   df <- subset(df, logFC > input_fc)
   df <- df[order(-df$logFC),]
   

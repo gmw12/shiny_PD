@@ -9,19 +9,37 @@ shinyUI(fluidPage(
   setBackgroundColor("DarkGray", shinydashboard = TRUE),
   setBackgroundColor("LightGray", shinydashboard = FALSE),
   titlePanel("Proteome Discoverer Data Processing"),
-
   
   navlistPanel(widths=c(1,11), id = "nlp1",
           
     tabPanel("Load Design", value = "tp1", align="center",
-                        tags$h1("Choose and Load the study design file..."),
                         hr(),
+                        tags$h1("Choose and Load the study design file..."),
+                        br(),
                         shinyFilesButton('design_file', label='Choose Design File', title='Please select excel design file', multiple=FALSE,
                                         style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
                         br(),                            
+                        br(),
+                        actionButton("action_load_design", label = "Load Design File", width = 200, 
+                                     style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                        br(),
                         hr(),
-                        actionButton("action_load_design", label = "Load Design File",
-                                     style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                        br(),
+                        tags$h3("Or load saved dpmsr_set file..."),
+                       shinyFilesButton('dpmsr_set_file', label='Choose dpmsr_set File', title='Choose dpmsr_set File', multiple=FALSE,
+                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                       br(),
+                       br(),
+                       actionButton("action_load_dpmsr_set", label = "Load dpmsr_set", width = 200, 
+                                    style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                        br(), 
+                        br(),
+                        hr(),                         
+                        br(), 
+                        tags$h3("If needed clear data and functions..."),
+                        br(),
+                       actionButton("action_clear", label = "Clear Data", width = 200, 
+                           style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
            ), #end tab panel
   
     tabPanel("Load Data", value = "tp_load_data", align="center",
@@ -122,7 +140,7 @@ shinyUI(fluidPage(
                      hr(),
                      textOutput("text_n1"),
                      tags$head(tags$style("#text_n1{color: blue; font-size: 20px; font-style: bold;}")),
-                     checkboxInput("checkbox_n1", label = "Sample Loading - Total"),
+                     checkboxInput("checkbox_n1", label = "Sample Loading - Total", value = TRUE),
                      checkboxInput("checkbox_n2", label = "Trimmed Mean - 10%"),
                      checkboxInput("checkbox_n3", label = "SL TMM"),
                      checkboxInput("checkbox_n4", label = "Quantile"),
@@ -160,9 +178,10 @@ shinyUI(fluidPage(
                       br(),
                       radioButtons("radio_impute", label=NULL,
                                    choices = list("Duke" = 1, "Floor" = 2, "Minimum" = 3,"Average" = 4,
-                                                  "KNN"= 5, "LocalLeastSquares" = 6, "MLE" = 7, "Bottom5" = 8
+                                                  "KNN"= 5, "LocalLeastSquares" = 6, "MLE" = 7, "BottomX" = 8
                                    ),
                                    selected = 1),
+                      numericInput("bottom_x", label="Bottom X%", value = "5"),
                       hr(),
                       checkboxInput("checkbox_impute_ptm", label = "Impute with Data from Specific Modification Only"),
                       hr(),
@@ -182,7 +201,41 @@ shinyUI(fluidPage(
              )
     ), #end tab panel
 
-
+    
+    tabPanel("TMT SPQC", value = "tp_tmt",
+             fluidRow(
+               column(width=2, offset =0,
+               numericInput("tmt_sets", label="TMT Sets for IRS Normalization", value = "Enter value here"),
+               numericInput("tmt_channels", label="TMT Channels", value = "Enter value here"),
+               checkboxInput("checkbox_tmt_filter", label = "Filter peptides by stdev of average %CV"),
+               numericInput("tmt_filter_sd", label="Stdev for filter", value = "Enter value here"),
+               hr(),
+               actionButton("tmt_irs_go", label = "Apply IRS Norm", width = 200,
+                            style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+               ),
+               column(width=5, offset =0,
+                      br(),
+                      br(),
+                      br(),
+                      br(),
+                      br(),
+                      "Total Intensity Histogram",
+                      br(),
+                      imageOutput("histogram_tmt")   
+               ),        
+               column(width=5, offset =0,
+                      selectInput("tmt_step", label = h5("TMT IRS Step Barplot"), 
+                                  choices = list("Step0", "Step1", "Step2", "Step3", "Step4", "Step5", "Step6", "Step7", "Final"), 
+                                  selected = "Step0"),
+                      br(),
+                      imageOutput("tmt_sl")   
+               )
+               
+               
+             )
+    ), #end tab panel
+    
+    
     tabPanel("Stats", value = "tp7",
              fluidRow(
                column(width=3, offset =0,
@@ -506,6 +559,8 @@ shinyUI(fluidPage(
                )
           ),
     
+    
+    
     tabPanel("Pathway", value = "pathway",
       navbarPage("Pathway:", id ="path",
         tabPanel("Organism", value = "tp_save", align="center",
@@ -778,32 +833,8 @@ shinyUI(fluidPage(
     
     
     
-    
-    
-    
-    
-    tabPanel("Extra", value = "tp11",
-             navbarPage("Extra:", id ="np_extra",
-                        tabPanel("save_load", value = "tp_save", align="center",
-                                 tags$h1("Save/Load dpmsr_set files..."),
-                                 hr(),
-                                 br(),
-                                 br(),
-                                 actionButton("save_dpmsr_set", label = "Save dpmsr_set", width = 300,
-                                              style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
-                                 hr(),
-                                 shinyFilesButton('dpmsr_set_file', label='Choose dpmsr_set File', title='Choose dpmsr_set File', multiple=FALSE,
-                                                  style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
-                                 
-                                 # fileInput("dpmsr_set_file2", "Choose dpmsr_set File", multiple = FALSE, accept = "dpmsr",
-                                 #           width = NULL, buttonLabel = "Browse...",
-                                 #           placeholder = "No file selected"),                               
-                                 br(),
-                                 br(),
-                                 br(),
-                                 actionButton("load_dpmsr_set", label = "Load dpmsr_set", width = 300, 
-                                              style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
-                        ),
+    tabPanel("Phos", value = "tp_phos",
+             navbarPage("Phosphorylation:", id ="np_phos",
                         tabPanel("MotifX", id="motif",
                                  fluidRow( 
                                    
@@ -854,8 +885,43 @@ shinyUI(fluidPage(
                         )           
                         
              )
-    ) # end of tab panel Extra   
+    ), # end of tab panel Extra   
+   
     
+    
+    
+    tabPanel("Save", value = "tp_save", align="center",
+               tags$h1("Save dpmsr_set file..."),
+               hr(),
+               br(),
+               br(),
+               actionButton("save_dpmsr_set", label = "Save dpmsr_set", width = 300,
+                    style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+    ),# end of tab panel Save   
+    
+    
+    tabPanel("Report", value = "tp_report", align="center",
+             tags$h1("Create report from templates..."),
+             hr(),
+             column(width=3, offset =0,
+                    selectInput("select_final_data_report", label = "Normalization", width = 150,
+                                choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
+                                selected = 1),
+                    br(),
+                    br(),
+                    actionButton("create_report", label = "Create Report", width = 200,
+                                 style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                    ),
+             column(width=9, offset =0, align="left",
+                    textOutput("report1_output")
+             )
+    ) # end of tab panel Save      
+    
+    
+    
+    
+    
+     
  ) #end of navlistpanel
 ) #end of ui
 )

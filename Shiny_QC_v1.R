@@ -14,6 +14,7 @@ qc_apply <- function(){
     cv_stats(dpmsr_set$data$final[[df_name]], df_name)
     qc_spike(dpmsr_set$data$final[[df_name]], df_name)
   }
+  
   colnames(dpmsr_set$data$summary_cv) <<- c("Group",names(dpmsr_set$data$final))
   rownames(dpmsr_set$data$summary_cv) <<- NULL
   dpmsr_set$data$qc_spike_final <<- qc_spike_final(dpmsr_set$data$qc_spike)
