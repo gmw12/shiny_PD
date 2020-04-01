@@ -37,19 +37,19 @@ setup_string <- function(input, output, data_in){
 #-------------------------------------------------------------------
   
 run_string <- function(input, output){ 
-  input_fc <- log(input$fc_filter_string, 2)
+  input_fc <- input$fc_filter_string
+  if (input_fc < 0){input_fc <- -1/input_fc}
+  input_fc <- log(input_fc, 2)
   input_pval <- input$pval_filter_string
   input_comp <- input$select_data_comp_string
   
   df <- dpmsr_set$string[[input_comp]]
   df <- subset(df, pvalue < input_pval)
-  if(input_fc >0){
+  if (input$fc_filter_string_enrich >0){
     df <- subset(df, logFC >= input_fc)
   }else{
     df <- subset(df, logFC <= input_fc)
   }
-  
-  df <- subset(df, logFC > input_fc)
   df <- df[order(-df$logFC),]
   
   if (nrow(df) > input$protein_number){
@@ -74,14 +74,21 @@ run_string <- function(input, output){
 
 run_string_enrich <- function(input, output, data_in){
 
-  input_fc <- log(input$fc_filter_string_enrich, 2)
+  input_fc <- input$fc_filter_string_enrich
+  if (input_fc < 0){input_fc <- -1/input_fc}
+  
+  input_fc <- log(input_fc, 2)
   input_pval <- input$pval_filter_string_enrich
   input_comp <- input$select_data_comp_string_enrich
   
   df <- dpmsr_set$string[[input_comp]]
-  checkdf<<- df
   df <- subset(df, pvalue < input_pval)
-  df <- subset(df, logFC > input_fc)
+  if (input$fc_filter_string_enrich >0){
+    df <- subset(df, logFC >= input_fc)
+  }else{
+    df <- subset(df, logFC <= input_fc)
+  }
+
   df <- df[order(-df$logFC),]
   
   hits <- df$STRING_id
