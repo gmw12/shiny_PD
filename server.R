@@ -4,16 +4,23 @@ options(shiny.maxRequestSize=100*1024^2)
 source("Shiny_Startup_v1.R")
 
 shinyServer(function(input, output, session) {
+    cat(file=stderr(), "Shiny Server started ...1", "\n")
     useShinyjs()
     dpmsr_present <- reactiveValues()
     dpmsr_present$test <- exists("dpmsr_set")
+    
+    cat(file=stderr(), "Shiny Server started ...2", "\n")
     
     shinyjs::disable("action_load_design")
     shinyjs::disable("action_load_dpmsr_set")
     shinyjs::disable("load_data")
     
+    cat(file=stderr(), "Shiny Server started ...3", "\n")
+    
     output$text_n1 <- renderText("Check all Normalization Strategies")
     output$text_i1 <- renderText("Select Imputation Method")
+    
+    cat(file=stderr(), "Shiny Server started ...4", "\n")
     
     if(Sys.info()["sysname"]=="Darwin" ){
       volumes <- c(dd='/Users/gregwaitt/Documents/Data', wd='.', Home = fs::path_home(),  getVolumes()())
@@ -23,7 +30,8 @@ shinyServer(function(input, output, session) {
       volumes <- c(dd='/home/dpmsr/shared', wd='.', Home = fs::path_home(), getVolumes()())
     }
     
-
+    cat(file=stderr(), "Shiny Server started ...5", "\n")
+    
     shinyFileChoose(input, 'design_file', session=session, roots=volumes, filetypes=c('', 'xlsx'))
     
     shinyFileChoose(input,'raw_files', roots=volumes, session=session, 
@@ -35,24 +43,30 @@ shinyServer(function(input, output, session) {
     shinyFileChoose(input,'motif_fasta', roots=volumes, session=session, 
                      filetypes=c('','txt'), defaultPath='', defaultRoot='wd')
     
+    cat(file=stderr(), "Shiny Server started ...6", "\n")
+    
     # test to see if dpmsr_set exisits - if so will update widgets with defaults
     observe({
       if (dpmsr_present$test){
-        cat(file=stderr(), "dpmsr_set already exists...", "\n")
-        update_shiny_defaults(session)
-        update_dpmsr_set_from_widgets(session, input)
+        cat(file=stderr(), "dpmsr_set found...", "\n")
+        update_widget_all(session, input, output)
         inputloaddata_render(session, input, output)
         inputfilterapply_render(session, input, output)
         inputnorm_render(session, input, output)
         inputstartstats_render(session, input, output)
         inputproteinselect_render(session, input, output)
-        selection_updates_new_start(session, input, output)
+        update_dpmsr_set_from_widgets(session, input)
+      }else{
+        cat(file=stderr(), "dpmsr_set doest not exist...", "\n")
       }
+      
     })
     
     # function home to shinyjs hide/enable observers
     hide_enable(session, input)
  
+    cat(file=stderr(), "Shiny Server started ...7", "\n")
+    
   #------------------------------------------------------------------------------------------------------  
     observeEvent(input$action_clear, {
       cat(file=stderr(), "clean old data", "\n")
@@ -71,11 +85,15 @@ shinyServer(function(input, output, session) {
     shinyFileChoose(input,'motif_fasta', roots=dpmsr_set$x$volumes, session=session, 
                     filetypes=c('','txt'), defaultPath='', defaultRoot='wd')
     set_sample_groups()
-    file_set()
-    save_design(session, input)
+    #file_set()
+    #save_design(session, input)
     updateTabsetPanel(session, "nlp1", selected = "tp_load_data")
     dpmsr_present$test <- exists("dpmsr_set")
-    #update_shiny_defaults(session)
+    update_widget_startup(session, input, output)
+    update_widget_filter(session, input, output)
+    update_widget_norm(session, input, output)
+    update_widget_impute(session, input, output)
+    update_widget_stats(session, input, output)
   })
 
 
@@ -84,10 +102,10 @@ shinyServer(function(input, output, session) {
   observeEvent(input$load_data, {
     cat(file=stderr(), "load data triggered", "\n")
     showModal(modalDialog("Loading Data...", footer = NULL))
-    #inFile2 <- input$file_raw_data
-    #load_data(input$radio_input, inFile2$datapath)
-    load_data(session, input, volumes)
-    prepare_data(session, input)
+    #file_set()
+    #save_design(session, input)
+    #load_data(session, input, volumes)
+    #prepare_data(session, input)
     project_overview()
     inputloaddata_render(session, input, output)
     updateTabsetPanel(session, "nlp1", selected = "tp_overview")
@@ -123,9 +141,6 @@ shinyServer(function(input, output, session) {
   observeEvent(input$norm1, {
     cat(file=stderr(), "normalization triggered", "\n")
     showModal(modalDialog("Normalizing Data...", footer = NULL))
-    #norm_prep()
-    #histogram_plot()
-    
     inputnorm_render(session, input, output)
     
     if(input$checkbox_n1 == 1) {n1<-1}else{n1<-NULL}
@@ -186,7 +201,7 @@ shinyServer(function(input, output, session) {
     create_plots()
     
     inputstartstats_render(session, input, output)
-    selection_update_after_stats(session, input, output)
+    update_widget_post_processing(session, input, output)
  
     Final_Excel()
     removeModal()
@@ -287,8 +302,9 @@ observeEvent(input$data_show, {
     if(input$data_description != "0") {
       filter_df <-filter_df[grep(as.character(input$data_description), filter_df$Description), ]
     }
-
-    if(input$data_pvalue != 0 & input$data_foldchange1 != 0 & input$data_foldchange2 != 0) {
+    
+    #if(input$data_pvalue != 0 & input$data_foldchange1 != 0 & input$data_foldchange2 != 0) {
+    if(input$data_pvalue != 0) {
       filter_df <- subset(filter_df, filter_df[ ,str_c(as.character(input$select_data_comp),"_Pval")] <= as.numeric(input$data_pvalue) &  
                               (filter_df[ ,str_c(as.character(input$select_data_comp),"_FC")] >= as.numeric(input$data_foldchange1) | 
                                  filter_df[ ,str_c(as.character(input$select_data_comp),"_FC")] <= -as.numeric(input$data_foldchange2))) 
@@ -315,12 +331,22 @@ observeEvent(input$save_dpmsr_set, {
     
 #-------------------------------------------------------------------------------------------------------------      
 #------------------------------------------------------------------------------------------------------------- 
-observeEvent(input$load_dpmsr_set, { 
+observeEvent(input$action_load_dpmsr_set, { 
   cat(file=stderr(), "load dpmsr_set triggered", "\n")
   showModal(modalDialog("Working...", footer = NULL))  
-  dpmsr_file <- parseFilePaths(volumes, input$dpmsr_set_file)
+  dpmsr_file <<- parseFilePaths(volumes, input$dpmsr_set_file)
   load(file = dpmsr_file$datapath, envir = .GlobalEnv)
-  
+  #reset file locations
+  dpmsr_set$file$data_dir <<- dirname(dpmsr_file$datapath)
+  dpmsr_set$file$data_path <<- gsub("(.*)/.*","\\1",dpmsr_set$file$data_dir)
+  dpmsr_set$file$output_dir <<- str_replace_all(dpmsr_set$file$data_dir, "/", "//")
+  dpmsr_set$file$output_dir <<- str_c(dpmsr_set$file$output_dir, "//")
+  dpmsr_set$file$backup_dir <<- str_c(dpmsr_set$file$output_dir, "Backup//")
+  dpmsr_set$file$extra_dir <<- str_c(dpmsr_set$file$output_dir, "Extra//")
+  dpmsr_set$file$qc_dir <<- str_c(dpmsr_set$file$output_dir, "QC//")
+  dpmsr_set$file$string <<- str_c(dpmsr_set$file$output_dir, "String//")
+  dpmsr_set$file$extra_prefix2 <<- str_c(dpmsr_set$file$extra_dir, dpmsr_set$x$file_prefix)
+  #reload shiny 
   update_shiny_defaults(session)
   update_dpmsr_set_from_widgets(session, input)
   inputloaddata_render(session, input, output)
@@ -328,7 +354,8 @@ observeEvent(input$load_dpmsr_set, {
   inputnorm_render(session, input, output)
   inputstartstats_render(session, input, output)
   inputproteinselect_render(session, input, output)
-  selection_updates_new_start(session, input, output)
+  selection_updates(session, input, output)
+  updateTabsetPanel(session, "nlp1", selected = "tp8") 
   removeModal()
 })  
 
@@ -459,77 +486,8 @@ observeEvent(input$load_dpmsr_set, {
     #-------------------------------------------------------------------------------------------------------------
     observeEvent(input$go_volcano, {
       showModal(modalDialog("Working...", footer = NULL))  
-
-      volcano_data <- create_go_volcano(input, output, session)
+      interactive_go_volcano(session, input, output)
       removeModal()
-      
-      #output$scatterplot <- renderPlot({
-      volcano_go_plot <- reactive({
-        ggplot(volcano_data, aes(x = log_fc, y = log_pvalue)) +
-          theme_minimal() +
-          geom_point(alpha=0.4, size=input$plot_dot_size, color = input$volcano_dot_color) +
-          xlab(input$plot_x_axis_label) + ylab(input$plot_y_axis_label) +
-          scale_colour_gradient(low = input$volcano_dot_color, high = input$volcano_dot_color) +
-          ggtitle(input$plot_title)+    
-          xlim(-max(volcano_data$log_fc), max(volcano_data$log_fc)) +
-          theme(plot.title = element_text(size=input$plot_title_size, hjust = 0.5),
-                axis.title = element_text(size=input$plot_label_size, color="black"),
-                axis.text.x = element_text(size=10, color="black"),
-                axis.text.y = element_text(size=10,  color="black"),
-                legend.position = "none")
-      })
-      
-      output$volcano_go_plot <- renderPlot({
-        req(volcano_go_plot())
-        volcano_go_plot()
-      })
-      
-      output$Download <- downloadHandler(
-        filename = function(){
-          str_c(dpmsr_set$file$string, "GoVolcano_", input$select_data_comp_go, "_", input$go_volcano_id, "_", 
-                input$select_ont_go, ".png", collapse = " ")
-        },
-        content = function(file){
-          req(volcano_go_plot())
-          ggsave(file, plot = volcano_go_plot(), device = 'png')
-        }
-      )
-      
-      
-      
-      
-      
-      
-      output$hover_info <- renderUI({
-        hover <- input$plot_hover
-        point <- nearPoints(volcano_data, hover, threshold = 5, maxpoints = 1, addDist = TRUE)
-        if (nrow(point) == 0) return(NULL)
-        
-        # calculate point position INSIDE the image as percent of total dimensions
-        # from left (horizontal) and from top (vertical)
-        left_pct <- (hover$x - hover$domain$left) / (hover$domain$right - hover$domain$left)
-        top_pct <- (hover$domain$top - hover$y) / (hover$domain$top - hover$domain$bottom)
-        
-        # calculate distance from left and bottom side of the picture in pixels
-        left_px <- hover$range$left + left_pct * (hover$range$right - hover$range$left)
-        top_px <- hover$range$top + top_pct * (hover$range$bottom - hover$range$top)
-        
-        # create style property fot tooltip
-        # background color is set so tooltip is a bit transparent
-        # z-index is set so we are sure are tooltip will be on top
-        style <- paste0("position:absolute; z-index:100; background-color: rgba(245, 245, 245, 0.85); ",
-                        "left:", left_px + 2, "px; top:", top_px + 2, "px;")
-        
-        # actual tooltip created as wellPanel
-        wellPanel(
-          style = style,
-          p(HTML(paste0("<b> Accession: </b>", point$Accession, "<br/>",
-                        "<b> FC: </b>", point$foldchange, "<br/>",
-                        "<b> pvalue: </b>", point$pvalue, "<br/>")))
-        )
-      })
-      
-      
     }
     )  
     
@@ -585,8 +543,149 @@ observeEvent(input$load_dpmsr_set, {
     }
     )
     
-  
-}
+    #-------------------------------------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------------------------------------
+    observeEvent(input$check_mva, {
+      showModal(modalDialog("Working...", footer = NULL))  
+      set_mva_groups(session, input, output)
+      updatePickerInput(session, "mva_plot_comp", choices = dpmsr_set$y$mva$groups$comp_name )
+      updateTextInput(session, "mva_barplot_title", value = str_c("Barplot ", dpmsr_set$y$mva$groups$comp_name[input$mva_plot_comp]))
+      updateTextInput(session, "mva_boxplot_title", value = str_c("Boxplot ", dpmsr_set$y$mva$groups$comp_name[input$mva_plot_comp]))
+      updateSelectInput(session, "mva_select_data_comp", choices = dpmsr_set$y$mva$groups$comp_name, 
+                        selected = dpmsr_set$y$mva$groups$comp_name[1])
+      updateTextInput("mva_volcano1_plot_title",  value = str_c("Volcano ", dpmsr_set$y$mva$groups$comp_name[1]))
+      updateTextInput("mva_volcano2_plot_title",  value = str_c("Volcano ", dpmsr_set$y$mva$groups$comp_name[1]))
+      updateTextInput("mva_volcano3_plot_title",  value = str_c("Volcano ", dpmsr_set$y$mva$groups$comp_name[1]))
+      updateTextInput("mva_volcano4_plot_title",  value = str_c("Volcano ", dpmsr_set$y$mva$groups$comp_name[1]))
+      removeModal()
+     }
+    )  
+    
+    #-------------------------------------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------------------------------------
+    observeEvent(input$start_mva, {
+      showModal(modalDialog("Working...", footer = NULL))  
+      mva_stat_calc(session, input, output)
+      removeModal()
+    }
+    )      
+    
+    #-------------------------------------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------------------------------------
 
+    
+     observeEvent(input$create_mva_plots, {
+       showModal(modalDialog("Working...", footer = NULL))  
+       
+       df <- dpmsr_set$data$mva$final[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)]
+       comp_string <- input$mva_plot_comp
+       cat(file=stderr(), "Create MVA plots" , "\n")
+       cat(file=stderr(), str_c("Plot String = ", comp_string) , "\n")
+       for (i in 1:length(comp_string)){
+         comp_number <- which(dpmsr_set$y$mva$groups$comp_name == comp_string[i])
+         if (i==1){
+           comp_rows <- c(dpmsr_set$y$mva$groups$sample_numbers_N[comp_number],dpmsr_set$y$mva$groups$sample_numbers_D[comp_number] )
+         }else{
+           comp_rows <- c(comp_rows, dpmsr_set$y$mva$groups$sample_numbers_N[comp_number],dpmsr_set$y$mva$groups$sample_numbers_D[comp_number] )
+         }
+       }
+       
+       comp_rows <- sort(unique(unlist(comp_rows)), decreasing = FALSE)
+       df <- df[,comp_rows]
+       namex <- dpmsr_set$design$Label[comp_rows]
+       color_list <- dpmsr_set$design$colorlist[comp_rows]
+       groupx <- dpmsr_set$design$Group[comp_rows]
+       
+      interactive_barplot(session, input, output, df, namex, color_list)
+      interactive_boxplot(session, input, output, df, namex, color_list)
+      interactive_pca2d(session, input, output, df, namex, color_list, groupx)
+      interactive_pca3d(session, input, output, df, namex, color_list, groupx)
+      interactive_cluster(session, input, output, df, namex)
+      interactive_heatmap(session, input, output, df, namex)
+      removeModal()
+    }
+    ) 
+    
+   
+    #-------------------------------------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------------------------------------
+    observeEvent(input$create_mva_volcano, {
+      showModal(modalDialog("Working...", footer = NULL))  
+      #interactive_mva_volcano1(session, input, output)
+      #interactive_mva_volcano2(session, input, output)
+      for(i in 1:input$mva_comp){
+        do.call(str_c("interactive_mva_volcano",i), list(session, input, output) )
+      }
+      removeModal()
+    }
+    )  
+    
+    
+    #-------------------------------------------------------------------------------------------------------------      
+    #-------------------------------------------------------------------------------------------------------------  
+    
+    
+    
+    observeEvent(input$mva_data_show, { 
+      showModal(modalDialog("Working...", footer = NULL))  
+      cat(file=stderr(), "MVA data show triggered..." , "\n")
+      filter_df <- dpmsr_set$data$mva$final
+      
+      if(input$mva_data_topn != 0 ){
+        filter_df$sum <- rowSums(filter_df[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)])
+        filter_df <- filter_df[order(-filter_df$sum),]                      
+        filter_df <- filter_df[1:input$mva_data_topn,]
+        filter_df$sum <- NULL
+      }
+      
+      if(input$mva_data_accession != "0" ){
+        filter_df <-subset(filter_df, Accession %in% as.character(input$mva_data_accession)  )
+      }
+      
+      if(input$mva_data_description != "0") {
+        filter_df <-filter_df[grep(as.character(input$mva_data_description), filter_df$Description), ]
+      }
+      
+      #if(input$mva_data_pvalue != 0 & input$mva_data_foldchange1 != 0 & input$mva_data_foldchange2 != 0) {
+      if(input$mva_data_pvalue != 0) {
+        df <- filter_df
+        comp_string <- input$mva_select_data_comp
+        comp_number <- which(grepl(comp_string, dpmsr_set$y$mva$groups$comp_name))
+        df_N <- df %>% dplyr::select(unlist(dpmsr_set$y$mva$groups$com_N_headers[comp_number]))  
+        df_D <- df %>% dplyr::select(unlist(dpmsr_set$y$mva$groups$com_D_headers[comp_number]) ) 
+        df_Comp <- df %>% dplyr::select(contains(dpmsr_set$y$mva$groups$comp_name [comp_number]) ) 
+        df_final <- cbind(df[1:(dpmsr_set$y$info_columns_final)], df_N, df_D, df_Comp)
+        
+        filter_df <- subset(df_final, df_final[ , dpmsr_set$y$mva$groups$pval[comp_number]] <= input$mva_data_pvalue &  
+                                (df_final[ , dpmsr_set$y$mva$groups$fc[comp_number]] >= input$mva_data_foldchange1 | 
+                                   df_final[ , dpmsr_set$y$mva$groups$fc[comp_number]] <= -input$mva_data_foldchange2)) 
+        filter_df_colnames <- colnames(filter_df)
+        filter_df_colnames <- gsub("_v_", " v ", filter_df_colnames)
+        filter_df_colnames <- gsub("_FC", " FC", filter_df_colnames)
+        filter_df_colnames <- gsub("_pval", " pval", filter_df_colnames)
+        filter_df_colnames <- gsub("_", "", filter_df_colnames)
+        colnames(filter_df) <-  filter_df_colnames
+        
+        }
+      
+      output$mva_data_final<- renderRHandsontable({
+        rhandsontable(filter_df, rowHeaders = NULL, columnHeaderwidth = 200, width = 1500, height = 1500) %>%
+          hot_cols(fixedColumnsLeft = 1, colWidths = 80, halign = "htCenter" ) %>%
+          hot_col(col = "Peptides", format="0")  %>%
+          #hot_col(col = colnames(df_N), format="0", digits =0) %>%
+          #hot_col(col = colnames(df_D), format="0", digits =0) %>%
+          #hot_col(col = (dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number+1):(ncol(dpmsr_set$data$final$impute)), format="0.00") %>%
+          hot_col(col = "Description", halign = "htLeft", colWidths = 350) %>%
+          hot_rows(rowHeights = 10)
+      })
+      
+      
+      removeModal()
+    })  
+    
+    
+    
+       
+}
 )
 

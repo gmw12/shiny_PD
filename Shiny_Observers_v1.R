@@ -237,6 +237,8 @@ update_dpmsr_set_from_widgets <- function(session, input){
   observe({
     dpmsr_set$x$protein4_list <<-  input$protein4_list
   })
+  
+
 }
 
 

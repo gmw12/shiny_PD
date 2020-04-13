@@ -3,6 +3,7 @@ library(shinyFiles)
 library(shinyjs)
 library(shinyWidgets)
 library(rhandsontable)
+library(rgl)
 
 shinyUI(fluidPage(
   useShinyjs(),
@@ -84,17 +85,26 @@ shinyUI(fluidPage(
         ), #end tab panel
     
     tabPanel("Overview", value = "tp_overview",
-             hr(),
-             column(width=3, offset =1,
-                    fluidRow(
-                      rHandsontableOutput("project_overview"))
-             ),
-             
-            column(width=6, offset =0,
-                    imageOutput("mass_accuracy"),
-                    br(),
-                    imageOutput("inj_summary")
-               )
+          hr(),
+          fluidRow(  
+            column(width=3, offset =1,
+               imageOutput("mass_accuracy"), 
+               imageOutput("inj_summary"), 
+               imageOutput("peptide_PI"), 
+               imageOutput("peptide_cruc"), 
+               imageOutput("faims_psm_cv")
+            ),
+            column(width=3, offset =1,
+                imageOutput("peptide_RT"),
+                imageOutput("peptide_MZ"),
+                imageOutput("peptide_Charge"),
+                imageOutput("peptide_aainfo"), 
+                imageOutput("peptide_ai"), 
+               ),
+            column(width=3, offset =1,
+                   rHandsontableOutput("project_overview")   
+            )
+          )
     ),  
 
 
@@ -340,8 +350,8 @@ shinyUI(fluidPage(
                                  fluidRow(
                                    column(width=2, offset =0,
                                      selectInput("plot_select", label = NULL, 
-                                                 choices = list("barplot", "boxplot", "cluster", "pca2d", "pca3d",
-                                                                "MDS", "density", "heatmap3"), 
+                                                 choices = list("barplot", "boxplot", "cluster", "pca2d", "heatmap",
+                                                                "MDS", "density", "heatmap"), 
                                                  selected = "barplot"),
                                      checkboxInput("checkbox_nc1", label = "Sample Loading - Total"),
                                      checkboxInput("checkbox_nc2", label = "Trimmed Mean - 10%"),
@@ -775,7 +785,7 @@ shinyUI(fluidPage(
                  ),
                  fluidRow(
                    hr(),
-                   tags$head(tags$style("#data_final{color: blue;
+                   tags$head(tags$style("#string_link{color: blue;
                                  font-size: 12px;
                                   }"
                    )
@@ -887,6 +897,474 @@ shinyUI(fluidPage(
              )
     ), # end of tab panel Extra   
    
+    tabPanel("MVA", value = "tp_mva",
+        navbarPage("MVA:", id ="tp_,mva2",
+            tabPanel("Setup", id="tp_mva_setup", 
+             fluidRow(
+               column(width=1, offset =0,
+                      selectInput("mva_comp", label = "Comp #", width = 150,
+                                  choices = list(1,2,3,4,5,6,7,8,9,10,11,12), 
+                                  selected = 1)
+               ),
+               column(width=1, offset =0,
+                      selectInput("select_final_data_mva", label = "Normalization", width = 150,
+                                  choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
+                                  selected = 1)
+               ),
+               column(width=1, offset =0,
+                      numericInput("mva_pvalue_cutoff", label="pvalue cutoff", value = .05)
+               ),
+               column(width=1, offset =0,
+                      numericInput("mva_foldchange_cutoff", label="FC cutoff", value = 2)
+               ),
+               column(width=2, offset =0,
+                      checkboxInput("mva_pair_comp", label = "Use Pairwise Comparisons"),
+                      checkboxInput("mva_checkbox_out_ptm", label = "Report Specific Modification Only")
+               ),
+               column(width=2, offset =0,
+                      textInput("mva_report_grep", label="Filter(grep) for Modification", value = "Enter value")
+               ),
+               column(width=2, offset =0,
+                      checkboxInput("mva_checkbox_report_accession", label = "Report Specific Accession(s) Only")
+               ), 
+               column(width=2, offset =0,
+                      textInput("mva_report_accession", label="Protein Accessions for Final Report", value = "Enter value")
+               ) 
+             ),
+             hr(),
+             fluidRow(
+               column(width=2, offset =0,
+                      pickerInput(inputId = "var_1N", label = "Comp1_N",  choices = "None", 
+                        options = list(`actions-box` = TRUE,size = 10,
+                          `selected-text-format` = "count > 3"),  multiple = TRUE
+                      ),
+                      pickerInput(inputId = "var_1D", label = "Comp1_D",  choices = "None", 
+                        options = list(`actions-box` = TRUE,size = 10,
+                                       `selected-text-format` = "count > 3"),  multiple = TRUE
+                      )                
+                     ),
+               column(width=2, offset =0,
+                      pickerInput(inputId = "var_2N", label = "Comp2_N",  choices = "None", 
+                                  options = list(`actions-box` = TRUE,size = 10,
+                                                 `selected-text-format` = "count > 3"),  multiple = TRUE
+                      ),
+                      pickerInput(inputId = "var_2D", label = "Comp2_D",  choices = "None", 
+                                  options = list(`actions-box` = TRUE,size = 10,
+                                                 `selected-text-format` = "count > 3"),  multiple = TRUE
+                      )
+                     ),
+               column(width=2, offset =0,
+                      pickerInput(inputId = "var_3N", label = "Comp3_N",  choices = "None", 
+                                  options = list(`actions-box` = TRUE,size = 10,
+                                                 `selected-text-format` = "count > 3"),  multiple = TRUE
+                      ),
+                      pickerInput(inputId = "var_3D", label = "Comp3_D",  choices = "None", 
+                                  options = list(`actions-box` = TRUE,size = 10,
+                                                 `selected-text-format` = "count > 3"),  multiple = TRUE
+                      )
+                  ),
+               column(width=2, offset =0,
+                      pickerInput(inputId = "var_4N", label = "Comp4_N",  choices = "None", 
+                                  options = list(`actions-box` = TRUE,size = 10,
+                                                 `selected-text-format` = "count > 3"),  multiple = TRUE
+                      ),
+                      pickerInput(inputId = "var_4D", label = "Comp4_D",  choices = "None", 
+                                  options = list(`actions-box` = TRUE,size = 10,
+                                                 `selected-text-format` = "count > 3"),  multiple = TRUE
+                      )
+               ) ,            
+               column(width=2, offset =0,
+                      pickerInput(inputId = "var_5N", label = "Comp5_N",  choices = "None", 
+                                  options = list(`actions-box` = TRUE,size = 10,
+                                                 `selected-text-format` = "count > 3"),  multiple = TRUE
+                      ),
+                      pickerInput(inputId = "var_5D", label = "Comp5_D",  choices = "None", 
+                                  options = list(`actions-box` = TRUE,size = 10,
+                                                 `selected-text-format` = "count > 3"),  multiple = TRUE
+                      )
+               ),            
+               column(width=2, offset =0,
+                      pickerInput(inputId = "var_6N", label = "Comp6_N",  choices = "None", 
+                                  options = list(`actions-box` = TRUE,size = 10,
+                                                 `selected-text-format` = "count > 3"),  multiple = TRUE
+                      ),
+                      pickerInput(inputId = "var_6D", label = "Comp6_D",  choices = "None", 
+                                  options = list(`actions-box` = TRUE,size = 10,
+                                                 `selected-text-format` = "count > 3"),  multiple = TRUE
+                      ) 
+               )
+             ),
+             fluidRow(
+               hr()
+             ),
+             fluidRow(
+               column(width=2, offset =0,
+                      pickerInput(inputId = "var_7N", label = "Comp7_N",  choices = "None", 
+                                  options = list(`actions-box` = TRUE,size = 10,
+                                                 `selected-text-format` = "count > 3"),  multiple = TRUE
+                      ),
+                      pickerInput(inputId = "var_7D", label = "Comp7_D",  choices = "None", 
+                                  options = list(`actions-box` = TRUE,size = 10,
+                                                 `selected-text-format` = "count > 3"),  multiple = TRUE
+                      )                     
+               ),
+               column(width=2, offset =0,
+                      pickerInput(inputId = "var_8N", label = "Comp8_N",  choices = "None", 
+                                  options = list(`actions-box` = TRUE,size = 10,
+                                                 `selected-text-format` = "count > 3"),  multiple = TRUE
+                      ),
+                      pickerInput(inputId = "var_8D", label = "Comp8_D",  choices = "None", 
+                                  options = list(`actions-box` = TRUE,size = 10,
+                                                 `selected-text-format` = "count > 3"),  multiple = TRUE
+                      )  
+               ),
+               column(width=2, offset =0,
+                      pickerInput(inputId = "var_9N", label = "Comp9_N",  choices = "None", 
+                                  options = list(`actions-box` = TRUE,size = 10,
+                                                 `selected-text-format` = "count > 3"),  multiple = TRUE
+                      ),
+                      pickerInput(inputId = "var_9D", label = "Comp9_D",  choices = "None", 
+                                  options = list(`actions-box` = TRUE,size = 10,
+                                                 `selected-text-format` = "count > 3"),  multiple = TRUE
+                      )  
+               ),
+               column(width=2, offset =0,
+                      pickerInput(inputId = "var_10N", label = "Comp10_N",  choices = "None", 
+                                  options = list(`actions-box` = TRUE,size = 10,
+                                                 `selected-text-format` = "count > 3"),  multiple = TRUE
+                      ),
+                      pickerInput(inputId = "var_10D", label = "Comp10_D",  choices = "None", 
+                                  options = list(`actions-box` = TRUE,size = 10,
+                                                 `selected-text-format` = "count > 3"),  multiple = TRUE
+                      )  
+               ) ,            
+               column(width=2, offset =0,
+                      pickerInput(inputId = "var_11N", label = "Comp11_N",  choices = "None", 
+                                  options = list(`actions-box` = TRUE,size = 10,
+                                                 `selected-text-format` = "count > 3"),  multiple = TRUE
+                      ),
+                      pickerInput(inputId = "var_11D", label = "Comp11_D",  choices = "None", 
+                                  options = list(`actions-box` = TRUE,size = 10,
+                                                 `selected-text-format` = "count > 3"),  multiple = TRUE
+                      )  
+               ),            
+               column(width=2, offset =0,
+                      pickerInput(inputId = "var_12N", label = "Comp12_N",  choices = "None", 
+                                  options = list(`actions-box` = TRUE,size = 10,
+                                                 `selected-text-format` = "count > 3"),  multiple = TRUE
+                      ),
+                      pickerInput(inputId = "var_12D", label = "Comp12_D",  choices = "None", 
+                                  options = list(`actions-box` = TRUE,size = 10,
+                                                 `selected-text-format` = "count > 3"),  multiple = TRUE
+                      )  
+               )
+             ),
+             fluidRow(align="center",
+                      hr(),
+                      #rHandsontableOutput("stat2_table"),
+                      tags$head(tags$style("#stat2_N_1{color: blue; font-size: 16px; font-style: bold;}")),
+
+                      actionButton("check_mva", label = "Check Comparisons", width = 300,
+                                   style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                      br(),
+                      br(),
+                      actionButton("start_mva", label = "Start Anlaysis", width = 300,
+                                   style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+             )
+            ),
+            
+            tabPanel("Graphs", id="tp_mva_graph1", 
+                     fluidRow(
+                       column(width=8, offset =0,
+                            pickerInput(inputId = "mva_plot_comp", label = "Comp #",  choices = "None", 
+                                          options = list(`actions-box` = TRUE, size = 100,
+                                                         `selected-text-format` = "count > 5"),  multiple = TRUE)
+                            ),
+                            # sliderInput("mva_plot_comp", label = "Comp #", min = 1, max = 12,
+                            #        value = 1)
+                            #  ),
+                       column(width=4, offset =0,
+                              actionButton("create_mva_plots", label = "Create Plots", width = 100,
+                                           style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                       ),
+                            ),
+                     fluidRow(
+                       column(width=6, offset =0,
+                          dropdownButton(
+                                textInput("mva_barplot_y_axis_label", label="y axis label", value = "Intensity", width = 200),
+                                textInput("mva_barplot_title", label="plot title", value = "Barplot", width = 200),
+                                sliderInput("mva_barplot_label_size", label = h5("Label Size"), min = 1, 
+                                            max = 50, value = 11),
+                                sliderInput("mva_barplot_title_size", label = h5("Title Size"), min = 10, 
+                                            max = 50, value = 20),
+                                 circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                 tooltip = tooltipOptions(title = "Click to see inputs !")
+                                       ),
+                            div(
+                              style = "position:relative",
+                              plotOutput("mva_barplot", width = 600, height = 400)
+                               ),
+                              downloadButton('download_mva_barplot')
+                            ),  
+
+                       column(width=6, offset =0,
+                              dropdownButton(
+                                textInput("mva_boxplot_y_axis_label", label="y axis label", value = "Intensity", width = 200),
+                                textInput("mva_boxplot_title", label="plot title", value = "Boxplot", width = 200),
+                                sliderInput("mva_boxplot_label_size", label = h5("Label Size"), min = 1, 
+                                            max = 50, value = 11),
+                                sliderInput("mva_boxplot_title_size", label = h5("Title Size"), min = 10, 
+                                            max = 50, value = 20),
+                                circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                tooltip = tooltipOptions(title = "Click to see inputs !")
+                              ),
+                              div(
+                                style = "position:relative",
+                                plotOutput("mva_boxplot", width = 600, height = 400)
+                              ),
+                              downloadButton('download_mva_boxplot')
+                            ),  
+                          ),
+                     hr(),
+                     fluidRow(
+                       column(width=6, offset =0,
+                              dropdownButton(
+                                selectInput("mva_pca2d_x", label = "pca xaxis", choices = list("PC1", "PC2", "PC3", "PC4", "PC5"), 
+                                            selected = "PC1"),
+                                selectInput("mva_pca2d_y", label = "pca yaxis", choices = list("PC1", "PC2", "PC3", "PC4", "PC5"), 
+                                            selected = "PC2"),
+                                textInput("mva_pca2d_title", label="plot title", value = "pca2d", width = 200),
+                                sliderInput("mva_pca2d_label_size", label = h5("Label Size"), min = 1, 
+                                            max = 50, value = 11),
+                                sliderInput("mva_pca2d_title_size", label = h5("Title Size"), min = 10, 
+                                            max = 50, value = 20),
+                                sliderInput("mva_pca2d_dot_size", label = h5("Point Size"), min = 1, 
+                                            max = 20, value = 4),
+                                circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                tooltip = tooltipOptions(title = "Click to see inputs !")
+                              ),
+                              div(
+                                style = "position:relative",
+                                plotOutput("mva_pca2d", width = 600, height = 400,
+                                           hover = hoverOpts("plot_pca2d_hover", delay = 100, delayType = "debounce")),
+                                uiOutput("hover_pca2d_info")
+                              ),
+                              downloadButton('download_mva_pca2d')
+                       ),  
+                       
+                       column(width=6, offset =0,
+                              dropdownButton(
+                                textInput("mva_pca3d_title", label="plot title", value = "pca3d", width = 200),
+                                sliderInput("mva_pca3d_label_size", label = h5("Label Size"), min = 1, 
+                                            max = 50, value = 11),
+                                sliderInput("mva_pca3d_title_size", label = h5("Title Size"), min = 10, 
+                                            max = 50, value = 20),
+                                sliderInput("mva_pca3d_dot_size", label = h5("Point Size"), min = 1, 
+                                            max = 10, value = 2),
+                                circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                tooltip = tooltipOptions(title = "Click to see inputs !")
+                              ),
+                              div(
+                                style = "position:relative",
+                                rglwidgetOutput("mva_pca3d", width = 600, height = 400)
+                              ),
+                              downloadButton('download_mva_pca3d')
+                       ),  
+                     ),
+                     hr(),
+                     fluidRow(
+                       column(width=6, offset =0,
+                              dropdownButton(
+                                textInput("mva_cluster_title", label="plot title", value = "cluster", width = 200),
+                                sliderInput("mva_cluster_label_size", label = h5("Label Size"), min = 1, 
+                                            max = 50, value = 11),
+                                sliderInput("mva_cluster_title_size", label = h5("Title Size"), min = 10, 
+                                            max = 50, value = 20),
+                                colourpicker::colourInput("cluster_high_color", "Select High Color", "#FF3366"),
+                                colourpicker::colourInput("cluster_low_color", "Select Low Color", "#009933"),
+                                circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                tooltip = tooltipOptions(title = "Click to see inputs !")
+                              ),
+                              div(
+                                style = "position:relative",
+                                plotOutput("mva_cluster", width = 600, height = 400)
+                              ),
+                              downloadButton('download_mva_cluster')
+                       ),  
+                       
+                       column(width=6, offset =0,
+                              dropdownButton(
+                                textInput("mva_heatmap_title", label="plot title", value = "heatmap", width = 200),
+                                circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                tooltip = tooltipOptions(title = "Click to see inputs !")
+                              ),
+                              div(
+                                style = "position:relative",
+                                plotOutput("mva_heatmap", width = 600, height = 400)
+                              ),
+                              downloadButton('download_mva_heatmap')
+                       ),  
+                     )  
+                    ),   # end graphs
+              
+            tabPanel("Volcano", id="tp_mva_volcano", 
+                     fluidRow(
+                       column(width=1, offset =0,
+                              actionButton("create_mva_volcano", label = "Create Volcano Plots", width = 300,
+                                           style="color: #fff; background-color: #337ab7; border-color: #2e6da4"), 
+                       )
+                     ), 
+                     fluidRow(
+                       column(width=5, offset =0,
+                              dropdownButton(
+                                textInput("mva_volcano1_plot_title", label="plot title", 
+                                          value = "Volcano", width = 200),
+                                textInput("volcano1_mva_plot_y_axis_label", label="y axis label", value = "-log_pvalue", width = 200),
+                                textInput("volcano1_mva_plot_x_axis_label", label="x axis label", value = "log_FC", width = 200),
+                                colourpicker::colourInput("volcano1_mva_dot_color", "Select Color", "blue"),
+                                sliderInput("volcano1_mva_plot_dot_size", label = h5("Point Size"), min = 1, 
+                                            max = 10, value = 2),
+                                sliderInput("volcano1_mva_plot_label_size", label = h5("Label Size"), min = 1, 
+                                            max = 50, value = 20),
+                                sliderInput("volcano1_mva_plot_title_size", label = h5("Title Size"), min = 10, 
+                                            max = 50, value = 20), 
+                                
+                                circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                tooltip = tooltipOptions(title = "Click to see inputs !")
+                              ),
+                              div(
+                                style = "position:relative",
+                                plotOutput("volcano1_mva_plot", width = 600, height = 600,
+                                           hover = hoverOpts("volcano1_mva_hover", delay = 100, delayType = "debounce")),
+                                uiOutput("volcano1_mva_hover_info")
+                              ),
+                              downloadButton('download_mva_volcano1')
+                       ), # end col
+                       column(width=5, offset =0,
+                              dropdownButton(
+                                textInput("mva_volcano2_plot_title", label="plot title", 
+                                          value = "Volcano", width = 200),
+                                textInput("volcano2_mva_plot_y_axis_label", label="y axis label", value = "-log_pvalue", width = 200),
+                                textInput("volcano2_mva_plot_x_axis_label", label="x axis label", value = "log_FC", width = 200),
+                                colourpicker::colourInput("volcano2_mva_dot_color", "Select Color", "blue"),
+                                sliderInput("volcano2_mva_plot_dot_size", label = h5("Point Size"), min = 1, 
+                                            max = 10, value = 2),
+                                sliderInput("volcano2_mva_plot_label_size", label = h5("Label Size"), min = 1, 
+                                            max = 50, value = 20),
+                                sliderInput("volcano2_mva_plot_title_size", label = h5("Title Size"), min = 10, 
+                                            max = 50, value = 20), 
+                                
+                                circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                tooltip = tooltipOptions(title = "Click to see inputs !")
+                              ),
+                              div(
+                                style = "position:relative",
+                                plotOutput("volcano2_mva_plot", width = 600, height = 600,
+                                           hover = hoverOpts("volcano2_mva_hover", delay = 100, delayType = "debounce")),
+                                uiOutput("volcano2_mva_hover_info")
+                              ),
+                              downloadButton('download_mva_volcano2')
+                       ) # end col
+                       ), #end fr
+                       
+                     fluidRow(
+                       column(width=5, offset =0,
+                              dropdownButton(
+                                textInput("mva_volcano3_plot_title", label="plot title", 
+                                          value = "Volcano", width = 200),
+                                textInput("volcano3_mva_plot_y_axis_label", label="y axis label", value = "-log_pvalue", width = 200),
+                                textInput("volcano3_mva_plot_x_axis_label", label="x axis label", value = "log_FC", width = 200),
+                                colourpicker::colourInput("volcano3_mva_dot_color", "Select Color", "blue"),
+                                sliderInput("volcano3_mva_plot_dot_size", label = h5("Point Size"), min = 1, 
+                                            max = 10, value = 2),
+                                sliderInput("volcano3_mva_plot_label_size", label = h5("Label Size"), min = 1, 
+                                            max = 50, value = 20),
+                                sliderInput("volcano3_mva_plot_title_size", label = h5("Title Size"), min = 10, 
+                                            max = 50, value = 20), 
+                                
+                                circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                tooltip = tooltipOptions(title = "Click to see inputs !")
+                              ),
+                              div(
+                                style = "position:relative",
+                                plotOutput("volcano3_mva_plot", width = 600, height = 600,
+                                           hover = hoverOpts("volcano3_mva_hover", delay = 100, delayType = "debounce")),
+                                uiOutput("volcano3_mva_hover_info")
+                              ),
+                              downloadButton('download_mva_volcano3')
+                       ), # end col
+                       column(width=5, offset =0,
+                              dropdownButton(
+                                textInput("mva_volcano4_plot_title", label="plot title", 
+                                          value = "Volcano", width = 200),
+                                textInput("volcano4_mva_plot_y_axis_label", label="y axis label", value = "-log_pvalue", width = 200),
+                                textInput("volcano4_mva_plot_x_axis_label", label="x axis label", value = "log_FC", width = 200),
+                                colourpicker::colourInput("volcano4_mva_dot_color", "Select Color", "blue"),
+                                sliderInput("volcano4_mva_plot_dot_size", label = h5("Point Size"), min = 1, 
+                                            max = 10, value = 2),
+                                sliderInput("volcano4_mva_plot_label_size", label = h5("Label Size"), min = 1, 
+                                            max = 50, value = 20),
+                                sliderInput("volcano4_mva_plot_title_size", label = h5("Title Size"), min = 10, 
+                                            max = 50, value = 20), 
+                                
+                                circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                tooltip = tooltipOptions(title = "Click to see inputs !")
+                              ),
+                              div(
+                                style = "position:relative",
+                                plotOutput("volcano4_mva_plot", width = 600, height = 600,
+                                           hover = hoverOpts("volcano4_mva_hover", delay = 100, delayType = "debounce")),
+                                uiOutput("volcano4_mva_hover_info")
+                              ),
+                              downloadButton('download_mva_volcano4')
+                       ) # end col
+                     ) #end fr    
+            ), # end volcano
+            
+            tabPanel("Data", value = "tp_mva_data",
+                     fluidRow( 
+                       column(width=1, offset =0,  
+                              numericInput("mva_data_topn", label="TopN", value = 0, width = 100)
+                       ),
+                       column(width=1, offset =0,
+                              textInput("mva_data_accession", label="Accession", value = "0", width = 100)
+                       ),
+                       column(width=1, offset =0,
+                              textInput("mva_data_description", label="Description", value = "0", width = 100)
+                       ),
+                       column(width=1, offset =0,  
+                              numericInput("mva_data_pvalue", label="pvalue", value = 0, width = 100)
+                       ),
+                       column(width=1, offset =0,  
+                              numericInput("mva_data_foldchange1", label="foldchange up", value = 0, width = 100)
+                       ),
+                       column(width=1, offset =0,  
+                              numericInput("mva_data_foldchange2", label="foldchange dn", value = 0, width = 100)
+                       ),
+                       column(width=3, offset =0,
+                              selectInput("mva_select_data_comp", label = "comparison", 
+                                          choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
+                                          selected = 1)
+                       ),
+                       column(width=1, offset =0,
+                              actionButton("mva_data_show", label = "Filter Data", width = 100,
+                                           style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                       )
+                     ),
+                     fluidRow(
+                       hr(),
+                       tags$head(tags$style("#mva_data_final{color: blue;
+                                 font-size: 12px;
+                                 }"
+                       )
+                       ),
+                       rHandsontableOutput("mva_data_final")
+                     )
+            ) #end data
+            
+          ) # end of navbar panel
+    ),  #end of tab panel
+    
     
     
     
@@ -923,5 +1401,4 @@ shinyUI(fluidPage(
     
      
  ) #end of navlistpanel
-) #end of ui
-)
+)) #end of ui

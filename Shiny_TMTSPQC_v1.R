@@ -30,7 +30,7 @@ tmt_spqc_normalize <- function(data_in){
     #create df for each TMT set
     irs_set <- data_in[,(dpmsr_set$y$info_columns + dpmsr_set$design[dpmsr_set$design$Set==i,]$PD_Order)]
     irs_set <- cbind(data_in[1:dpmsr_set$y$info_columns], irs_set)
-    assign(str_c("Test_",i,"_Step1_data"), irs_set, envir = .GlobalEnv)
+    #assign(str_c("Test_",i,"_Step1_data"), irs_set, envir = .GlobalEnv)
     assign(str_c("IRS_",i,"_Step1_data"), irs_set)
     Simple_Excel(irs_set, str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Step1.xlsx", collapse = " "))
     bar_plot_TMT(irs_set, str_c("TMT", i, "_IRS_Step1"),dpmsr_set$file$TMT_dir,irs_design)
@@ -109,7 +109,7 @@ tmt_spqc_normalize <- function(data_in){
       Simple_Excel(filter_data, str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Step4.xlsx", collapse = " "))
       bar_plot_TMT(filter_data, str_c("TMT", i, "_IRS_Step4"), dpmsr_set$file$TMT_dir, get(str_c("TMT",i,"_design")))
     }else{
-      assign(str_c("Test_",i,"_Step4_data"), get(str_c("IRS_",i,"_Step3_data")), envir = .GlobalEnv) 
+      #assign(str_c("Test_",i,"_Step4_data"), get(str_c("IRS_",i,"_Step3_data")), envir = .GlobalEnv) 
       assign(str_c("IRS_",i,"_Step4_data"), get(str_c("IRS_",i,"_Step3_data")) )
     }
   }
@@ -135,7 +135,7 @@ tmt_spqc_normalize <- function(data_in){
         protein_data <- peptide_data %>% group_by(Accession, Description) %>% summarise_all(list(sum))
         protein_data <- data.frame(ungroup(protein_data))
         assign(str_c("IRS_",i,"_Step5_data"), protein_data)
-        assign(str_c("Test_",i,"_Step5_data"), protein_data, envir = .GlobalEnv)
+        #assign(str_c("Test_",i,"_Step5_data"), protein_data, envir = .GlobalEnv)
         Simple_Excel(protein_data, str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Step5.xlsx", collapse = " "))
         #bar_plot_TMT(protein_data, str_c("TMT", i, "_IRS_Step5"), dpmsr_set$file$TMT_dir, get(str_c("TMT",i,"_design")))
     }

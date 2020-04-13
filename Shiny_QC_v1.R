@@ -56,13 +56,21 @@ qc_spike_final <- function(data_in) {
   data_in <- aggregate(data_in, by=list(Category=data_in$SpikeLevel), FUN=mean)
   data_in$Category <- NULL
   row_count <- nrow(data_in)
+  
   for(i in 2:row_count) {
-    testme<-trunc((data_in[i,]/data_in[1,])*100, 1)
-    data_in <- rbind(data_in, testme)
+    testme <- round((data_in[i,]/data_in[1,]), 2)
+    if (i==2){
+      qc_stat <- testme
+    }else{
+      qc_stat <- rbind(qc_stat, testme)
+    }
   }
-  Simple_Excel(data_in, str_c(dpmsr_set$file$qc_dir, "QC_Spike.xlsx"))
   data_in <-trunc(round(data_in,0))
-  data_out <- data_in %>% mutate_all(as.character)
+  data_in <- data_in %>% mutate_all(as.character)
+  qc_stat <- qc_stat %>% mutate_all(as.character)
+  data_out <- rbind(data_in, qc_stat)
+  
+  Simple_Excel(data_out, str_c(dpmsr_set$file$qc_dir, "QC_Spike.xlsx"))
   return(data_out)
 }
 

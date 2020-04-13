@@ -202,6 +202,21 @@ set_sample_groups<- function(){
   
   #create dataframe to hold cv summaries for normalization strategies
   dpmsr_set$data$summary_cv <<- data.frame(sample_groups$Group)
+  
+  #create list of all sample variables for Multivariate Analysis - in order from left to right
+  first_group<- NULL
+  second_group<- NULL
+  third_group<- NULL
+  for(i in 1:length(dpmsr_set$y$sample_groups$Group)){
+    groups <-  unlist(str_split(dpmsr_set$y$sample_groups$Group[i], "_"))
+    first_group <- c(first_group, groups[1])
+    second_group <-  c(second_group, groups[2])
+    third_group <-  c(third_group, groups[3])
+  }
+  dpmsr_set$y$uniquegroups <<- unique(c(first_group, second_group, third_group))
+  dpmsr_set$y$uniquegroups <<- dpmsr_set$y$uniquegroups[!is.na(dpmsr_set$y$uniquegroups)]
+
+  
 }
 
 

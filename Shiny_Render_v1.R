@@ -19,6 +19,39 @@ inputloaddata_render <- function(session, input, output){
   output$project_overview <- renderRHandsontable({
     rhandsontable(overview_df, rowHeaders = NULL,  colHeaders = NULL, width = 800, height = 800) 
       })
+  
+  output$peptide_RT <- renderImage({
+    list(src=str_c(dpmsr_set$file$qc_dir,"Peptide_RT.png"), contentType = 'image/png', width=500, height=300, alt="this is alt text")
+  }, deleteFile = FALSE)
+  
+  output$peptide_MZ <- renderImage({
+    list(src=str_c(dpmsr_set$file$qc_dir,"Peptide_MZ.png"), contentType = 'image/png', width=500, height=300, alt="this is alt text")
+  }, deleteFile = FALSE)
+  
+  output$peptide_Charge <- renderImage({
+    list(src=str_c(dpmsr_set$file$qc_dir,"Peptide_Charge.png"), contentType = 'image/png', width=500, height=300, alt="this is alt text")
+  }, deleteFile = FALSE)
+  
+  output$faims_psm_cv <- renderImage({
+    list(src=str_c(dpmsr_set$file$qc_dir,"FAIMS_PSM_CV.png"), contentType = 'image/png', width=500, height=300, alt="this is alt text")
+  }, deleteFile = FALSE) 
+  
+  output$peptide_PI <- renderImage({
+    list(src=str_c(dpmsr_set$file$qc_dir,"Peptide_PI.png"), contentType = 'image/png', width=500, height=300, alt="this is alt text")
+  }, deleteFile = FALSE)
+  
+  output$peptide_cruc <- renderImage({
+    list(src=str_c(dpmsr_set$file$qc_dir,"Peptide_Cruc.png"), contentType = 'image/png', width=500, height=300, alt="this is alt text")
+  }, deleteFile = FALSE)
+  
+  output$peptide_aainfo <- renderImage({
+    list(src=str_c(dpmsr_set$file$qc_dir,"Peptide_AAInfo.png"), contentType = 'image/png', width=500, height=300, alt="this is alt text")
+  }, deleteFile = FALSE)
+  
+  output$peptide_ai <- renderImage({
+    list(src=str_c(dpmsr_set$file$qc_dir,"Peptide_AI.png"), contentType = 'image/png', width=500, height=300, alt="this is alt text")
+  }, deleteFile = FALSE)
+  
 }
 
 #----------------------------------------------------------------------------------

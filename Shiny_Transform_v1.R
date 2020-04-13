@@ -38,8 +38,9 @@ protein_to_peptide <- function(){
   
   peptide_final <- peptide_final[order(peptide_final$Master.Protein.Accessions, peptide_final$Sequence),]
   peptide_out <- peptide_final %>% dplyr::select(Confidence, Master.Protein.Accessions, Master.Protein.Descriptions, Sequence, Modifications,
-                                                 RT.in.min.by.Search.Engine.Mascot, Ions.Score.by.Search.Engine.Mascot, contains("Percolator.q.Value"), contains("Abundance.F"))
-  colnames(peptide_out)[1:8] <- c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Retention.Time", "Ion.Score", "q-Value")
+                                                 RT.in.min.by.Search.Engine.Mascot, mz.in.Da.by.Search.Engine.Mascot, Charge.by.Search.Engine.Mascot, 
+                                                 Ions.Score.by.Search.Engine.Mascot, contains("Percolator.q.Value"), contains("Abundance.F"))
+  colnames(peptide_out)[1:10] <- c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Retention.Time","Da","mz", "Ion.Score", "q-Value")
   peptide_out <- subset(peptide_out, Accession %in% master_accessions )
   Simple_Excel(peptide_out, str_c(dpmsr_set$file$extra_prefix,"_ProteinPeptide_to_Peptide_Raw.xlsx", collapse = " "))
   return(peptide_out)
@@ -233,7 +234,6 @@ peptide_psm_set_fdr <- function(){
   return(peptide_psmfdr)
 }
 
-
 #----------------------------------------------------------------------------------------
 add_imputed_column <- function(df){
   #check to see if this was already completed, if so skip step
@@ -251,6 +251,8 @@ add_imputed_column <- function(df){
         peptide_annotate <- peptide_annotate[, c("Accession", "Description")]
         test1 <- cbind(peptide_annotate, peptide_data)
         test2 <- test1 %>% group_by(Accession, Description) %>% summarise_all(list(sum))
+        test2[3:ncol(test2)][test2[3:ncol(test2)] > 1] <- 1
+        dpmsr_set$data$Protein_imputed_df <<- test2
         test2 <- data.frame(ungroup(test2))
         test2 <- test2[3:ncol(test2)]
         test2[test2==0] <- "-"
@@ -267,6 +269,9 @@ add_imputed_column <- function(df){
       df <- df[(dpmsr_set$y$info_columns+1):ncol(df)]
       df_data <- df
       df[df>0] <- "1"
+      imputed_df<- df
+      imputed_df[is.na(imputed_df)] <- 0
+      dpmsr_set$data$peptide_imputed_df <<- cbind(df_annotation, imputed_df)
       df[is.na(df)] <- "-"
       df <- df %>% mutate_all(as.character)
       while (ncol(df)>1) {

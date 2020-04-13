@@ -104,7 +104,26 @@ box_plot <- function(x,y, plot_dir) {
   dev.off()
 }
 
+#Box plot-------------------------------------------------
+box_plot2 <- function(df,plot_title,plot_dir)  {
+  df <- dpmsr_set$data$final$sltmm[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)]
+  df3 <- log2(df) %>% gather(Sample, Intensity, colnames(df))
+  plot_title <- "Plot title"
+  file_name <- str_c(plot_dir, plot_title, "_boxplot.png")
+  
+  ggplot(data=df3, aes(x=Sample, y=Intensity)) +
+    geom_boxplot(notch = TRUE, outlier.colour="red", outlier.shape=1,
+                 outlier.size=1, fill=dpmsr_set$design$colorlist) +
+    coord_flip()+
+    ggtitle(plot_title)+
+    theme(plot.title = element_text(hjust = 0.5), 
+          axis.text.x = element_text(size=5, angle = 90,  color="black"),
+          axis.text.y = element_text(size=5,  color="black"),
+         ) 
 
+  ggsave(file_name, width=5, height=4)
+  return("done")
+}
 
 #MDS Plot-------------------------------------------------
 MDS_plot <- function(x,y,plot_dir) {
@@ -131,7 +150,8 @@ heatmap_plot <- function(y,plottitle,plot_dir)
   mycol <- redgreen(75) #colorpanel(40, "darkblue", "yellow", "white") # or try redgreen(75)
   #png(filename=str_c(plot_dir, plottitle, "_heatmap.png"), width = 888, height = 571, units="px")  
   #png(filename=str_c(plot_dir, plottitle, "_heatmap2.png"), width = 8880, height = 5710)  
-  jpeg(filename=str_c(plot_dir, plottitle, "_heatmap.jpeg"), units="px", quality=100, width = 1776, height = 1146)  
+  #jpeg(filename=str_c(plot_dir, plottitle, "_heatmap.jpg"), units="px", quality=100, width = 1776, height = 1146)  
+  png(filename=str_c(plot_dir, plottitle, "_heatmap.png"), units="px", width = 1776, height = 1146)  
   #tiff(filename=str_c(plot_dir, plottitle, "_heatmap2.tiff"), units="px", compression = "none", pointsize=20, width = 1776, height = 1146)  
   #tiff(filename=str_c(plot_dir, plottitle, "_heatmap1.tiff"), units="px", compression = "none", width = 888, height = 571)  
   heatmap.2(y, Rowv=as.dendrogram(hr), Colv=as.dendrogram(hc), col=mycol, labCol= dpmsr_set$design$Group, 
@@ -177,18 +197,18 @@ PCA_plot <- function(x,y, plot_dir) {
   ggsave(file_name, width=5, height=4)
   
   #Cluster
-  file_name <- str_c(plot_dir, y, "_Cluster.png")
-  df<- x_transpose
-  df <- na.omit(df)
-  #the  distance  measure  to  be  used.   This  must  be  one  of  "euclidean",  "maxi-mum", 
-  #"manhattan", "canberra", "binary", "minkowski", "pearson", "spearman"or "kendall".
-  distance <- get_dist(df, method="euclidean", stand = TRUE)
-  fviz_dist(distance,  show_labels = TRUE, gradient = list(low = "#009933", mid = "white", high = "#FF3366")) +
-    theme(plot.title = element_text(hjust = 0.5), 
-          axis.text.x = element_text(size=5, angle = 90,  color="black"),
-          axis.text.y = element_text(size=5,  color="black"))+
-    ggtitle(y) 
-  ggsave(file_name, width=5, height=4)
+  # file_name <- str_c(plot_dir, y, "_Cluster.png")
+  # df<- x_transpose
+  # df <- na.omit(df)
+  # #the  distance  measure  to  be  used.   This  must  be  one  of  "euclidean",  "maxi-mum", 
+  # #"manhattan", "canberra", "binary", "minkowski", "pearson", "spearman"or "kendall".
+  # distance <- get_dist(df, method="euclidean", stand = TRUE)
+  # fviz_dist(distance,  show_labels = TRUE, gradient = list(low = "#009933", mid = "white", high = "#FF3366")) +
+  #   theme(plot.title = element_text(hjust = 0.5), 
+  #         axis.text.x = element_text(size=5, angle = 90,  color="black"),
+  #         axis.text.y = element_text(size=5,  color="black"))+
+  #   ggtitle(y) 
+  # ggsave(file_name, width=5, height=4)
   
   return("done")
 }

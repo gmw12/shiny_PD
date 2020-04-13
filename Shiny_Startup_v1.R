@@ -27,6 +27,7 @@ library(cluster)    # clustering algorithms
 library(factoextra) # clustering algorithms & visualization
 
 library(shiny)
+library(shinyWidgets)
 library(shinyFiles)
 library(rhandsontable)
 library(shinyjs)
@@ -66,3 +67,5 @@ source("Shiny_Pathway_v1.R")
 source("Shiny_String_v1.R")
 source("Shiny_MailMerge_v1.R")
 source("Shiny_TMTSPQC_v1.R")
+source("Shiny_Interactive_v1.R")
+source("Shiny_MVA_v1.R")

@@ -5,6 +5,10 @@ apply_impute <- function(){
   norm_list <- dpmsr_set$y$norm_list
   dpmsr_set$data$impute <<- mclapply(norm_list, impute_parallel, mc.cores = ncores)
   #need to complete TMM norms after imputation ()
+  
+  #check that the parallel processing went through, if not do it again one at a time
+  check_impute_parallel(norm_list)
+  
   norm_list2 <- dpmsr_set$y$norm_list2
   if (2 %in% dpmsr_set$y$norm_list2)
     {dpmsr_set$data$impute$tmm <<- tmm_normalize(dpmsr_set$data$impute$impute, dpmsr_set$data$impute$impute, "TMM_Norm")}
@@ -17,19 +21,29 @@ apply_impute <- function(){
 
 #--------------------------------------------------------------------------------
 impute_parallel <- function(norm_type){
-  if(norm_type==99){data_raw_impute <- impute_only(dpmsr_set$data$normalized$impute)}
-    else if(norm_type==1){data_sl_impute <- impute_only(dpmsr_set$data$normalized$sl)}
-    else if(norm_type==4){data_quantile_impute <- impute_only(dpmsr_set$data$normalized$quantile)}
-    else if(norm_type==5){data_lr_impute <- impute_only(dpmsr_set$data$normalized$lr)}
-    else if(norm_type==6){data_loess_impute <- impute_only(dpmsr_set$data$normalized$loess)}
-    else if(norm_type==7){data_vsn_impute <- impute_only(dpmsr_set$data$normalized$vsn)}
-    else if(norm_type==8){data_ti_impute <- impute_only(dpmsr_set$data$normalized$ti)}
-    else if(norm_type==9){data_mi_impute <- impute_only(dpmsr_set$data$normalized$mi)}
-    else if(norm_type==10){data_ai_impute <- impute_only(dpmsr_set$data$normalized$ai)}
+  if(norm_type==99){data_raw_impute <- impute_only(dpmsr_set$data$normalized$impute, "impute")}
+    else if(norm_type==1){data_sl_impute <- impute_only(dpmsr_set$data$normalized$sl, "sl")}
+    else if(norm_type==4){data_quantile_impute <- impute_only(dpmsr_set$data$normalized$quantile, "quantile")}
+    else if(norm_type==5){data_lr_impute <- impute_only(dpmsr_set$data$normalized$lr, "lr")}
+    else if(norm_type==6){data_loess_impute <- impute_only(dpmsr_set$data$normalized$loess, "loess")}
+    else if(norm_type==7){data_vsn_impute <- impute_only(dpmsr_set$data$normalized$vsn, "vsn")}
+    else if(norm_type==8){data_ti_impute <- impute_only(dpmsr_set$data$normalized$ti, "ti")}
+    else if(norm_type==9){data_mi_impute <- impute_only(dpmsr_set$data$normalized$mi, "mi")}
+    else if(norm_type==10){data_ai_impute <- impute_only(dpmsr_set$data$normalized$ai, "ai")}
+}
+
+#--------------------------------------------------------------------------------------
+check_impute_parallel <- function(norm_list){
+  for(norm_name in names(norm_list)){
+    if(is.null(dpmsr_set$data$impute[[norm_name]]    )){
+      cat(file=stderr(), str_c("apply_impute function...",norm_nameJ), "\n")
+      dpmsr_set$data$impute[[norm_name]]<<-impute_only(dpmsr_set$data$normalized[[norm_name]], norm_name  )
+    }
+  }
 }
 
 #--------------------------------------------------------------------------------
-impute_only <-  function(data_out){
+impute_only <-  function(data_out, norm_name){
   distribution_data <- data_out
   annotation_data <- data_out[1:dpmsr_set$y$info_columns]
   data_out <- data_out[(dpmsr_set$y$info_columns+1):ncol(data_out)]
@@ -50,7 +64,7 @@ impute_only <-  function(data_out){
     data_out[is.na(data_out)] <- 0.0}
   data_out<-data.frame(lapply(data_out, as.numeric))
   data_out<-cbind(annotation_data, data_out)
-  Simple_Excel(data_out, str_c(dpmsr_set$file$extra_prefix, "_", dpmsr_set$x$impute_method, "_impute.xlsx", collapse = " "))
+  Simple_Excel(data_out, str_c(dpmsr_set$file$extra_prefix, "_", norm_name, "_", dpmsr_set$x$impute_method, "_impute.xlsx", collapse = " "))
   return(data_out)
 }
 

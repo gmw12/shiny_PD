@@ -1,5 +1,6 @@
 
-update_shiny_defaults <- function(session){
+update_widget_startup <- function(session, input, output){
+  
   updateTextInput(session, "fileprefix", value = as.character(dpmsr_set$x$file_prefix))
   
   if(dpmsr_set$x$raw_data_input == "Protein_Peptide"){rdi <- 1}
@@ -31,7 +32,12 @@ update_shiny_defaults <- function(session){
   updateCheckboxInput(session, "checkbox_report_accession", value = accession_report) 
   
   updateTextInput(session, "report_accession", value = as.character(dpmsr_set$x$accession_report_list))
-  #----------------------------------------------------------------------
+  
+}
+
+
+#-Filter--------------------------------------------------------------------- 
+update_widget_filter <- function(session, input, output){
   
   if (as.logical(dpmsr_set$x$require_2)) {require2 <- 1}else{require2<-0}
   updateCheckboxInput(session, "checkbox_require2", value = require2)
@@ -46,8 +52,11 @@ update_shiny_defaults <- function(session){
   updateCheckboxInput(session, "checkbox_norm_ptm", value = ptmreport) 
   
   updateTextInput(session, "filter_grep", value = as.character(dpmsr_set$x$peptide_grep ))
+}
   
-  #----------------------------------------------------------------------
+  
+  #-Norm---------------------------------------------------------------------
+update_widget_norm <- function(session, input, output){
   
   if (as.logical(dpmsr_set$x$sl)) {sl_norm <- 1}else{sl_norm<-0}
   updateCheckboxInput(session, "checkbox_n1", value = sl_norm)
@@ -83,30 +92,9 @@ update_shiny_defaults <- function(session){
   updateCheckboxInput(session, "checkbox_n11", value = protein_norm)
   
   updateTextInput(session, "protein_norm_list", value = as.character(dpmsr_set$x$protein_norm_list ))
+ 
   
-  #----------------------------------------------------------------------
-  
-  if(dpmsr_set$x$impute_method == "Duke"){impute_method <- 1}
-    else if(dpmsr_set$x$impute_method == "Floor"){impute_method <- 2}
-    else if(dpmsr_set$x$impute_method == "Minimum"){impute_method <- 3}
-    else if(dpmsr_set$x$impute_method == "Aerage"){impute_method <- 4}
-    else if(dpmsr_set$x$impute_method == "KNN"){impute_method <- 5}
-    else if(dpmsr_set$x$impute_method == "LocalLeastSquares"){impute_method <- 6}
-    else if(dpmsr_set$x$impute_method == "MLE"){impute_method <- 7}
-    else if(dpmsr_set$x$impute_method == "BottomX"){impute_method <- 8}
-  updateRadioButtons(session, "radio_impute", selected = impute_method )
-  
-  if (as.logical(dpmsr_set$x$peptide_ptm_impute) ) {ptmreport <- 1}else{ptmreport<-0}
-  updateCheckboxInput(session, "checkbox_impute_ptm", value = ptmreport) 
-  
-  updateNumericInput(session, "impute_floor", value = as.numeric(dpmsr_set$x$area_floor))
-  
-  updateNumericInput(session, "bottom_x", value = as.numeric(dpmsr_set$x$bottom_x))
-  
-  if (as.logical(dpmsr_set$x$missing_50)) {missing_50 <- 1}else{missing_50<-0}
-  updateCheckboxInput(session, "checkbox_missing_50", value = as.logical(dpmsr_set$x$missing_50))
-  
-  #----------------------------------------------------------------------------------
+  #TMT SPQC----------------------------------------------------------------------------------
   
   updateNumericInput(session, "tmt_sets", value = as.numeric(dpmsr_set$x$tmt_spqc_sets))
   updateNumericInput(session, "tmt_channels", value = as.numeric(dpmsr_set$x$tmt_spqc_channels))
@@ -114,8 +102,62 @@ update_shiny_defaults <- function(session){
   
   if (as.logical(dpmsr_set$x$tmt_filter_peptide)) {tmt_filter <- 1}else{tmt_filter<-0}
   updateCheckboxInput(session, "checkbox_tmt_filter", value = tmt_filter)
+}
+
+#-Impute---------------------------------------------------------------------
+  update_widget_impute <- function(session, input, output){ 
+    
+    if(dpmsr_set$x$impute_method == "Duke"){impute_method <- 1}
+      else if(dpmsr_set$x$impute_method == "Floor"){impute_method <- 2}
+      else if(dpmsr_set$x$impute_method == "Minimum"){impute_method <- 3}
+      else if(dpmsr_set$x$impute_method == "Aerage"){impute_method <- 4}
+      else if(dpmsr_set$x$impute_method == "KNN"){impute_method <- 5}
+      else if(dpmsr_set$x$impute_method == "LocalLeastSquares"){impute_method <- 6}
+      else if(dpmsr_set$x$impute_method == "MLE"){impute_method <- 7}
+      else if(dpmsr_set$x$impute_method == "BottomX"){impute_method <- 8}
+    updateRadioButtons(session, "radio_impute", selected = impute_method )
+    
+    if (as.logical(dpmsr_set$x$peptide_ptm_impute) ) {ptmreport <- 1}else{ptmreport<-0}
+    updateCheckboxInput(session, "checkbox_impute_ptm", value = ptmreport) 
+    
+    updateNumericInput(session, "impute_floor", value = as.numeric(dpmsr_set$x$area_floor))
+    
+    updateNumericInput(session, "bottom_x", value = as.numeric(dpmsr_set$x$bottom_x))
+    
+    if (as.logical(dpmsr_set$x$missing_50)) {missing_50 <- 1}else{missing_50<-0}
+    updateCheckboxInput(session, "checkbox_missing_50", value = as.logical(dpmsr_set$x$missing_50))
+  }
   
-  #----------------------------------------------------------------------------------
+
+  #-Stats---------------------------------------------------------------------
+  
+  update_widget_stats <- function(session, input, output){
+
+    updateSliderInput(session, "comp_number", value=as.numeric(dpmsr_set$x$comp_number))
+    
+    updateSelectInput(session, "comp_1N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp1N)
+    updateSelectInput(session, "comp_1D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp1D)
+    updateSelectInput(session, "comp_2N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp2N)
+    updateSelectInput(session, "comp_2D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp2D)
+    updateSelectInput(session, "comp_3N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp3N)
+    updateSelectInput(session, "comp_3D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp3D)
+    updateSelectInput(session, "comp_4N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp4N)
+    updateSelectInput(session, "comp_4D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp4D)
+    updateSelectInput(session, "comp_5N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp5N)
+    updateSelectInput(session, "comp_5D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp5D)
+    updateSelectInput(session, "comp_6N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp6N)
+    updateSelectInput(session, "comp_6D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp6D)
+    updateCheckboxInput(session, "pair_comp", value = as.logical(dpmsr_set$x$pair_comp))
+    updateNumericInput(session, "pvalue_cutoff", value = as.numeric(dpmsr_set$x$pvalue_cutoff  ))
+    updateNumericInput(session, "foldchange_cutoff", value = as.numeric(dpmsr_set$x$foldchange_cutoff ))
+    
+  }
+  
+  
+  
+    
+  #---Plots-------------------------------------------------------------------------------
+update_widget_post_processing <- function(session, input, output){ 
   
   if (as.logical(dpmsr_set$x$sl)) {sl_norm <- 1}else{sl_norm<-0}
   updateCheckboxInput(session, "checkbox_nc1", value = sl_norm)
@@ -151,32 +193,6 @@ update_shiny_defaults <- function(session){
   updateCheckboxInput(session, "checkbox_nc11", value = protein_norm)
   
   #----------------------------------------------------------------------
-  
-  updateSliderInput(session, "comp_number", value=as.numeric(dpmsr_set$x$comp_number))
-  
-  updateSelectInput(session, "comp_1N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp1N)
-  updateSelectInput(session, "comp_1D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp1D)
-  
-  updateSelectInput(session, "comp_2N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp2N)
-  updateSelectInput(session, "comp_2D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp2D)
-  
-  updateSelectInput(session, "comp_3N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp3N)
-  updateSelectInput(session, "comp_3D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp3D)
-  
-  updateSelectInput(session, "comp_4N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp4N)
-  updateSelectInput(session, "comp_4D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp4D)
-  
-  updateSelectInput(session, "comp_5N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp5N)
-  updateSelectInput(session, "comp_5D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp5D)
-  
-  updateSelectInput(session, "comp_6N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp6N)
-  updateSelectInput(session, "comp_6D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp6D)
-  
-  updateCheckboxInput(session, "pair_comp", value = as.logical(dpmsr_set$x$pair_comp))
-  updateNumericInput(session, "pvalue_cutoff", value = as.numeric(dpmsr_set$x$pvalue_cutoff  ))
-  updateNumericInput(session, "foldchange_cutoff", value = as.numeric(dpmsr_set$x$foldchange_cutoff ))
-
-  #----------------------------------------------------------------------
   updateTextInput(session, "adh_list", value = as.character(dpmsr_set$x$adh_list ))
   updateTextInput(session, "bait_list", value = as.character(dpmsr_set$x$bait_list ))
   updateTextInput(session, "avidin_list", value = as.character(dpmsr_set$x$avidin_list ))
@@ -186,92 +202,15 @@ update_shiny_defaults <- function(session){
   updateTextInput(session, "protein2_list", value = as.character(dpmsr_set$x$protein2_list ))
   updateTextInput(session, "protein3_list", value = as.character(dpmsr_set$x$protein3_list ))
   updateTextInput(session, "protein4_list", value = as.character(dpmsr_set$x$protein4_list ))
-
-  updateSelectInput(session, "select_data_comp", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
   
-  updateSelectInput(session, "select_data_comp_motif", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
-  updateSelectInput(session, "select_final_data_motif", choices = names(dpmsr_set$data$final), selected= "impute")
-  
-  updateSelectInput(session, "select_data_comp_wiki", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
-  updateSelectInput(session, "select_final_data_wiki", choices = names(dpmsr_set$data$final), selected= "impute")
-  updateSelectInput(session, "select_data_comp_profile", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
-  updateSelectInput(session, "select_final_data_profile", choices = names(dpmsr_set$data$final), selected= "impute")
-  updateSelectInput(session, "select_data_comp_go", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
-  updateSelectInput(session, "select_final_data_go", choices = names(dpmsr_set$data$final), selected= "impute")
-  updateSelectInput(session, "select_data_comp_string", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
-  updateSelectInput(session, "select_final_data_string", choices = names(dpmsr_set$data$final), selected= "impute")
-  updateSelectInput(session, "select_final_data_report", choices = names(dpmsr_set$data$final), selected= "impute")
-  updateSelectInput(session, "select_data_comp_string_enrich", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
-  #updateSelectInput(session, "select_final_data_string_enrich", choices = names(dpmsr_set$data$final), selected= "impute")
-}
-
-
-
-#----------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------
-
-selection_updates_new_start <- function(session, input, output){
-  
-  #update pulldown for proteinQC plots
   updateSelectInput(session, "norm_type", choices = names(dpmsr_set$data$final) , selected= "impute")
   updateSelectInput(session, "volcano_select", choices = names(dpmsr_set$data$final), selected = "impute")
-  
   updateSelectInput(session, "protein_select", choices = dpmsr_set$y$protein_list , selected= "ADH")
-  
-  updateSelectInput(session, "select_data_comp", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
-  updateSelectInput(session, "select_final_data", choices = names(dpmsr_set$data$final), selected= "impute")
-  updateSelectInput(session, "select_data_comp_motif", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
-  updateSelectInput(session, "select_final_data_motif", choices = names(dpmsr_set$data$final), selected= "impute")
-  updateSelectInput(session, "select_data_comp_wiki", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
-  updateSelectInput(session, "select_final_data_wiki", choices = names(dpmsr_set$data$final), selected= "impute")
-  updateSelectInput(session, "select_data_comp_profile", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
-  updateSelectInput(session, "select_final_data_profile", choices = names(dpmsr_set$data$final), selected= "impute")
-  updateSelectInput(session, "select_data_comp_go", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
-  updateSelectInput(session, "select_final_data_go", choices = names(dpmsr_set$data$final), selected= "impute")
-  updateSelectInput(session, "select_data_comp_string", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
-  updateSelectInput(session, "select_final_data_string", choices = names(dpmsr_set$data$final), selected= "impute")
-  updateSelectInput(session, "select_data_comp_string_enrich", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
-  updateSelectInput(session, "select_final_data_report", choices = names(dpmsr_set$data$final), selected= "impute")
-   #updateSelectInput(session, "select_final_data_string_enrich", choices = names(dpmsr_set$data$final), selected= "impute")
-  
   updateSelectInput(session, "select_oneprotein_norm", choices = names(dpmsr_set$data$final), selected= "impute")
   updateSelectInput(session, "select_onepeptide_norm", choices = names(dpmsr_set$data$final), selected= "impute")
   
-  
-  updateSliderInput(session, "comp_number", value=as.numeric(dpmsr_set$x$comp_number))
-  
-  updateSelectInput(session, "comp_1N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp1N)
-  updateSelectInput(session, "comp_1D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp1D)
-  
-  updateSelectInput(session, "comp_2N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp2N)
-  updateSelectInput(session, "comp_2D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp2D)
-  
-  updateSelectInput(session, "comp_3N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp3N)
-  updateSelectInput(session, "comp_3D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp3D)
-  
-  updateSelectInput(session, "comp_4N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp4N)
-  updateSelectInput(session, "comp_4D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp4D)
-  
-  updateSelectInput(session, "comp_5N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp5N)
-  updateSelectInput(session, "comp_5D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp5D)
-  
-  updateSelectInput(session, "comp_6N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp6N)
-  updateSelectInput(session, "comp_6D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp6D)
-  
-  updateCheckboxInput(session, "pair_comp", value = as.logical(dpmsr_set$x$pair_comp))
-  updateNumericInput(session, "pvalue_cutoff", value = as.numeric(dpmsr_set$x$pvalue_cutoff  ))
-  updateNumericInput(session, "foldchange_cutoff", value = as.numeric(dpmsr_set$x$foldchange_cutoff ))
-  
-}
+#----------------------------------------------------------------------
 
-
-#----------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------
-
-selection_update_after_stats <- function(session, input, output){
-  #update pulldown for proteinQC plots
-  updateSelectInput(session, "norm_type", choices = names(dpmsr_set$data$final) , selected= "impute")
-  updateSelectInput(session, "volcano_select", choices = names(dpmsr_set$data$final), selected = "impute")
   updateSelectInput(session, "select_data_comp", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
   updateSelectInput(session, "select_final_data", choices = names(dpmsr_set$data$final), selected= "impute")
   updateSelectInput(session, "select_data_comp_motif", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
@@ -285,44 +224,37 @@ selection_update_after_stats <- function(session, input, output){
   updateSelectInput(session, "select_data_comp_string", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
   updateSelectInput(session, "select_final_data_string", choices = names(dpmsr_set$data$final), selected= "impute")
   updateSelectInput(session, "select_final_data_report", choices = names(dpmsr_set$data$final), selected= "impute")
-  updateSelectInput(session, "select_data_comp_string_enrich", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1])
-  #updateSelectInput(session, "select_final_data_string_enrich", choices = names(dpmsr_set$data$final), selected= "impute")
+  updateSelectInput(session, "select_data_comp_string_enrich", choices = dpmsr_set$y$comp_groups$comp_name, selected= dpmsr_set$y$comp_groups$comp_name[1]) 
+  updateSelectInput(session, "select_final_data_mva", choices = names(dpmsr_set$data$final), selected= "impute")
   
-  updateSelectInput(session, "select_oneprotein_norm", choices = names(dpmsr_set$data$final), selected= "impute")
-  updateSelectInput(session, "select_onepeptide_norm", choices = names(dpmsr_set$data$final), selected= "impute")
+  #----------------------------------------------------------------------
   
+  updatePickerInput(session, "var_1N", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "var_2N", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "var_3N", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "var_1D", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "var_2D", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "var_3D", choices = dpmsr_set$y$uniquegroups, selected= "-")
   
-  
-  updateTabsetPanel(session, "nlp1", selected = "tp8") 
-  
-  updateSliderInput(session, "comp_number", value=as.numeric(dpmsr_set$x$comp_number))
-  
-  updateSelectInput(session, "comp_1N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp1N)
-  updateSelectInput(session, "comp_1D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp1D)
-  
-  updateSelectInput(session, "comp_2N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp2N)
-  updateSelectInput(session, "comp_2D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp2D)
-  
-  updateSelectInput(session, "comp_3N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp3N)
-  updateSelectInput(session, "comp_3D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp3D)
-  
-  updateSelectInput(session, "comp_4N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp4N)
-  updateSelectInput(session, "comp_4D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp4D)
-  
-  updateSelectInput(session, "comp_5N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp5N)
-  updateSelectInput(session, "comp_5D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp5D)
-  
-  updateSelectInput(session, "comp_6N", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp6N)
-  updateSelectInput(session, "comp_6D", choices = dpmsr_set$y$sample_groups$Group, selected= dpmsr_set$x$comp6D)
-  
-  updateCheckboxInput(session, "pair_comp", value = as.logical(dpmsr_set$x$pair_comp))
-  updateNumericInput(session, "pvalue_cutoff", value = as.numeric(dpmsr_set$x$pvalue_cutoff  ))
-  updateNumericInput(session, "foldchange_cutoff", value = as.numeric(dpmsr_set$x$foldchange_cutoff ))
-  
+  try((
+    if(as.numeric(dpmsr_set$y$mva$comp_number) > 0){
+      cat(file=stderr(), "Update mva...", "\n")
+      updateSelectInput(session, "mva_comp", selected = as.numeric(dpmsr_set$y$mva$comp_number))
+      for (i in 1:nrow(dpmsr_set$y$mva$groups)){
+        updatePickerInput(session, str_c("var_", i, "N"), selected= dpmsr_set$y$mva[[str_c("comp",i,"_N")]] )
+        updatePickerInput(session, str_c("var_", i, "D"), selected= dpmsr_set$y$mva[[str_c("comp",i,"_D")]] )
+      }
+    } 
+      ), silent=TRUE)
+
 }
 
-
-
-
-
-
+#--All-----------------------------------------------------------------
+update_widget_all <- function(session, input, output){ 
+  update_widget_startup(session, input, output)
+  update_widget_filter(session, input, output)
+  update_widget_norm(session, input, output)
+  update_widget_impute(session, input, output)
+  update_widget_stats(session, input, output)
+  update_widget_post_processing(session, input, output)
+}

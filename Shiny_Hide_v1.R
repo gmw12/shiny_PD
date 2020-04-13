@@ -346,6 +346,115 @@
     
   })    
   
+  
+  
+  observe({
+    test_mva_comp <- as.numeric(input$mva_comp)
+    if (test_mva_comp<12) {
+      shinyjs::hide("var_12N")
+      shinyjs::hide("var_12D")
+    } else {
+      shinyjs::show("var_12N")
+      shinyjs::show("var_12D")
+    }
+    if (test_mva_comp<11) {
+      shinyjs::hide("var_11N")
+      shinyjs::hide("var_11D")
+    } else {
+      shinyjs::show("var_11N")
+      shinyjs::show("var_11D")
+    }   
+    if (test_mva_comp<10) {
+      shinyjs::hide("var_10N")
+      shinyjs::hide("var_10D")
+    } else {
+      shinyjs::show("var_10N")
+      shinyjs::show("var_10D")
+    }     
+    if (test_mva_comp<9) {
+      shinyjs::hide("var_9N")
+      shinyjs::hide("var_9D")
+    } else {
+      shinyjs::show("var_9N")
+      shinyjs::show("var_9D")
+    }   
+    if (test_mva_comp<8) {
+      shinyjs::hide("var_8N")
+      shinyjs::hide("var_8D")
+    } else {
+      shinyjs::show("var_8N")
+      shinyjs::show("var_8D")
+    }  
+    if (test_mva_comp<7) {
+      shinyjs::hide("var_7N")
+      shinyjs::hide("var_7D")
+    } else {
+      shinyjs::show("var_7N")
+      shinyjs::show("var_7D")
+    }  
+    if (test_mva_comp<6) {
+      shinyjs::hide("var_6N")
+      shinyjs::hide("var_6D")
+    } else {
+      shinyjs::show("var_6N")
+      shinyjs::show("var_6D")
+    }  
+    if (test_mva_comp<5) {
+      shinyjs::hide("var_5N")
+      shinyjs::hide("var_5D")
+    } else {
+      shinyjs::show("var_5N")
+      shinyjs::show("var_5D")
+    }  
+    if (test_mva_comp<4) {
+      shinyjs::hide("var_4N")
+      shinyjs::hide("var_4D")
+    } else {
+      shinyjs::show("var_4N")
+      shinyjs::show("var_4D")
+    }  
+    if (test_mva_comp<3) {
+      shinyjs::hide("var_3N")
+      shinyjs::hide("var_3D")
+    } else {
+      shinyjs::show("var_3N")
+      shinyjs::show("var_3D")
+    }  
+    if (test_mva_comp<2) {
+      shinyjs::hide("var_2N")
+      shinyjs::hide("var_2D")
+    } else {
+      shinyjs::show("var_2N")
+      shinyjs::show("var_2D")
+    }  
+  })
+  
+  
+  observe({
+    if(!input$mva_checkbox_out_ptm){
+     shinyjs::hide("mva_report_grep") 
+    }else{
+     shinyjs::show("mva_report_grep")
+    }
+    })
+    
+  observe({
+    if(!input$mva_checkbox_report_accession){
+      shinyjs::hide("mva_report_accession") 
+    }else{
+      shinyjs::show("mva_report_accession")
+    }
+  })
+  
+  observe({
+    if(input$check_mva==0){
+      shinyjs::disable("start_mva") 
+    }else{
+      shinyjs::enable("start_mva")
+    }
+  })
+  
+  
 }
 
 
