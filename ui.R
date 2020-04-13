@@ -1217,7 +1217,7 @@ shinyUI(fluidPage(
                      fluidRow(
                        column(width=5, offset =0,
                               dropdownButton(
-                                textInput("mva_volcano1_plot_title", label="plot title", 
+                                textInput("volcano1_mva_plot_title", label="plot title", 
                                           value = "Volcano", width = 200),
                                 textInput("volcano1_mva_plot_y_axis_label", label="y axis label", value = "-log_pvalue", width = 200),
                                 textInput("volcano1_mva_plot_x_axis_label", label="x axis label", value = "log_FC", width = 200),
@@ -1242,7 +1242,7 @@ shinyUI(fluidPage(
                        ), # end col
                        column(width=5, offset =0,
                               dropdownButton(
-                                textInput("mva_volcano2_plot_title", label="plot title", 
+                                textInput("volcano2_mva_plot_title", label="plot title", 
                                           value = "Volcano", width = 200),
                                 textInput("volcano2_mva_plot_y_axis_label", label="y axis label", value = "-log_pvalue", width = 200),
                                 textInput("volcano2_mva_plot_x_axis_label", label="x axis label", value = "log_FC", width = 200),
@@ -1270,7 +1270,7 @@ shinyUI(fluidPage(
                      fluidRow(
                        column(width=5, offset =0,
                               dropdownButton(
-                                textInput("mva_volcano3_plot_title", label="plot title", 
+                                textInput("volcano3_mva_plot_title", label="plot title", 
                                           value = "Volcano", width = 200),
                                 textInput("volcano3_mva_plot_y_axis_label", label="y axis label", value = "-log_pvalue", width = 200),
                                 textInput("volcano3_mva_plot_x_axis_label", label="x axis label", value = "log_FC", width = 200),
@@ -1295,7 +1295,7 @@ shinyUI(fluidPage(
                        ), # end col
                        column(width=5, offset =0,
                               dropdownButton(
-                                textInput("mva_volcano4_plot_title", label="plot title", 
+                                textInput("volcano4_mva_plot_title", label="plot title", 
                                           value = "Volcano", width = 200),
                                 textInput("volcano4_mva_plot_y_axis_label", label="y axis label", value = "-log_pvalue", width = 200),
                                 textInput("volcano4_mva_plot_x_axis_label", label="x axis label", value = "log_FC", width = 200),

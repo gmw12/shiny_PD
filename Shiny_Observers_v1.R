@@ -209,6 +209,8 @@ update_dpmsr_set_from_widgets <- function(session, input){
   observe({
     dpmsr_set$x$accession_report_list <<-  input$report_accession
   })
+  
+  
   #-Plots-----------------------------------------------------------------------------------------------------    
   observe({
     dpmsr_set$x$adh_list <<-  input$adh_list

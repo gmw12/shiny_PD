@@ -229,12 +229,12 @@ update_widget_post_processing <- function(session, input, output){
   
   #----------------------------------------------------------------------
   
-  updatePickerInput(session, "var_1N", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  updatePickerInput(session, "var_2N", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  updatePickerInput(session, "var_3N", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  updatePickerInput(session, "var_1D", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  updatePickerInput(session, "var_2D", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  updatePickerInput(session, "var_3D", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  # updatePickerInput(session, "var_1N", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  # updatePickerInput(session, "var_2N", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  # updatePickerInput(session, "var_3N", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  # updatePickerInput(session, "var_1D", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  # updatePickerInput(session, "var_2D", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  # updatePickerInput(session, "var_3D", choices = dpmsr_set$y$uniquegroups, selected= "-")
   
   try((
     if(as.numeric(dpmsr_set$y$mva$comp_number) > 0){

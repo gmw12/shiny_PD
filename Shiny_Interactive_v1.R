@@ -338,7 +338,7 @@ interactive_cluster <- function(session, input, output, df, namex)
 #------------------------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------------------------
 
-interactive_heatmap <- function(session, input, output, df, namex)
+interactive_heatmap <- function(session, input, output, df, namex, groupx)
 {
   colnames(df) <- namex
   
@@ -399,9 +399,9 @@ interactive_mva_volcano1 <- function(session, input, output)
     ggplot(df, aes(x = log_fc, y = log_pvalue)) +
       theme_minimal() +
       geom_point(alpha=0.4, size=input$volcano1_mva_plot_dot_size, color = input$volcano1_mva_dot_color) +
-      xlab(input$volcano1_mvaplot_x_axis_label) + ylab(input$volcano1_mvaplot_y_axis_label) +
+      xlab(input$volcano1_mvaplot_x_axis_label) + ylab(input$volcano1_mva_plot_y_axis_label) +
       scale_colour_gradient(low = input$volcano1_mva_dot_color, high = input$volcano1_mva_dot_color) +
-      ggtitle(input$mva_volcano1_plot_title)+    
+      ggtitle(input$volcano1_mva_plot_title)+    
       xlim(-max(df$log_fc), max(df$log_fc)) +
       theme(plot.title = element_text(size=input$volcano1_mva_plot_title_size, hjust = 0.5),
             axis.title = element_text(size=input$volcano1_mva_plot_label_size, color="black"),
@@ -469,9 +469,9 @@ interactive_mva_volcano2 <- function(session, input, output)
     ggplot(df, aes(x = log_fc, y = log_pvalue)) +
       theme_minimal() +
       geom_point(alpha=0.4, size=input$volcano2_mva_plot_dot_size, color = input$volcano2_mva_dot_color) +
-      xlab(input$volcano2_mvaplot_x_axis_label) + ylab(input$volcano2_mvaplot_y_axis_label) +
+      xlab(input$volcano2_mvaplot_x_axis_label) + ylab(input$volcano2_mva_plot_y_axis_label) +
       scale_colour_gradient(low = input$volcano2_mva_dot_color, high = input$volcano2_mva_dot_color) +
-      ggtitle(input$mva_volcano2_plot_title)+    
+      ggtitle(input$volcano2_mva_plot_title)+    
       xlim(-max(df$log_fc), max(df$log_fc)) +
       theme(plot.title = element_text(size=input$volcano2_mva_plot_title_size, hjust = 0.5),
             axis.title = element_text(size=input$volcano2_mva_plot_label_size, color="black"),
@@ -539,9 +539,9 @@ interactive_mva_volcano3 <- function(session, input, output)
     ggplot(df, aes(x = log_fc, y = log_pvalue)) +
       theme_minimal() +
       geom_point(alpha=0.4, size=input$volcano3_mva_plot_dot_size, color = input$volcano3_mva_dot_color) +
-      xlab(input$volcano3_mvaplot_x_axis_label) + ylab(input$volcano3_mvaplot_y_axis_label) +
+      xlab(input$volcano3_mvaplot_x_axis_label) + ylab(input$volcano3_mva_plot_y_axis_label) +
       scale_colour_gradient(low = input$volcano3_mva_dot_color, high = input$volcano3_mva_dot_color) +
-      ggtitle(input$mva_volcano3_plot_title)+    
+      ggtitle(input$volcano3_mva_plot_title)+    
       xlim(-max(df$log_fc), max(df$log_fc)) +
       theme(plot.title = element_text(size=input$volcano3_mva_plot_title_size, hjust = 0.5),
             axis.title = element_text(size=input$volcano3_mva_plot_label_size, color="black"),
@@ -610,9 +610,9 @@ interactive_mva_volcano4 <- function(session, input, output)
     ggplot(df, aes(x = log_fc, y = log_pvalue)) +
       theme_minimal() +
       geom_point(alpha=0.4, size=input$volcano4_mva_plot_dot_size, color = input$volcano4_mva_dot_color) +
-      xlab(input$volcano4_mvaplot_x_axis_label) + ylab(input$volcano4_mvaplot_y_axis_label) +
+      xlab(input$volcano4_mvaplot_x_axis_label) + ylab(input$volcano4_mvap_lot_y_axis_label) +
       scale_colour_gradient(low = input$volcano4_mva_dot_color, high = input$volcano4_mva_dot_color) +
-      ggtitle(input$mva_volcano4_plot_title)+    
+      ggtitle(input$volcano4_mva_plot_title)+    
       xlim(-max(df$log_fc), max(df$log_fc)) +
       theme(plot.title = element_text(size=input$volcano4_mva_plot_title_size, hjust = 0.5),
             axis.title = element_text(size=input$volcano4_mva_plot_label_size, color="black"),

@@ -56,6 +56,7 @@ shinyServer(function(input, output, session) {
         inputstartstats_render(session, input, output)
         inputproteinselect_render(session, input, output)
         update_dpmsr_set_from_widgets(session, input)
+        cat(file=stderr(), "dpmsr_set loaded...", "\n")
       }else{
         cat(file=stderr(), "dpmsr_set doest not exist...", "\n")
       }
@@ -347,14 +348,13 @@ observeEvent(input$action_load_dpmsr_set, {
   dpmsr_set$file$string <<- str_c(dpmsr_set$file$output_dir, "String//")
   dpmsr_set$file$extra_prefix2 <<- str_c(dpmsr_set$file$extra_dir, dpmsr_set$x$file_prefix)
   #reload shiny 
-  update_shiny_defaults(session)
+  update_widget_all(session, input, output)
   update_dpmsr_set_from_widgets(session, input)
   inputloaddata_render(session, input, output)
   inputfilterapply_render(session, input, output)
   inputnorm_render(session, input, output)
   inputstartstats_render(session, input, output)
   inputproteinselect_render(session, input, output)
-  selection_updates(session, input, output)
   updateTabsetPanel(session, "nlp1", selected = "tp8") 
   removeModal()
 })  
@@ -553,10 +553,6 @@ observeEvent(input$action_load_dpmsr_set, {
       updateTextInput(session, "mva_boxplot_title", value = str_c("Boxplot ", dpmsr_set$y$mva$groups$comp_name[input$mva_plot_comp]))
       updateSelectInput(session, "mva_select_data_comp", choices = dpmsr_set$y$mva$groups$comp_name, 
                         selected = dpmsr_set$y$mva$groups$comp_name[1])
-      updateTextInput("mva_volcano1_plot_title",  value = str_c("Volcano ", dpmsr_set$y$mva$groups$comp_name[1]))
-      updateTextInput("mva_volcano2_plot_title",  value = str_c("Volcano ", dpmsr_set$y$mva$groups$comp_name[1]))
-      updateTextInput("mva_volcano3_plot_title",  value = str_c("Volcano ", dpmsr_set$y$mva$groups$comp_name[1]))
-      updateTextInput("mva_volcano4_plot_title",  value = str_c("Volcano ", dpmsr_set$y$mva$groups$comp_name[1]))
       removeModal()
      }
     )  
@@ -580,7 +576,6 @@ observeEvent(input$action_load_dpmsr_set, {
        df <- dpmsr_set$data$mva$final[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)]
        comp_string <- input$mva_plot_comp
        cat(file=stderr(), "Create MVA plots" , "\n")
-       cat(file=stderr(), str_c("Plot String = ", comp_string) , "\n")
        for (i in 1:length(comp_string)){
          comp_number <- which(dpmsr_set$y$mva$groups$comp_name == comp_string[i])
          if (i==1){
@@ -601,7 +596,7 @@ observeEvent(input$action_load_dpmsr_set, {
       interactive_pca2d(session, input, output, df, namex, color_list, groupx)
       interactive_pca3d(session, input, output, df, namex, color_list, groupx)
       interactive_cluster(session, input, output, df, namex)
-      interactive_heatmap(session, input, output, df, namex)
+      interactive_heatmap(session, input, output, df, namex, groupx)
       removeModal()
     }
     ) 

@@ -1,7 +1,9 @@
   #create data frame for comparisons
 set_mva_groups <- function(session, input, output){
+  cat(file=stderr(), "set_mva_groups....1", "\n")
   mva_data <- dpmsr_set$data$impute[[input$select_final_data_mva]]
   mva_data <- mva_data[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)]
+  
   if(input$select_final_data_mva == "impute"){
     colnames(mva_data) <- dpmsr_set$design$Header3
   }else{
@@ -12,8 +14,10 @@ set_mva_groups <- function(session, input, output){
   color_choices <- distinctColorPalette(as.numeric(input$mva_comp)*2)
   color_choices_N <- color_choices[c(TRUE, FALSE)]
   color_choices_D <- color_choices[c(FALSE, TRUE)]
+  cat(file=stderr(), "set_mva_groups....2", "\n")
   
   for (i in 1:input$mva_comp){
+    cat(file=stderr(), str_c("mva_comp ", input$mva_comp), "\n")
     mva_data_N <- mva_data
     mva_data_D <- mva_data
     
@@ -37,12 +41,15 @@ set_mva_groups <- function(session, input, output){
     comp_groups$D_color[1] <- color_choices_D[i]
     updatePickerInput(session, inputId = str_c('var_',i,'N'), label=str_c("Comp",i,"_N  selected -> ", ncol(mva_data_N)) )
     updatePickerInput(session, inputId = str_c('var_',i,'D'), label=str_c("Comp",i,"_D  selected -> ", ncol(mva_data_D)) )
+    updateTextInput(session, inputId = str_c("volcano",i,"_mva_plot_title"),  value = str_c("Volcano ", comp_groups$comp_name[i]))
     dpmsr_set$y$mva[[str_c("comp", i, "_N")]] <<- input[[str_c('var_',i,'N')]]
     dpmsr_set$y$mva[[str_c("comp", i, "_D")]] <<- input[[str_c('var_',i,'D')]]
     comp_groups$sample_numbers_N[i] <- list(match(colnames(mva_data_N), names(mva_data)))
     comp_groups$sample_numbers_D[i] <- list(match(colnames(mva_data_D), names(mva_data)))
   }
   
+  cat(file=stderr(), "set_mva_groups....4", "\n")
+  testcomp <<- comp_groups
   dpmsr_set$y$mva$groups <<- comp_groups
   dpmsr_set$y$mva$comp_number <<- input$mva_comp
   
@@ -64,7 +71,7 @@ mva_stat_calc <- function(session, input, output) {
   data_in <- data_in[(dpmsr_set$y$info_columns_final+1):ncol(data_in)]
   #start df for stats
   stat_df <- annotate_in[1:1]
-  #generate %CV's for each group
+  imputed_df <- dpmsr_set$data$Protein_imputed_df[3:ncol(dpmsr_set$data$Protein_imputed_df)]  
   for(i in 1:nrow(dpmsr_set$y$mva$groups)) 
   {
     stat_df[ , str_c(dpmsr_set$y$mva$groups$comp_N[i], "_CV")] <- percentCV_gw(data_in %>% dplyr::select(contains(dpmsr_set$y$mva$groups$comp_N[i])))
@@ -81,6 +88,9 @@ mva_stat_calc <- function(session, input, output) {
     stat_df[ ,dpmsr_set$y$mva$groups$pval[i]] <- pvalue_gw(comp_N_data, comp_D_data)
     #stat_df[ , comp_groups$limma_pval[i]] <- limma_gw(comp_N_data, comp_D_data, comp_groups$comp_name[i], plot_dir)
     #stat_df[ , comp_groups$exactTest[i]] <- exactTest_gw(comp_N_data, comp_D_data)
+    comp_N_imputed <- imputed_df %>% dplyr::select(contains(dpmsr_set$y$mva$groups$comp_N[i]))
+    comp_D_imputed <- imputed_df %>% dplyr::select(contains(dpmsr_set$y$mva$groups$comp_D[i]))
+    stat_df[ ,dpmsr_set$y$comp_groups$mf[i]] <- missing_factor_gw(comp_N_imputed, comp_D_imputed)
   } 
   
   # Create tables for excel--------------------------------------------------
