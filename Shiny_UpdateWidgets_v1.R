@@ -228,14 +228,15 @@ update_widget_post_processing <- function(session, input, output){
   updateSelectInput(session, "select_final_data_mva", choices = names(dpmsr_set$data$final), selected= "impute")
   
   #----------------------------------------------------------------------
-  
-  # updatePickerInput(session, "var_1N", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  # updatePickerInput(session, "var_2N", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  # updatePickerInput(session, "var_3N", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  # updatePickerInput(session, "var_1D", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  # updatePickerInput(session, "var_2D", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  # updatePickerInput(session, "var_3D", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  
+  #updates choice list only (not what was selected)
+  updatePickerInput(session, "var_1N", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "var_2N", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "var_3N", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "var_1D", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "var_2D", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "var_3D", choices = dpmsr_set$y$uniquegroups, selected= "-")
+
+  # update what was previously selected
   try((
     if(as.numeric(dpmsr_set$y$mva$comp_number) > 0){
       cat(file=stderr(), "Update mva...", "\n")
@@ -244,7 +245,7 @@ update_widget_post_processing <- function(session, input, output){
         updatePickerInput(session, str_c("var_", i, "N"), selected= dpmsr_set$y$mva[[str_c("comp",i,"_N")]] )
         updatePickerInput(session, str_c("var_", i, "D"), selected= dpmsr_set$y$mva[[str_c("comp",i,"_D")]] )
       }
-    } 
+    }
       ), silent=TRUE)
 
 }

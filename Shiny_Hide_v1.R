@@ -449,15 +449,22 @@
   observe({
     if(input$check_mva==0){
       shinyjs::disable("start_mva") 
-      shinyjs::disable("create_mva_plots") 
-      shinyjs::disable("create_mva_volcano") 
     }else{
       shinyjs::enable("start_mva")
-      shinyjs::enable("create_mva_plots") 
-      shinyjs::enable("create_mva_volcano") 
     }
   })
   
+  observe({
+    if(input$start_mva==0){
+      shinyjs::disable("create_mva_plots") 
+      shinyjs::disable("create_mva_volcano") 
+      shinyjs::disable("mva_data_show")
+    }else{
+      shinyjs::enable("create_mva_plots") 
+      shinyjs::enable("create_mva_volcano") 
+      shinyjs::enable("mva_data_show")
+    }
+  })
   
   
 

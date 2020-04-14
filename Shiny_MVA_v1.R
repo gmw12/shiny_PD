@@ -17,7 +17,7 @@ set_mva_groups <- function(session, input, output){
   cat(file=stderr(), "set_mva_groups....2", "\n")
   
   for (i in 1:input$mva_comp){
-    cat(file=stderr(), str_c("mva_comp ", input$mva_comp), "\n")
+    cat(file=stderr(), str_c("mva_comp ", i, " of ", input$mva_comp), "\n")
     mva_data_N <- mva_data
     mva_data_D <- mva_data
     
@@ -72,24 +72,25 @@ mva_stat_calc <- function(session, input, output) {
   #start df for stats
   stat_df <- annotate_in[1:1]
   imputed_df <- dpmsr_set$data$Protein_imputed_df[3:ncol(dpmsr_set$data$Protein_imputed_df)]  
+  
   for(i in 1:nrow(dpmsr_set$y$mva$groups)) 
   {
-    stat_df[ , str_c(dpmsr_set$y$mva$groups$comp_N[i], "_CV")] <- percentCV_gw(data_in %>% dplyr::select(contains(dpmsr_set$y$mva$groups$comp_N[i])))
-    stat_df[ , str_c(dpmsr_set$y$mva$groups$comp_D[i], "_CV")] <- percentCV_gw(data_in %>% dplyr::select(contains(dpmsr_set$y$mva$groups$comp_D[i])))
+    stat_df[ , str_c(dpmsr_set$y$mva$groups$comp_N[i], "_CV")] <- percentCV_gw(data_in[,unlist(dpmsr_set$y$mva$groups$sample_numbers_N[i]) ])
+    stat_df[ , str_c(dpmsr_set$y$mva$groups$comp_D[i], "_CV")] <- percentCV_gw(data_in[,unlist(dpmsr_set$y$mva$groups$sample_numbers_D[i]) ])
   } 
 
   #generate pvalue and FC for each comparison
   for(i in 1:nrow(dpmsr_set$y$mva$groups))
   {
-    comp_N_data <- data_in %>% dplyr::select(contains(dpmsr_set$y$mva$groups$comp_N[i]))
-    comp_D_data <- data_in %>% dplyr::select(contains(dpmsr_set$y$mva$groups$comp_D[i]))
+    comp_N_data <- data_in[,unlist(dpmsr_set$y$mva$groups$sample_numbers_N[i]) ]
+    comp_D_data <- data_in[,unlist(dpmsr_set$y$mva$groups$sample_numbers_D[i]) ]
     stat_df[ ,dpmsr_set$y$mva$groups$fc[i]] <- foldchange_gw(comp_N_data, comp_D_data)
     stat_df[ ,dpmsr_set$y$mva$groups$fc2[i]] <- foldchange_decimal_gw(comp_N_data, comp_D_data)
     stat_df[ ,dpmsr_set$y$mva$groups$pval[i]] <- pvalue_gw(comp_N_data, comp_D_data)
     #stat_df[ , comp_groups$limma_pval[i]] <- limma_gw(comp_N_data, comp_D_data, comp_groups$comp_name[i], plot_dir)
     #stat_df[ , comp_groups$exactTest[i]] <- exactTest_gw(comp_N_data, comp_D_data)
-    comp_N_imputed <- imputed_df %>% dplyr::select(contains(dpmsr_set$y$mva$groups$comp_N[i]))
-    comp_D_imputed <- imputed_df %>% dplyr::select(contains(dpmsr_set$y$mva$groups$comp_D[i]))
+    comp_N_imputed <- imputed_df[,unlist(dpmsr_set$y$mva$groups$sample_numbers_N[i]) ]
+    comp_D_imputed <- imputed_df[,unlist(dpmsr_set$y$mva$groups$sample_numbers_D[i]) ]
     stat_df[ ,dpmsr_set$y$comp_groups$mf[i]] <- missing_factor_gw(comp_N_imputed, comp_D_imputed)
   } 
   

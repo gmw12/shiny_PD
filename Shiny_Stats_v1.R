@@ -55,7 +55,7 @@ stats_parallel <- function(data_list){
 check_stats_parallel <- function(data_list){
   for(data_name in names(data_list)){
     if(is.null(dpmsr_set$data$final[[data_name]]    )){
-      cat(file=stderr(), str_c("stats Parallel function...", data_nameJ), "\n")
+      cat(file=stderr(), str_c("stats Parallel function...", data_name), "\n")
       dpmsr_set$data$final[[data_name]] <<- stat_calc(dpmsr_set$data$impute[[data_name]])
     }
   }

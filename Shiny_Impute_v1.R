@@ -36,7 +36,7 @@ impute_parallel <- function(norm_type){
 check_impute_parallel <- function(norm_list){
   for(norm_name in names(norm_list)){
     if(is.null(dpmsr_set$data$impute[[norm_name]]    )){
-      cat(file=stderr(), str_c("apply_impute function...",norm_nameJ), "\n")
+      cat(file=stderr(), str_c("apply_impute function...",norm_name), "\n")
       dpmsr_set$data$impute[[norm_name]]<<-impute_only(dpmsr_set$data$normalized[[norm_name]], norm_name  )
     }
   }

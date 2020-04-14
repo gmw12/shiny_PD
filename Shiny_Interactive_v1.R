@@ -75,23 +75,12 @@ interactive_go_volcano <- function(session, input, output)
 
 interactive_barplot <- function(session, input, output, df, namex, color_list)
 {
-  # df <- dpmsr_set$data$mva$final[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)]
-  # barplot_data_N <- df %>% dplyr::select(contains(dpmsr_set$y$mva$groups$comp_N[as.numeric(input$mva_plot_comp)]))
-  # barplot_data_D <- df %>% dplyr::select(contains(dpmsr_set$y$mva$groups$comp_D[as.numeric(input$mva_plot_comp)]))
-  # df <- cbind(barplot_data_N, barplot_data_D)
-  # 
-  # namex <- c(dpmsr_set$design$Label[unlist(dpmsr_set$y$mva$groups$sample_numbers_N[as.numeric(input$mva_plot_comp)])],
-  #            dpmsr_set$design$Label[unlist(dpmsr_set$y$mva$groups$sample_numbers_D[as.numeric(input$mva_plot_comp)])])
-  # 
-  # color_list <- c(dpmsr_set$design$colorlist[unlist(dpmsr_set$y$mva$groups$sample_numbers_N[as.numeric(input$mva_plot_comp)])],
-  #                 dpmsr_set$design$colorlist[unlist(dpmsr_set$y$mva$groups$sample_numbers_D[as.numeric(input$mva_plot_comp)])])
-  # 
-  datay <<- colSums(df, na.rm = TRUE)
-  df2 <<- data.frame(namex)
-  df2$Total_Intensity <<- datay
-  colnames(df2) <<- c("Sample", "Total_Intensity")
-  df2$Sample <<- factor(df2$Sample, levels = df2$Sample)
-  ymax <<- max(datay)
+  datay <- colSums(df, na.rm = TRUE)
+  df2 <- data.frame(namex)
+  df2$Total_Intensity <- datay
+  colnames(df2) <- c("Sample", "Total_Intensity")
+  df2$Sample <- factor(df2$Sample, levels = df2$Sample)
+  ymax <- max(datay)
   
   create_mva_barplot <- reactive({
     ggplot(data=df2, aes(x=Sample, y=Total_Intensity)) +
