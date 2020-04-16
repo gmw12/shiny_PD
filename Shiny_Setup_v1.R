@@ -53,52 +53,56 @@ load_design <- function(session, input){
   dpmsr_set$x$int_cutoff <- as.numeric(dpmsr_set$x$int_cutoff)
 }
 
-
 #----------------------------------------------------------------------------------------
 load_data <- function(session, input, volumes){
   raw_data <- parseFilePaths(dpmsr_set$x$volumes, input$raw_files)
   for (i in 1:nrow(raw_data) ){
     raw_name <- raw_data$datapath[i]
     if (grepl("_PeptideGroups.txt", raw_name)){
-        cat(file=stderr(), "loading raw peptide data...", "\n")
-        dpmsr_set$data$data_raw_peptide <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
-        save_data(raw_name)
-      } else if (grepl("_Proteins.txt", raw_name)){
-        cat(file=stderr(), "loading raw protein data...", "\n")
-        dpmsr_set$data$data_raw_protein <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
-        save_data(raw_name)
-      } else if (grepl("_PSMs.txt", raw_name)){
-        cat(file=stderr(), "loading raw psm data...", "\n")
-        dpmsr_set$data$data_raw_psm <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
-        save_data(raw_name)
-      } else if (grepl("MSMSSpectrumInfo.txt", raw_name)){
-        cat(file=stderr(), "loading raw msms data...", "\n")
-        dpmsr_set$data$data_raw_msms <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
-        save_data(raw_name)
-      } else if (grepl("InputFiles.txt", raw_name)){
-        cat(file=stderr(), "loading raw inputfile data...", "\n")
-        dpmsr_set$data$data_raw_inputfiles <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
-        save_data(raw_name)
-      } else if (grepl("_DecoyPeptideGroups.txt", raw_name)){
-        cat(file=stderr(), "loading raw decoy peptide data...", "\n")
-          dpmsr_set$data$data_raw_decoypeptide <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
-          save_data(raw_name)
-      } else if (grepl("_DecoyProteins.txt", raw_name)){
-        cat(file=stderr(), "loading raw decoy protein data...", "\n")
-          dpmsr_set$data$data_raw_decoyprotein <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
-          save_data(raw_name)
-      } else if (grepl("_DecoyPSMs.txt", raw_name)){
-        cat(file=stderr(), "loading raw decoy psm data...", "\n")
-          dpmsr_set$data$data_raw_decoypsm <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
-          save_data(raw_name)
-      } else if (grepl("_PeptideIsoforms.txt", raw_name)){
-        cat(file=stderr(), "loading raw peptide isoform data...", "\n")
-        dpmsr_set$data$data_raw_isoform <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
-        save_data(raw_name)
-      }
+      cat(file=stderr(), "loading raw peptide data...", "\n")
+      dpmsr_set$data$data_raw_peptide <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
+      save_data(raw_name)
+    } else if (grepl("_Proteins.txt", raw_name)){
+      cat(file=stderr(), "loading raw protein data...", "\n")
+      dpmsr_set$data$data_raw_protein <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
+      save_data(raw_name)
+    } else if (grepl("_PSMs.txt", raw_name)){
+      cat(file=stderr(), "loading raw psm data...", "\n")
+      dpmsr_set$data$data_raw_psm <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
+      save_data(raw_name)
+    } else if (grepl("MSMSSpectrumInfo.txt", raw_name)){
+      cat(file=stderr(), "loading raw msms data...", "\n")
+      dpmsr_set$data$data_raw_msms <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
+      save_data(raw_name)
+    } else if (grepl("InputFiles.txt", raw_name)){
+      cat(file=stderr(), "loading raw inputfile data...", "\n")
+      dpmsr_set$data$data_raw_inputfiles <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
+      save_data(raw_name)
+    } else if (grepl("_DecoyPeptideGroups.txt", raw_name)){
+      cat(file=stderr(), "loading raw decoy peptide data...", "\n")
+      dpmsr_set$data$data_raw_decoypeptide <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
+      save_data(raw_name)
+    } else if (grepl("_DecoyProteins.txt", raw_name)){
+      cat(file=stderr(), "loading raw decoy protein data...", "\n")
+      dpmsr_set$data$data_raw_decoyprotein <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
+      save_data(raw_name)
+    } else if (grepl("_DecoyPSMs.txt", raw_name)){
+      cat(file=stderr(), "loading raw decoy psm data...", "\n")
+      dpmsr_set$data$data_raw_decoypsm <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
+      save_data(raw_name)
+    } else if (grepl("_PeptideIsoforms.txt", raw_name)){
+      cat(file=stderr(), "loading raw peptide isoform data...", "\n")
+      dpmsr_set$data$data_raw_isoform <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
+      save_data(raw_name)
+    }else if (grepl("_LCMSFeatures.txt", raw_name)){
+      cat(file=stderr(), "loading feature data...", "\n")
+      dpmsr_set$data$data_features <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
+      save_data(raw_name)
+    }
   }
   save_data(dpmsr_set$x$design_name)
 }
+
 
 #----------------------------------------------------------------------------------------
 prepare_data <- function(session, input) {  #function(data_type, data_file_path){

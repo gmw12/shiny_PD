@@ -52,6 +52,9 @@ inputloaddata_render <- function(session, input, output){
     list(src=str_c(dpmsr_set$file$qc_dir,"Peptide_AI.png"), contentType = 'image/png', width=500, height=300, alt="this is alt text")
   }, deleteFile = FALSE)
   
+  output$feature_width <- renderImage({
+    list(src=str_c(dpmsr_set$file$qc_dir,"Feature_Peak_Width.png"), contentType = 'image/png', width=500, height=300, alt="this is alt text")
+  }, deleteFile = FALSE)
 }
 
 #----------------------------------------------------------------------------------
@@ -90,7 +93,7 @@ inputnorm_render <- function(session, input, output){
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
 
-inputstartstats_render <- function(session, input, output){
+qc_render <- function(session, input, output){
   
   output$data_CV <- renderRHandsontable({
     cv_table <- dpmsr_set$data$summary_cv
@@ -178,43 +181,6 @@ inputstartstats_render <- function(session, input, output){
     list(src=str_c(dpmsr_set$file$output_dir, "protein//protein_", input$plot_select, ".png"),  
          contentType = 'image/png', width=500, height=400, alt="this is alt text")
   }, deleteFile = FALSE)
-  
-  output$volcano_plot1 <- renderImage({
-    list(src=str_c(dpmsr_set$file$output_dir, input$volcano_select, "//", input$volcano_select,
-                   "_", dpmsr_set$y$comp_groups$comp_name[1]  ,"_volcano.png"),  
-         contentType = 'image/png', width=400, height=300, alt="this is alt text")
-  }, deleteFile = FALSE)
-  
-  output$volcano_plot2 <- renderImage({
-    list(src=str_c(dpmsr_set$file$output_dir, input$volcano_select, "//", input$volcano_select,
-                   "_", dpmsr_set$y$comp_groups$comp_name[2]  ,"_volcano.png"),  
-         contentType = 'image/png', width=400, height=300, alt="this is alt text")
-  }, deleteFile = FALSE)
-  
-  output$volcano_plot3 <- renderImage({
-    list(src=str_c(dpmsr_set$file$output_dir, input$volcano_select, "//", input$volcano_select,
-                   "_", dpmsr_set$y$comp_groups$comp_name[3]  ,"_volcano.png"),  
-         contentType = 'image/png', width=400, height=300, alt="this is alt text")
-  }, deleteFile = FALSE)
-  
-  output$volcano_plot4 <- renderImage({
-    list(src=str_c(dpmsr_set$file$output_dir, input$volcano_select, "//", input$volcano_select,
-                   "_", dpmsr_set$y$comp_groups$comp_name[4]  ,"_volcano.png"),  
-         contentType = 'image/png', width=400, height=300, alt="this is alt text")
-  }, deleteFile = FALSE)
-  
-  output$volcano_plot5 <- renderImage({
-    list(src=str_c(dpmsr_set$file$output_dir, input$volcano_select, "//", input$volcano_select,
-                   "_", dpmsr_set$y$comp_groups$comp_name[5]  ,"_volcano.png"),  
-         contentType = 'image/png', width=400, height=300, alt="this is alt text")
-  }, deleteFile = FALSE)
-  
-  output$volcano_plot6 <- renderImage({
-    list(src=str_c(dpmsr_set$file$output_dir, input$volcano_select, "//", input$volcano_select,
-                   "_", dpmsr_set$y$comp_groups$comp_name[6]  ,"_volcano.png"),  
-         contentType = 'image/png', width=400, height=300, alt="this is alt text")
-  }, deleteFile = FALSE)
-  
   
 }
 

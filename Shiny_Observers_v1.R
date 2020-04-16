@@ -147,49 +147,7 @@ update_dpmsr_set_from_widgets <- function(session, input){
   })
   
   observe({
-    dpmsr_set$x$comp1N <<- input$comp_1N
-  })
-  
-  observe({
-    dpmsr_set$x$comp1D <<- input$comp_1D
-  })
-  
-  observe({
-    dpmsr_set$x$comp2N <<- input$comp_2N
-  })
-  
-  observe({
-    dpmsr_set$x$comp2D <<- input$comp_2D
-  })
-  
-  observe({
-    dpmsr_set$x$comp3N <<- input$comp_3N
-  })
-  
-  observe({
-    dpmsr_set$x$comp3D <<- input$comp_3D
-  })
-  
-  observe({
-    dpmsr_set$x$comp4N <<- input$comp_4N
-  })
-  
-  observe({
-    dpmsr_set$x$comp4D <<- input$comp_4D
-  })
-  
-  observe({
-    dpmsr_set$x$comp5N <<- input$comp_5N
-  })
-  observe({
-    dpmsr_set$x$comp5D <<- input$comp_5D
-  })
-  
-  observe({
-    dpmsr_set$x$comp6N <<- input$comp_6N
-  })
-  observe({
-    dpmsr_set$x$comp6D <<- input$comp_6D
+    dpmsr_set$x$missing_factor <<- input$missing_factor
   })
   
   observe({

@@ -1,19 +1,30 @@
 
-create_plots <- function() {
+create_qc_plots <- function() {
   for(df_name in names(dpmsr_set$data$final)){
     plot_dir <- create_dir(str_c(dpmsr_set$file$output_dir, df_name))
     df <- dpmsr_set$data$final[[df_name]]
-    volcano_plot(df, df_name, plot_dir)
     df <- df[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)]
     bar_plot(df, df_name, plot_dir)
     box_plot(df, df_name, plot_dir)
     densities_plot(df, df_name, plot_dir)
     MDS_plot(df, df_name, plot_dir)   #str_c(y, "Multidimension Scaling"))
+    }
+}
+
+
+create_stat_plots <- function() {
+  for(df_name in names(dpmsr_set$data$final)){
+    plot_dir <- create_dir(str_c(dpmsr_set$file$output_dir, df_name))
+    df <- dpmsr_set$data$final[[df_name]]
+    volcano_plot(df, df_name, plot_dir)
+    df <- df[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)]
     try(PCA_plot(df, df_name, plot_dir), silent = TRUE)
     try(Cluster_plot(df, df_name, plot_dir), silent = TRUE)
     try(heatmap_plot(df, df_name, plot_dir), silent = TRUE)
-    }
+  }
 }
+
+
 
 create_select_plots <- function() {
   for(df_name in names(dpmsr_set$data$final)){

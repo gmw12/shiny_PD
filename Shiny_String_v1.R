@@ -17,9 +17,9 @@ setup_string <- function(input, output, data_in){
   
   
   for (i in 1:dpmsr_set$x$comp_number){
-    comp_name <- dpmsr_set$y$comp_groups$comp_name[i]
-    pval_col <- str_c(comp_name, "_Pval")
-    fc2_col <- str_c(comp_name, "_FC2")
+    comp_name <- dpmsr_set$y$stats$groups$comp_name[i]
+    pval_col <- dpmsr_set$y$stats$groups$pval[i]
+    fc2_col <- dpmsr_set$y$stats$groups$fc2[i]
     df <- data.frame(cbind(data_in[pval_col], data_in[fc2_col], data_in$Accession), stringsAsFactors = FALSE)
     names(df) <- c("pvalue", "logFC", "Uniprot")
     df$logFC <- as.numeric(df$logFC)
@@ -29,7 +29,7 @@ setup_string <- function(input, output, data_in){
     dpmsr_set$string[[comp_name]]  <<- dpmsr_set$string$string_db$map(df, "Uniprot", removeUnmappedRows = TRUE )
   }
   
-  backgroundV <- dpmsr_set$string[[dpmsr_set$y$comp_groups$comp_name[1]]]$STRING_id 
+  backgroundV <- dpmsr_set$string[[dpmsr_set$y$stats$groups$comp_name[1] ]]$STRING_id 
   dpmsr_set$string$string_db$set_background(backgroundV)
   cat(file=stderr(), "function setup_string complete...", "\n")
 }  

@@ -1,5 +1,6 @@
 
 set_pathway <- function(input, output, session){
+  cat(file=stderr(), "Set Pathway...1" , "\n")
   tax_choice <- input$select_organism
   
   #---Wiki Setup----------------------------
@@ -33,13 +34,13 @@ set_pathway <- function(input, output, session){
     return(wp2gene)
   }
   
- 
+  cat(file=stderr(), "Set Pathway...2" , "\n")
   dpmsr_set$pathway$tax_db <<- db_get(tax_choice)
   
   dpmsr_set$pathway$wp2gene <<- gmt_get(tax_choice)
   dpmsr_set$pathway$wp2gene <<- dpmsr_set$pathway$wp2gene %>% tidyr::separate(ont, c("name","version","wpid","org"), "%")
 
-  
+  cat(file=stderr(), "Set Pathway...3" , "\n")
   #---ViseaGo/topGo Setup----------------------------
   dpmsr_set$pathway$Uniprot <<- ViSEAGO::Uniprot2GO()
 
@@ -56,7 +57,7 @@ set_pathway <- function(input, output, session){
   #myGENE2GO<-ViSEAGO::annotate("human", Uniprot)
   
   
-  
+  cat(file=stderr(), "Set Pathway...4" , "\n")
   
   
   

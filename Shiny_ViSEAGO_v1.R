@@ -1,16 +1,27 @@
 run_go_analysis <- function(input, output, data_in){
 
-    if(input$pval_filter_go != 0 & input$fc_filter_go > 0) {
-      go_df <- subset(data_in, data_in[ ,str_c(as.character(input$select_data_comp_go),"_Pval")] <= as.numeric(input$pval_filter) &
-                        (data_in[ ,str_c(as.character(input$select_data_comp_go),"_FC")] >= as.numeric(input$fc_filter) ))
-      atest <- go_df$Accession
-    }
-    
-    if(input$pval_filter_go != 0 & input$fc_filter_go < 0) {
-      go_df <- subset(data_in, data_in[ ,str_c(as.character(input$select_data_comp_go),"_Pval")] <= as.numeric(input$pval_filter) &
-                        (data_in[ ,str_c(as.character(input$select_data_comp_go),"_FC")] <= as.numeric(input$fc_filter) ))
-      atest <- go_df$Accession    
-    } 
+  comp_string <- input$select_data_comp_go
+  comp_number <- which(grepl(comp_string, dpmsr_set$y$stats$groups$comp_name))
+  
+  cat(file=stderr(), str_c("Run go analysis..." ), "\n")
+  cat(file=stderr(), str_c("comp_string... ", comp_string ), "\n")
+  cat(file=stderr(), str_c("comp_number... ", comp_number ), "\n")
+  cat(file=stderr(), str_c("pval filter... ", input$pval_filter_go ), "\n")
+  cat(file=stderr(), str_c("fc filter... ", input$fc_filter_go ), "\n")
+  
+  if(input$pval_filter_go != 0 & input$fc_filter_go > 0) {
+    go_df <- subset(data_in, data_in[ , dpmsr_set$y$stats$groups$pval[comp_number]] <= input$pval_filter_go &  
+                      (data_in[ , dpmsr_set$y$stats$groups$fc[comp_number]] >= input$fc_filter_go )) 
+    go_df <- subset(go_df, go_df[ , dpmsr_set$y$stats$groups$mf[comp_number]] >= input$mf_filter_go )
+    atest <- go_df$Accession
+  }
+  
+  if(input$pval_filter_go != 0 & input$fc_filter_go < 0) {
+    go_df <- subset(data_in, data_in[ , dpmsr_set$y$stats$groups$pval[comp_number]] <= input$pval_filter_go &  
+                      (data_in[ , dpmsr_set$y$stats$groups$fc[comp_number]] <= input$fc_filter_go )) 
+    go_df <- subset(go_df, go_df[ , dpmsr_set$y$stats$groups$mf[comp_number]] >= input$mf_filter_go)
+    atest <- go_df$Accession    
+  } 
     
     selection <- atest
     background <- data_in$Accession
@@ -56,10 +67,18 @@ run_go_analysis <- function(input, output, data_in){
 
   #----create go lookup data for volcano plots ---------------------
 setup_go_volcano <- function(input, output, data_in){  
+  comp_string <- input$select_data_comp_go
+  comp_number <- which(grepl(comp_string, dpmsr_set$y$stats$groups$comp_name))
   
-  volcano_df <- cbind(data_in$Accession,  
-                 data_in[ ,str_c(as.character(input$select_data_comp_go),"_Pval")], 
-                 data_in[ ,str_c(as.character(input$select_data_comp_go),"_FC2")]) 
+  cat(file=stderr(), str_c("Setup go volcano..." ), "\n")
+  cat(file=stderr(), str_c("comp_string... ", comp_string ), "\n")
+  cat(file=stderr(), str_c("comp_number... ", comp_number ), "\n")
+  cat(file=stderr(), str_c("pval filter... ", dpmsr_set$y$stats$groups$pval[comp_number] ), "\n")
+  cat(file=stderr(), str_c("fc filter... ", dpmsr_set$y$stats$groups$fc2[comp_number] ), "\n")
+  
+  volcano_df <- cbind(data_in$Accession,
+                      data_in[ ,dpmsr_set$y$stats$groups$pval[comp_number]],
+                      data_in[ ,dpmsr_set$y$stats$groups$fc2[comp_number]]) 
   volcano_df <- data.frame(volcano_df, stringsAsFactors = FALSE)
   names(volcano_df) <- c("Accession", "pvalue", "foldchange")
   selection <- as.character(volcano_df$Accession)

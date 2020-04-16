@@ -10,7 +10,7 @@ project_overview <- function(){
   df_peptide$Carbamidomethyl <- grepl("Carbamidomethyl", df_peptide$Modifications)
   df_peptide$Phospho <- grepl("Phospho", df_peptide$Modifications)
   df_peptide$GG <- grepl("GlyGly", df_peptide$Modifications)
-  if("Annotated.Sequence" %in% colnames(df_peptide)){
+  if("Annotated Sequence" %in% colnames(df_peptide)){
     df_peptide$semi <- grepl("^\\[.*(R|K).*\\]", df_peptide$Annotated.Sequence) * 
                             ( grepl("(R|K).\\[.*\\]$", df_peptide$Annotated.Sequence) | 
                             grepl("\\[-\\]$", df_peptide$Annotated.Sequence) )
@@ -76,7 +76,7 @@ project_overview <- function(){
     
 #----------------------------------------    
     
-    df2 <- data.frame(cbind(df_psm$Rank,  df_psm$Delta.M.in.ppm, df_psm$Ion.Inject.Time.in.ms ))
+    df2 <- data.frame(cbind(df_psm$Rank,  df_psm$Delta.M.in.ppm, df_psm$Ion.Inject.Time.in.ms))
     df2$psm <- "All"
     df2$psm <- as.factor(df2$psm)
 
@@ -90,9 +90,6 @@ project_overview <- function(){
     ggsave(file_name, width=5, height=3)
 
 
-    
-    
-    
     #--RT--------------------------------------    
     df2 <- data.frame(df_peptide$RT.in.min.by.Search.Engine.Mascot)
     colnames(df2) <- c("RT")
@@ -104,6 +101,23 @@ project_overview <- function(){
            y="Density")   +
       theme(plot.title = element_text(hjust = 0.5))  
     file_name <- str_c(dpmsr_set$file$qc_dir, "Peptide_RT.png")
+    ggsave(file_name, width=5, height=3)
+    
+    
+    
+    #--RT width--------------------------------------    
+    df2 <- data.frame(dpmsr_set$data$data_features)
+    df2$RT_width <- (df2$Right.RT.in.min-df2$Left.RT.in.min)*60
+    df2 <- df2[(df2$RT_width < 100),]
+    
+    
+    g <- ggplot(df2, aes(x=RT_width))
+    g + geom_density(fill="purple") + theme_classic() +
+      labs(title="Feature Peak Width", 
+           x="Peak Width, sec",
+           y="Density")   +
+      theme(plot.title = element_text(hjust = 0.5))  
+    file_name <- str_c(dpmsr_set$file$qc_dir, "Feature_Peak_Width.png")
     ggsave(file_name, width=5, height=3)
     
     #--MZ--------------------------------------     

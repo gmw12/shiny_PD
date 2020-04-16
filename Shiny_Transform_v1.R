@@ -80,41 +80,6 @@ isoform_to_isoform <- function(){
 
 
 
-#----------------------------------------------------------------------------------------
-# input PD protein/peptide export and output peptide (keeps master protein assignment)
-protein_to_peptide_old <- function(df){
-  peptide_header <- df[2,]
-  colnames(df) <- peptide_header
-  colnames(df)[3] <- "Accession"
-  colnames(df)[4] <- "Description"
-  df$ph <- grepl("Master", df$Accession)
-  df <- subset(df, df$ph==FALSE )
-  df$semi <- grepl(";", df$Accession)
-  df$iD <- seq.int(nrow(df))
-  df_list <- subset(df, df$semi==TRUE)$iD
-  
-  for(i in df_list){
-    df$Accession[i]<-df$Accession[i-1]
-    df$Description[i]<-df$Description[i-1]
-  }
-  
-  
-  df <- subset(df, is.na(df[,1]))
-  df <- df[2:(ncol(df)-3)]
-  # PD versions <2.4 have quan usage column for peptides: some are listed but not used for the protein quant
-  colnames(df)[colnames(df) == 'Quan Usage'] <- 'Used'
-  if("Used" %in% colnames(df))
-  {
-    df <- subset(df, Used=="Used")
-  }
-  #set data columns to numeric
-  df[, (ncol(df)-dpmsr_set$y$sample_number+1):ncol(df)] <- 
-    sapply(df[, (ncol(df)-dpmsr_set$y$sample_number+1):ncol(df)], as.numeric)
-  Simple_Excel(df, str_c(dpmsr_set$file$extra_prefix,"_ProteinPeptide_to_Peptide_Raw.xlsx", collapse = " "))
-  return(df)
-}
-
-
 #--- collapse peptide to protein-------------------------------------------------------------
 collapse_peptide <- function(peptide_data){
   peptide_annotate <- peptide_data[1:(dpmsr_set$y$info_columns)]
@@ -251,8 +216,9 @@ add_imputed_column <- function(df){
         peptide_annotate <- peptide_annotate[, c("Accession", "Description")]
         test1 <- cbind(peptide_annotate, peptide_data)
         test2 <- test1 %>% group_by(Accession, Description) %>% summarise_all(list(sum))
-        test2[3:ncol(test2)][test2[3:ncol(test2)] > 1] <- 1
-        dpmsr_set$data$Protein_imputed_df <<- test2
+        test3 <- test2
+        test3[3:ncol(test2)][test2[3:ncol(test2)] > 1] <- 1
+        dpmsr_set$data$Protein_imputed_df <<- test3
         test2 <- data.frame(ungroup(test2))
         test2 <- test2[3:ncol(test2)]
         test2[test2==0] <- "-"

@@ -1,36 +1,51 @@
 #----------------------------------------------------------------------------------------
-preprocess_data <- function(){
+preprocess_order <- function(){
   # data stat info
   
   dpmsr_set$y$total_columns <<- ncol(dpmsr_set$data$data_peptide)
   dpmsr_set$y$info_columns <<- dpmsr_set$y$total_columns - dpmsr_set$y$sample_number
   
   if ((dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Peptide") 
-          && dpmsr_set$x$final_data_output == "Protein"){
+      && dpmsr_set$x$final_data_output == "Protein"){
     dpmsr_set$y$info_columns_final <<- 3  #reference collapse peptide function in transform
   }else{
     dpmsr_set$y$info_columns_final <<- dpmsr_set$y$info_columns
-    }
-
+  }
+  
   if (dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Peptide") {
     df <- order_columns(dpmsr_set$data$data_peptide)
     colnames(df)[(dpmsr_set$y$info_columns+1):ncol(df)] <- dpmsr_set$design$Header1
-    df <- filter_data(df)
     dpmsr_set$data$data_peptide <<- df
   } 
   
   if (dpmsr_set$x$raw_data_input=="Protein") {
     df <- order_columns(dpmsr_set$data$data_protein)
     colnames(df)[(dpmsr_set$y$info_columns+1):ncol(df)] <- dpmsr_set$design$Header1
-    df <- filter_data(df)
     dpmsr_set$data$data_protein <<- df
   } 
   
   if (as.logical(dpmsr_set$x$peptide_isoform)) {
     df <- order_columns(dpmsr_set$data$data_peptide_isoform)
     colnames(df)[(dpmsr_set$y$info_columns+1):ncol(df)] <- dpmsr_set$design$Header1
-    df <- filter_data(df)
     dpmsr_set$data$data_peptide_isoform <<- df
+  } 
+  
+}
+
+#----------------------------------------------------------------------------------------
+preprocess_filter <- function(){
+  # data stat info
+
+  if (dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Peptide") {
+    dpmsr_set$data$data_peptide <<- filter_data(dpmsr_set$data$data_peptide)
+  } 
+  
+  if (dpmsr_set$x$raw_data_input=="Protein") {
+    dpmsr_set$data$data_protein <<- filter_data(dpmsr_set$data$data_protein)
+  } 
+  
+  if (as.logical(dpmsr_set$x$peptide_isoform)) {
+    dpmsr_set$data$data_peptide_isoform <<- filter_data(dpmsr_set$data$data_peptide_isoform)
   } 
   
 }
@@ -85,24 +100,6 @@ order_columns <- function(df){
   df <- df[, (dpmsr_set$design$PD_Order)]
   df <- cbind(annotate_df, df)
   return(df)
-}
-
-#these  need a place 
-#annotate_df <- data_raw[1:info_columns]
-#data_to_normalize <- data_raw[(info_columns+1):ncol(data_raw)]
-#----------------------------------------------------------------------------------------
-clean_headers <- function(col_headers){
-  #colnames(forward_peptide)[(names(forward_peptide) == "Annotated Sequence")] <- "Sequence"
-  #----- edit column headers
-  col_headers <- str_replace(col_headers, "Protein FDR Confidence: Mascot", "Confidence")
-  col_headers <- str_replace(col_headers, "Protein FDR Confidence: Combined", "Confidence")
-  col_headers <- str_replace(col_headers, "Annotated Sequence", "Sequence")
-  col_headers <- str_replace(col_headers, "Master Protein Accessions", "Accession")
-  col_headers <- str_replace(col_headers," \\(by Search Engine\\): Mascot", "")
-  col_headers <- str_replace(col_headers,"\\[", "")
-  col_headers <- str_replace(col_headers,"\\]", "")
-  col_headers <- c(col_headers, dpmsr_set$design$Header1)
-  return(col_headers)
 }
 
 
