@@ -432,8 +432,17 @@ interactive_stats_volcano1 <- function(session, input, output)
     left_px <- left_pct * (hover$range$right - hover$range$left)
     top_px <- top_pct * (hover$range$bottom - hover$range$top)
 
+    cat(file=stderr(), str_c("top_pct = ", top_pct), "\n")
+    cat(file=stderr(), str_c("top_px = ", top_px), "\n")
+    
+    if(top_pct > 0.3){
+      top_custom <- 10
+    }else{
+      top_custom <- 200
+    }
+    
     style <- paste0("position:absolute; z-index:100; background-color: rgba(245, 245, 245, 0.85); ",
-                    "left:", 10, "px; top:", 10, "px;")
+                    "left:", 10, "px; top:", top_custom, "px;")
     # actual tooltip created as wellPanel
     wellPanel(
       style = style,
@@ -505,8 +514,14 @@ interactive_stats_volcano2 <- function(session, input, output)
     left_px <- left_pct * (hover$range$right - hover$range$left)
     top_px <- top_pct * (hover$range$bottom - hover$range$top)
     
+    if(top_pct > 0.3){
+      top_custom <- 10
+    }else{
+      top_custom <- 200
+    }
+    
     style <- paste0("position:absolute; z-index:100; background-color: rgba(245, 245, 245, 0.85); ",
-                    "left:", 10, "px; top:", 10, "px;")
+                    "left:", 10, "px; top:", top_custom, "px;")
     # actual tooltip created as wellPanel
     wellPanel(
       style = style,
@@ -578,8 +593,14 @@ interactive_stats_volcano3 <- function(session, input, output)
     left_px <- left_pct * (hover$range$right - hover$range$left)
     top_px <- top_pct * (hover$range$bottom - hover$range$top)
     
+    if(top_pct > 0.3){
+      top_custom <- 10
+    }else{
+      top_custom <- 200
+    }
+    
     style <- paste0("position:absolute; z-index:100; background-color: rgba(245, 245, 245, 0.85); ",
-                    "left:", 10, "px; top:", 10, "px;")
+                    "left:", 10, "px; top:", top_custom, "px;")
     # actual tooltip created as wellPanel
     wellPanel(
       style = style,
@@ -652,8 +673,14 @@ interactive_stats_volcano4 <- function(session, input, output)
     left_px <- left_pct * (hover$range$right - hover$range$left)
     top_px <- top_pct * (hover$range$bottom - hover$range$top)
     
+    if(top_pct > 0.3){
+      top_custom <- 10
+    }else{
+      top_custom <- 200
+    }
+    
     style <- paste0("position:absolute; z-index:100; background-color: rgba(245, 245, 245, 0.85); ",
-                    "left:", 10, "px; top:", 10, "px;")
+                    "left:", 10, "px; top:", top_custom, "px;")
     # actual tooltip created as wellPanel
     wellPanel(
       style = style,
@@ -725,8 +752,14 @@ interactive_stats_volcano5 <- function(session, input, output)
     left_px <- left_pct * (hover$range$right - hover$range$left)
     top_px <- top_pct * (hover$range$bottom - hover$range$top)
     
+    if(top_pct > 0.3){
+      top_custom <- 10
+    }else{
+      top_custom <- 200
+    }
+    
     style <- paste0("position:absolute; z-index:100; background-color: rgba(245, 245, 245, 0.85); ",
-                    "left:", 10, "px; top:", 10, "px;")
+                    "left:", 10, "px; top:", top_custom, "px;")
     # actual tooltip created as wellPanel
     wellPanel(
       style = style,
@@ -799,8 +832,14 @@ interactive_stats_volcano6 <- function(session, input, output)
     left_px <- left_pct * (hover$range$right - hover$range$left)
     top_px <- top_pct * (hover$range$bottom - hover$range$top)
     
+    if(top_pct > 0.3){
+      top_custom <- 10
+    }else{
+      top_custom <- 200
+    }
+    
     style <- paste0("position:absolute; z-index:100; background-color: rgba(245, 245, 245, 0.85); ",
-                    "left:", 10, "px; top:", 10, "px;")
+                    "left:", 10, "px; top:", top_custom, "px;")
     # actual tooltip created as wellPanel
     wellPanel(
       style = style,
