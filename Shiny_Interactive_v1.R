@@ -375,6 +375,96 @@ interactive_heatmap <- function(session, input, output, df, namex, groupx)
 #------------------------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------------------------
 
+interactive_stats_volcano <- function(session, input, output, i)
+{
+  df <- dpmsr_set$data$stats$final
+  df <- subset(df, df[ , dpmsr_set$y$stats$groups$mf[i]] >= input$missing_factor )
+  df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[i]))
+  df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[i]))
+  
+  #df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[1]))
+  #df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[1]))
+  
+  df <- cbind(df$Accession, df$Description, df_fc, df_pval)
+  colnames(df) <- c("Accession", "Description", "fc", "fc2", "pval")
+  df$Accession <- as.character(df$Accession)
+  df$Description <- as.character(df$Description)
+  df$log_pvalue <- -log(as.numeric(df$pval), 10)
+  df$log_fc <- log(as.numeric(df$fc2), 2)
+  
+  volcano_stats_plot <- reactive({
+    ggplot(df, aes(x = log_fc, y = log_pvalue)) +
+      theme_minimal() +
+      geom_point(alpha=0.4, size=input[[str_c("volcano",i,"_stats_plot_dot_size")]], color = input[[str_c("volcano",i,"_stats_dot_color")]] ) +
+      xlab(input[[str_c("volcano",i,"_stats_plot_x_axis_label")]]) + 
+      ylab(input[[str_c("volcano",i,"_stats_plot_y_axis_label")]]) +
+      scale_colour_gradient(low = input[[str_c("volcano", i, "_stats_dot_color")]], high = input[[str_c("volcano", i, "_stats_dot_color")]] ) +
+      ggtitle(input[[str_c("volcano",i,"_stats_plot_title")]])+    
+      xlim(-max(df$log_fc), max(df$log_fc)) +
+      theme(plot.title = element_text(size=input[[str_c("volcano",i,"_stats_plot_title_size")]], hjust = 0.5),
+            axis.title = element_text(size=input[[str_c("volcano",i,"_stats_plot_label_size")]], color="black"),
+            axis.text.x = element_text(size=10, color="black"),
+            axis.text.y = element_text(size=10,  color="black"),
+            legend.position = "none")
+  })
+  
+  plot_name <- str_c("volcano", i, "_stats_plot")
+  download_name <- str_c("download_stats_volcano", i)
+  hover_name <- str_c("volcano", i, "_stats_hover_info")
+  hover_stats_name <- str_c("volcano", i, "_stats_hover")
+  
+  output[[plot_name]]<- renderPlot({
+    req(volcano_stats_plot())
+    volcano_stats_plot()
+  })
+  
+  output[[download_name]] <- downloadHandler(
+    filename = function(){
+      str_c("Volcano_", dpmsr_set$y$stats$groups$comp_name[i], ".png", collapse = " ")
+    },
+    content = function(file){
+      req(volcano_stats_plot())
+      ggsave(file, plot = volcano_stats_plot(), device = 'png')
+    }
+  )
+  
+  output[[hover_name]] <- renderUI({
+    hover <- input[[hover_stats_name]]
+    point <- nearPoints(df, hover, threshold = 5, maxpoints = 1, addDist = TRUE)
+    if (nrow(point) == 0) return(NULL)
+    left_pct <- (hover$x - hover$domain$left) / (hover$domain$right - hover$domain$left)
+    top_pct <- (hover$domain$top - hover$y) / (hover$domain$top - hover$domain$bottom)
+    
+    left_px <- left_pct * (hover$range$right - hover$range$left)
+    top_px <- top_pct * (hover$range$bottom - hover$range$top)
+    
+    cat(file=stderr(), str_c("top_pct = ", top_pct), "\n")
+    cat(file=stderr(), str_c("top_px = ", top_px), "\n")
+    
+    if(top_pct > 0.3){
+      top_custom <- 10
+    }else{
+      top_custom <- 200
+    }
+    
+    style <- paste0("position:absolute; z-index:100; background-color: rgba(245, 245, 245, 0.85); ",
+                    "left:", 10, "px; top:", top_custom, "px;")
+    # actual tooltip created as wellPanel
+    wellPanel(
+      style = style,
+      p(HTML(paste0("<b> Accession: </b>", point$Accession, "<br/>",
+                    "<b> Description: </b>", point$Description, "<br/>",
+                    "<b> FC: </b>", point$fc, "<br/>",
+                    "<b> pvalue: </b>", point$pval, "<br/>")))
+    )
+  })
+}
+
+
+
+#------------------------------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------------------------------------
+
 interactive_stats_volcano1 <- function(session, input, output)
 {
   df <- dpmsr_set$data$stats$final

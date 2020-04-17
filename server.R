@@ -100,7 +100,7 @@ shinyServer(function(input, output, session) {
     update_widget_stats(session, input, output)
   })
 
-
+    cat(file=stderr(), "Shiny Server started ...8", "\n")
 #------------------------------------------------------------------------------------------------------   
 #------------------------------------------------------------------------------------------------------    
   observeEvent(input$load_data, {
@@ -395,9 +395,13 @@ observeEvent(input$data_show, {
       showModal(modalDialog("Working...", footer = NULL))  
       #interactive_stats_volcano1(session, input, output)
       #interactive_stats_volcano2(session, input, output)
+      # for(i in 1:input$comp_number){
+      #   do.call(str_c("interactive_stats_volcano",i), list(session, input, output) )
+      # }
       for(i in 1:input$comp_number){
-        do.call(str_c("interactive_stats_volcano",i), list(session, input, output) )
+        do.call("interactive_stats_volcano", list(session, input, output, i) )
       }
+      
       removeModal()
     }
     )  

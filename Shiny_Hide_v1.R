@@ -377,7 +377,7 @@
   })
   
   observe({
-    if(input$start_stats==0 & is.null(dpmsr_set$data$stats$final) ){
+    if(input$start_stats==0){
       shinyjs::disable("create_stats_plots") 
       shinyjs::disable("create_stats_volcano") 
       shinyjs::disable("stats_data_show")
