@@ -348,7 +348,7 @@ observeEvent(input$data_show, {
       removeModal()
       showModal(modalDialog("Saving Final Excel...", footer = NULL))      
       cat(file=stderr(), "Saving Final Excel...", "\n")
-      stats_Final_Excel
+      stats_Final_Excel()
       removeModal()
     }
     )      
@@ -370,6 +370,10 @@ observeEvent(input$data_show, {
         }else{
           comp_rows <- c(comp_rows, dpmsr_set$y$stats$groups$sample_numbers_N[comp_number],dpmsr_set$y$stats$groups$sample_numbers_D[comp_number] )
         }
+      }
+      #add spqc to plots
+      if(input$stats_plot_spqc){
+          comp_rows <- c(comp_rows, dpmsr_set$y$stats$comp_spqc_sample_numbers)
       }
       
       comp_rows <- sort(unique(unlist(comp_rows)), decreasing = FALSE)
@@ -439,13 +443,20 @@ observeEvent(input$data_show, {
         comp_number <- which(grepl(comp_string, dpmsr_set$y$stats$groups$comp_name))
         df_N <- df %>% dplyr::select(unlist(dpmsr_set$y$stats$groups$com_N_headers[comp_number]))  
         df_D <- df %>% dplyr::select(unlist(dpmsr_set$y$stats$groups$com_D_headers[comp_number]) ) 
+        df_spqc <- df[unlist(dpmsr_set$y$stats$comp_spqc_sample_numbers)]
+        df_spqc_cv <- df %>% dplyr::select(contains(str_c(dpmsr_set$y$stats$comp_spqc, "_CV") )) 
         df_Comp <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$comp_name [comp_number]) ) 
-        df_final <- cbind(df[1:(dpmsr_set$y$info_columns_final)], df_N, df_D, df_Comp)
+        df_final <- cbind(df[1:(dpmsr_set$y$info_columns_final)], df_N, df_D, df_spqc, df_spqc_cv, df_Comp)
         
         filter_df <- subset(df_final, df_final[ , dpmsr_set$y$stats$groups$pval[comp_number]] <= input$stats_data_pvalue &  
                               (df_final[ , dpmsr_set$y$stats$groups$fc[comp_number]] >= input$stats_data_foldchange1 | 
                                  df_final[ , dpmsr_set$y$stats$groups$fc[comp_number]] <= -input$stats_data_foldchange2)) 
         filter_df <- subset(filter_df, filter_df[ , dpmsr_set$y$stats$groups$mf[comp_number]] >= input$stats_missing_factor )
+        if(input$stats2_spqc_cv_filter_factor >0){
+          filter_df <- subset(filter_df, filter_df[ , str_c(dpmsr_set$y$stats$comp_spqc, "_CV")] <= input$stats2_spqc_cv_filter_factor )
+        }
+        
+        
         filter_df_colnames <- colnames(filter_df)
         filter_df_colnames <- gsub("_v_", " v ", filter_df_colnames)
         filter_df_colnames <- gsub("_FC", " FC", filter_df_colnames)

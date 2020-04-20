@@ -483,8 +483,16 @@ shinyUI(fluidPage(
                                    column(width=1, offset =0,
                                           numericInput("missing_factor", label="Measured %", value = 0.6)
                                    ),
+                                   column(width=2, offset =0,
+                                          pickerInput(inputId = "comp_spqc", label = "SPQC Group?",  choices = "None", 
+                                                      options = list(`actions-box` = TRUE,size = 10,
+                                                                     `selected-text-format` = "count > 3"),  multiple = TRUE
+                                                  )
+                                        ),
                                    column(width=1, offset =0,
                                      dropdownButton(
+                                            checkboxInput("stats_spqc_cv_filter", label = "Filter by SPQC CV"),
+                                            numericInput("stats_spqc_cv_filter_factor", label="SPQC %CV Cutoff", value = 50),
                                             checkboxInput("pair_comp", label = "Pairwise Comparisons"),
                                             checkboxInput("checkbox_out_ptm", label = "Report Specific Modification Only"),
                                             textInput("report_grep", label="Filter(grep) for Modification", value = "Enter value"),
@@ -628,7 +636,7 @@ shinyUI(fluidPage(
                                           #rHandsontableOutput("stat2_table"),
                                           tags$head(tags$style("#stat2_N_1{color: blue; font-size: 16px; font-style: bold;}")),
                                           
-                                          actionButton("check_stats", label = "Check Comparisons", width = 300,
+                                          actionButton("check_stats", label = "Set Comparisons", width = 300,
                                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
                                           br(),
                                           br(),
@@ -639,10 +647,13 @@ shinyUI(fluidPage(
                         
                         tabPanel("Graphs", id="tp_stats_graph1", 
                                  fluidRow(
-                                   column(width=8, offset =0,
+                                   column(width=3, offset =0,
                                           pickerInput(inputId = "stats_plot_comp", label = "Comparison(s) to plot",  choices = "None", 
                                                       options = list(`actions-box` = TRUE, size = 100,
                                                                      `selected-text-format` = "count > 5"),  multiple = TRUE)
+                                   ),
+                                   column(width=2, offset =0,
+                                          checkboxInput("stats_plot_spqc", label = "Add SPQC?")
                                    ),
                                    column(width=4, offset =0,
                                           actionButton("create_stats_plots", label = "Create Plots", width = 100,
@@ -943,26 +954,29 @@ shinyUI(fluidPage(
                                    column(width=1, offset =0,
                                           textInput("stats_data_accession", label="Accession", value = "0", width = 100)
                                    ),
-                                   column(width=1, offset =0,
-                                          textInput("stats_data_description", label="Description", value = "0", width = 100)
-                                   ),
-                                   column(width=1, offset =0,  
-                                          numericInput("stats_data_pvalue", label="pvalue", value = 0, width = 100)
-                                   ),
-                                   column(width=1, offset =0,  
-                                          numericInput("stats_data_foldchange1", label="foldchange up", value = 0, width = 100)
-                                   ),
-                                   column(width=1, offset =0,  
-                                          numericInput("stats_data_foldchange2", label="foldchange dn", value = 0, width = 100)
-                                   ),
-                                   column(width=1, offset =0,
-                                          numericInput("stats_missing_factor", label="Measured %", value = 0)
+                                   column(width=2, offset =0,
+                                          textInput("stats_data_description", label="Description", value = "0", width = 200)
                                    ),
                                    column(width=3, offset =0,
                                           selectInput("stats_select_data_comp", label = "comparison", 
                                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
-                                                      selected = 1)
+                                                      selected = 1),
                                    ),
+                         
+                                   column(width=3, offset =0,
+                                          dropdownButton(
+                                            tags$h5("Stat filters applied after TopN, Accession, Description"),
+                                            br(),
+                                            numericInput("stats_data_pvalue", label="pvalue", value = 0),
+                                            numericInput("stats_data_foldchange1", label="foldchange up", value = 0),
+                                            numericInput("stats_data_foldchange2", label="foldchange dn (absolute value)", value = 0),
+                                            numericInput("stats_missing_factor", label="Measured %", value = 0),
+                                            numericInput("stats2_spqc_cv_filter_factor", label="SPQC %CV Cutoff", value = 0),
+                                            circle = TRUE, status = "info", icon = icon("gear"), width = "300px", size = "sm",
+                                            tooltip = tooltipOptions(title = "Click to see stat filters")
+                                          )
+                                   ),
+
                                    column(width=1, offset =0,
                                           actionButton("stats_data_show", label = "Filter Data", width = 100,
                                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4")

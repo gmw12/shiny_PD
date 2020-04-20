@@ -8,6 +8,14 @@ stat_prep <- function(){
   #check that the parallel processing went through, if not do it again one at a time
   check_stats_prep_parallel(data_list)
   
+  #save to excel final without stats
+  for (name in names(dpmsr_set$data$final)){
+    cat(file=stderr(), str_c("Saving final excel w/o stats....", name), "\n")
+    filename <- str_c(dpmsr_set$file$output_dir, name, "//Final_", name, "_noStats.xlsx")
+    dataout <- dpmsr_set$data$final[[name]]
+    Simple_Excel(dataout, filename)
+  }
+  
   if (dpmsr_set$y$state=="Peptide" && dpmsr_set$x$final_data_output == "Protein"){
     dpmsr_set$data$finalraw <<- collapse_peptide(dpmsr_set$data$normalized$impute)
     Simple_Excel(dpmsr_set$data$finalraw, str_c(dpmsr_set$file$extra_prefix, "_final_raw_protein.xlsx", collapse = " "))
@@ -99,10 +107,12 @@ set_stat_groups <- function(session, input, output){
     comp_groups$limma_pval[i] <- str_c(comp_groups$comp_name[i], "_limma_pval")
     comp_groups$exactTest[i] <- str_c(comp_groups$comp_name[i], "_exactTest")
     comp_groups$mf[i] <- str_c(comp_groups$comp_name[i], "_MF")
+    comp_groups$cv_N[i] <- str_c(comp_groups$comp_N[i], "_CV")  
+    comp_groups$cv_D[i] <- str_c(comp_groups$comp_D[i], "_CV")  
     comp_groups$N_count[i] <- ncol(stats_data_N)
     comp_groups$D_count[i] <- ncol(stats_data_D)
-    comp_groups$N_color[1] <- color_choices_N[i]
-    comp_groups$D_color[1] <- color_choices_D[i]
+    comp_groups$N_color[i] <- color_choices_N[i] #first i was 1
+    comp_groups$D_color[i] <- color_choices_D[i] #first i was 1
     updatePickerInput(session, inputId = str_c('comp_',i,'N'), label=str_c("Comp",i,"_N  selected -> ", ncol(stats_data_N)) )
     updatePickerInput(session, inputId = str_c('comp_',i,'D'), label=str_c("Comp",i,"_D  selected -> ", ncol(stats_data_D)) )
     updateTextInput(session, inputId = str_c("volcano",i,"_stats_plot_title"),  value = str_c("Volcano ", comp_groups$comp_name[i]))
@@ -121,23 +131,20 @@ set_stat_groups <- function(session, input, output){
   updateTextInput(session, "stats_boxplot_title", value = str_c("Boxplot ", dpmsr_set$y$stats$groups$comp_name[input$mva_plot_comp]))
   updateSelectInput(session, "stats_select_data_comp", choices = dpmsr_set$y$stats$groups$comp_name, 
                     selected = dpmsr_set$y$stats$groups$comp_name[1])
-  
+  #save spqc information
+  dpmsr_set$y$stat$comp_spqc <<- input$comp_spqc
+  spqc_df <<- stats_data %>% dplyr::select(contains(input$comp_spqc))
+  dpmsr_set$y$stats$comp_spqc_sample_numbers <<- list(match(colnames(spqc_df), names(stats_data)))
 }
 
 
 #--------------------------------------------------------------------------------------------------------------------------------
 #Fold change, pvalue, export volcano, return organized table for output-------------------------------------------------
 stat_calc <- function(session, input, output) {
-  data_in <- dpmsr_set$data$impute[[input$select_final_data_stats]]
-  if (dpmsr_set$y$state=="Peptide" && dpmsr_set$x$final_data_output == "Protein"){
-    data_in <- collapse_peptide(data_in)
-  }
-  if (as.logical(dpmsr_set$x$peptide_ptm_out)){
-    data_in <- data_in [grep(dpmsr_set$x$peptide_report_grep, data_in$Modifications),]
-  }
-  
+  data_in <- dpmsr_set$data$final[[input$select_final_data_stats]]
+
   annotate_in <- data_in[1:dpmsr_set$y$info_columns_final]
-  data_in <- data_in[(dpmsr_set$y$info_columns_final+1):ncol(data_in)]
+  data_in <- data_in[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)]
   #start df for stats
   stat_df <- annotate_in[1:1]
   imputed_df <- dpmsr_set$data$Protein_imputed_df[3:ncol(dpmsr_set$data$Protein_imputed_df)]  
@@ -148,6 +155,8 @@ stat_calc <- function(session, input, output) {
     stat_df[ , str_c(dpmsr_set$y$stats$groups$comp_D[i], "_CV")] <- percentCV_gw(data_in[,unlist(dpmsr_set$y$stats$groups$sample_numbers_D[i]) ])
   } 
 
+  stat_df[ , str_c(dpmsr_set$y$stats$comp_spqc, "_CV")] <- percentCV_gw(data_in %>% dplyr::select(contains( dpmsr_set$y$stats$comp_spqc)))
+  
   #generate pvalue and FC for each comparison
   for(i in 1:nrow(dpmsr_set$y$stats$groups))
   {
@@ -174,6 +183,8 @@ stat_calc <- function(session, input, output) {
   dpmsr_set$data$stats$final_comp <<- input$select_final_data_stats
   dpmsr_set$y$stats$pvalue_cutoff <<- input$stats_pvalue_cutoff
   dpmsr_set$y$stats$foldchange_cutoff <<- input$stats_foldchange_cutoff
+  dpmsr_set$y$stats$stats_spqc_cv_filter <<- input$stats_spqc_cv_filter
+  dpmsr_set$y$stats$stats_spqc_cv_filter_factor <<- input$stats_spqc_cv_filter_factor
   
   return()
 }
@@ -255,13 +266,25 @@ stats_Final_Excel <- function() {
       comp_string <- dpmsr_set$y$stats$groups$comp_name[i]
       df_N <- df %>% dplyr::select(unlist(dpmsr_set$y$stats$groups$com_N_headers[i]))  
       df_D <- df %>% dplyr::select(unlist(dpmsr_set$y$stats$groups$com_D_headers[i]) ) 
+      df_spqc <- df[unlist(dpmsr_set$y$stats$comp_spqc_sample_numbers)]
+      df_cv_N <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$cv_N[i]) ) 
+      df_cv_D <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$cv_D[i]) ) 
+      df_spqc_cv <- df %>% dplyr::select(contains(str_c(dpmsr_set$y$stats$comp_spqc, "_CV") )) 
       df_Comp <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$comp_name [i]) ) 
-      df_final <- cbind(df[1:(dpmsr_set$y$info_columns_final)], df_N, df_D, df_Comp)
+      df_final <- cbind(df[1:(dpmsr_set$y$info_columns_final)], df_N, df_D, df_spqc, df_cv_N, df_cv_D, df_spqc_cv, df_Comp)
       
       filtered_df <- subset(df_final, df_final[ , dpmsr_set$y$stats$groups$pval[i]] <= as.numeric(dpmsr_set$x$pvalue_cutoff) &  
                               (df_final[ , dpmsr_set$y$stats$groups$fc[i]] >= as.numeric(dpmsr_set$x$foldchange_cutoff) | 
                                  df_final[ , dpmsr_set$y$stats$groups$fc[i]] <= -as.numeric(dpmsr_set$x$foldchange_cutoff))) 
+      
       filtered_df <- subset(filtered_df, filtered_df[ , dpmsr_set$y$stats$groups$mf[i]] >= as.numeric(dpmsr_set$x$missing_factor))
+      
+      if(dpmsr_set$y$stats$stats_spqc_cv_filter){
+        filtered_df <- subset(filtered_df, 
+                              filtered_df[ , str_c(dpmsr_set$y$stats$comp_spqc, "_CV")] <= as.numeric(dpmsr_set$y$stats$stats_spqc_cv_filter_factor ))
+      }
+      
+      cat(file=stderr(), str_c("Saving excel...", comp_string), "\n")
       addWorksheet(wb, comp_string)
       writeData(wb, sheet = nextsheet, filtered_df)
       nextsheet <- nextsheet +1
@@ -271,6 +294,8 @@ stats_Final_Excel <- function() {
     saveWorkbook(wb, filename, overwrite = TRUE)
     
 }
+
+
 
 
 

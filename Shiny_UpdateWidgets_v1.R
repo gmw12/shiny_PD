@@ -221,30 +221,32 @@ update_widget_post_processing <- function(session, input, output){
   updatePickerInput(session, "comp_10D", choices = dpmsr_set$y$uniquegroups, selected= "-")
   updatePickerInput(session, "comp_11D", choices = dpmsr_set$y$uniquegroups, selected= "-")
   updatePickerInput(session, "comp_12D", choices = dpmsr_set$y$uniquegroups, selected= "-")  
-
+  updatePickerInput(session, "comp_spqc", choices = dpmsr_set$y$uniquegroups, selected= "-")  
   
   # update what was previously selected
   try((
     if(as.numeric(dpmsr_set$y$stats$comp_number) > 0){
       cat(file=stderr(), "Update mva...", "\n")
       updateSelectInput(session, "comp_number", selected = as.numeric(dpmsr_set$y$stats$comp_number))
+      updateSelectInput(session, "select_final_data_stats", selected = dpmsr_set$data$stats$final_comp)
+      updatePickerInput(session, "comp_spqc", selected= dpmsr_set$y$stats$comp_spqc)
+      updatePickerInput(session, "stats_plot_comp", choices = dpmsr_set$y$stats$groups$comp_name)
+      updatePickerInput(session, "stats_select_data_comp", choices = dpmsr_set$y$stats$groups$comp_name)
+      updatePickerInput(session, "stats_select_data_comp", choices = dpmsr_set$y$stats$groups$comp_name)
+      updateSelectInput(session, "select_data_comp_motif", choices = dpmsr_set$y$stats$groups$comp_name)
+      updateSelectInput(session, "select_data_comp_wiki", choices = dpmsr_set$y$stats$groups$comp_name)
+      updateSelectInput(session, "select_data_comp_profile", choices = dpmsr_set$y$stats$groups$comp_name)
+      updateSelectInput(session, "select_data_comp_go", choices = dpmsr_set$y$stats$groups$comp_name)
+      updateSelectInput(session, "select_data_comp_string", choices = dpmsr_set$y$stats$groups$comp_name)
+      updateSelectInput(session, "select_data_comp_string_enrich", choices = dpmsr_set$y$stats$groups$comp_name)
+      updateCheckboxInput(session, "stats_spqc_cv_filter", value = dpmsr_set$y$stats$stats_spqc_cv_filter)
+      updateNumericInput(session, "stats_spqc_cv_filter_factor", value = dpmsr_set$y$stats$stats_spqc_cv_filter_factor)
       for (i in 1:nrow(dpmsr_set$y$stats$groups)){
         updatePickerInput(session, str_c("comp_", i, "N"), selected= dpmsr_set$y$stats[[str_c("comp",i,"_N")]] )
         updatePickerInput(session, str_c("comp_", i, "D"), selected= dpmsr_set$y$stats[[str_c("comp",i,"_D")]] )
       }
     }
       ), silent=TRUE)
-
-  updatePickerInput(session, "stats_plot_comp", choices = dpmsr_set$y$stats$groups$comp_name)
-  updatePickerInput(session, "stats_select_data_comp", choices = dpmsr_set$y$stats$groups$comp_name)
-  updatePickerInput(session, "stats_select_data_comp", choices = dpmsr_set$y$stats$groups$comp_name)
-  
-  updateSelectInput(session, "select_data_comp_motif", choices = dpmsr_set$y$stats$groups$comp_name)
-  updateSelectInput(session, "select_data_comp_wiki", choices = dpmsr_set$y$stats$groups$comp_name)
-  updateSelectInput(session, "select_data_comp_profile", choices = dpmsr_set$y$stats$groups$comp_name)
-  updateSelectInput(session, "select_data_comp_go", choices = dpmsr_set$y$stats$groups$comp_name)
-  updateSelectInput(session, "select_data_comp_string", choices = dpmsr_set$y$stats$groups$comp_name)
-  updateSelectInput(session, "select_data_comp_string_enrich", choices = dpmsr_set$y$stats$groups$comp_name) 
   
 }
 

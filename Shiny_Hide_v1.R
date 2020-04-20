@@ -389,6 +389,14 @@
   })
   
   
+  observe({
+    if(input$stats_spqc_cv_filter){
+      shinyjs::show("stats_spqc_cv_filter_factor") 
+    }else{
+      shinyjs::hide("stats_spqc_cv_filter_factor") 
+    }
+  })
+  
 
   
 }

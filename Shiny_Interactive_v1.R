@@ -438,8 +438,8 @@ interactive_stats_volcano <- function(session, input, output, i)
     left_px <- left_pct * (hover$range$right - hover$range$left)
     top_px <- top_pct * (hover$range$bottom - hover$range$top)
     
-    cat(file=stderr(), str_c("top_pct = ", top_pct), "\n")
-    cat(file=stderr(), str_c("top_px = ", top_px), "\n")
+    #cat(file=stderr(), str_c("top_pct = ", top_pct), "\n")
+    #cat(file=stderr(), str_c("top_px = ", top_px), "\n")
     
     if(top_pct > 0.3){
       top_custom <- 10
