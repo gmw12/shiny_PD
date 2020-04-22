@@ -41,6 +41,7 @@ norm_prep <- function(){
 #--------------------------------------------------------------------------------------
 apply_norm <- function(){
   ncores <- detectCores()
+  if (is.na(ncores)) {ncores <- 1}
   norm_list <- dpmsr_set$y$norm_list
   dpmsr_set$data$normalized <<- mclapply(norm_list, norm_parallel, mc.cores = ncores)
   }

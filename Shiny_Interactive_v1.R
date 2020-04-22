@@ -62,8 +62,15 @@ interactive_go_volcano <- function(session, input, output)
       # create style property fot tooltip
       # background color is set so tooltip is a bit transparent
       # z-index is set so we are sure are tooltip will be on top
+      
+      if(top_pct > 0.3){
+        top_custom <- 10
+      }else{
+        top_custom <- 200
+      }
+      
       style <- paste0("position:absolute; z-index:100; background-color: rgba(245, 245, 245, 0.85); ",
-                      "left:", 10, "px; top:", 10, "px;")
+                      "left:", 10, "px; top:", top_custom, "px;")
       # actual tooltip created as wellPanel
       wellPanel(
         style = style,
@@ -232,8 +239,15 @@ interactive_pca2d <- function(session, input, output, df, namex, color_list, gro
     # create style property fot tooltip
     # background color is set so tooltip is a bit transparent
     # z-index is set so we are sure are tooltip will be on top
+    
+    if(top_pct > 0.3){
+      top_custom <- 10
+    }else{
+      top_custom <- 200
+    }
+    
     style <- paste0("position:absolute; z-index:100; background-color: rgba(245, 245, 245, 0.85); ",
-                    "left:", 10, "px; top:", 10, "px;")
+                    "left:", 10, "px; top:", top_custom, "px;")
     # actual tooltip created as wellPanel
     wellPanel(
       style = style,

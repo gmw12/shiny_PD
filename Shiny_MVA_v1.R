@@ -2,6 +2,7 @@
 #--------------------------------------------------------------------------------------
 stat_prep <- function(){
   ncores <- detectCores()
+  if (is.na(ncores)) {ncores <- 1}
   data_list <- dpmsr_set$data$impute
   dpmsr_set$data$final <<- mclapply(data_list, stat_prep_parallel, mc.cores = ncores)
   
@@ -12,8 +13,7 @@ stat_prep <- function(){
   for (name in names(dpmsr_set$data$final)){
     cat(file=stderr(), str_c("Saving final excel w/o stats....", name), "\n")
     filename <- str_c(dpmsr_set$file$output_dir, name, "//Final_", name, "_noStats.xlsx")
-    dataout <- dpmsr_set$data$final[[name]]
-    Simple_Excel(dataout, filename)
+    Simple_Excel_name(dpmsr_set$data$final[[name]], filename, name)
   }
   
   if (dpmsr_set$y$state=="Peptide" && dpmsr_set$x$final_data_output == "Protein"){
@@ -73,7 +73,7 @@ check_stats_prep_parallel <- function(data_list){
  #create data frame for comparisons
 set_stat_groups <- function(session, input, output){
   cat(file=stderr(), "set_stat_groups....1", "\n")
-  stats_data <- dpmsr_set$data$impute[[input$select_final_data_stats]]
+  stats_data <- dpmsr_set$data$final[[input$select_final_data_stats]]
   stats_data <- stats_data[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)]
   
   if(input$select_final_data_stats == "impute"){
@@ -81,6 +81,12 @@ set_stat_groups <- function(session, input, output){
   }else{
     colnames(stats_data) <- dpmsr_set$design$Header2
   }
+  
+  #save spqc information
+  dpmsr_set$y$stats$comp_spqc <<- input$comp_spqc
+  spqc_df <<- stats_data %>% dplyr::select(contains(input$comp_spqc))
+  dpmsr_set$y$stats$comp_spqc_sample_numbers <<- list(match(colnames(spqc_df), names(stats_data)))
+  
   comp_groups <- data.frame(seq(from=1, to=as.numeric(input$comp_number)))
   colnames(comp_groups) <- "CompNumber"
   color_choices <- distinctColorPalette(as.numeric(input$comp_number)*2)
@@ -131,10 +137,7 @@ set_stat_groups <- function(session, input, output){
   updateTextInput(session, "stats_boxplot_title", value = str_c("Boxplot ", dpmsr_set$y$stats$groups$comp_name[input$mva_plot_comp]))
   updateSelectInput(session, "stats_select_data_comp", choices = dpmsr_set$y$stats$groups$comp_name, 
                     selected = dpmsr_set$y$stats$groups$comp_name[1])
-  #save spqc information
-  dpmsr_set$y$stat$comp_spqc <<- input$comp_spqc
-  spqc_df <<- stats_data %>% dplyr::select(contains(input$comp_spqc))
-  dpmsr_set$y$stats$comp_spqc_sample_numbers <<- list(match(colnames(spqc_df), names(stats_data)))
+
 }
 
 
@@ -155,7 +158,7 @@ stat_calc <- function(session, input, output) {
     stat_df[ , str_c(dpmsr_set$y$stats$groups$comp_D[i], "_CV")] <- percentCV_gw(data_in[,unlist(dpmsr_set$y$stats$groups$sample_numbers_D[i]) ])
   } 
 
-  stat_df[ , str_c(dpmsr_set$y$stats$comp_spqc, "_CV")] <- percentCV_gw(data_in %>% dplyr::select(contains( dpmsr_set$y$stats$comp_spqc)))
+  stat_df[ , str_c(dpmsr_set$y$stats$comp_spqc, "_CV")] <- percentCV_gw(data_in[unlist(dpmsr_set$y$stats$comp_spqc_sample_numbers)])
   
   #generate pvalue and FC for each comparison
   for(i in 1:nrow(dpmsr_set$y$stats$groups))
@@ -273,16 +276,35 @@ stats_Final_Excel <- function() {
       df_Comp <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$comp_name [i]) ) 
       df_final <- cbind(df[1:(dpmsr_set$y$info_columns_final)], df_N, df_D, df_spqc, df_cv_N, df_cv_D, df_spqc_cv, df_Comp)
       
-      filtered_df <- subset(df_final, df_final[ , dpmsr_set$y$stats$groups$pval[i]] <= as.numeric(dpmsr_set$x$pvalue_cutoff) &  
-                              (df_final[ , dpmsr_set$y$stats$groups$fc[i]] >= as.numeric(dpmsr_set$x$foldchange_cutoff) | 
-                                 df_final[ , dpmsr_set$y$stats$groups$fc[i]] <= -as.numeric(dpmsr_set$x$foldchange_cutoff))) 
+      df_final <- df
       
-      filtered_df <- subset(filtered_df, filtered_df[ , dpmsr_set$y$stats$groups$mf[i]] >= as.numeric(dpmsr_set$x$missing_factor))
+      # filtered_df <- subset(df_final, df_final[ , dpmsr_set$y$stats$groups$pval[i]] <= as.numeric(dpmsr_set$x$pvalue_cutoff) &  
+      #                         (df_final[ , dpmsr_set$y$stats$groups$fc[i]] >= as.numeric(dpmsr_set$x$foldchange_cutoff) | 
+      #                            df_final[ , dpmsr_set$y$stats$groups$fc[i]] <= -as.numeric(dpmsr_set$x$foldchange_cutoff))) 
+      
+      #filtered_df <- subset(filtered_df, filtered_df[ , dpmsr_set$y$stats$groups$mf[i]] >= as.numeric(dpmsr_set$x$missing_factor))
+      
+      # if(dpmsr_set$y$stats$stats_spqc_cv_filter){
+      #   filtered_df <- subset(filtered_df, 
+      #                         filtered_df[ , str_c(dpmsr_set$y$stats$comp_spqc, "_CV")] <= as.numeric(dpmsr_set$y$stats$stats_spqc_cv_filter_factor ))
+      # }
+      
+      
+      filtered_df <- filter(df_final, df_final[[dpmsr_set$y$stats$groups$pval[i]]] <= as.numeric(dpmsr_set$x$pvalue_cutoff) &  
+                            (df_final[[dpmsr_set$y$stats$groups$fc[i]]] >= as.numeric(dpmsr_set$x$foldchange_cutoff) | 
+                               df_final[[dpmsr_set$y$stats$groups$fc[i]]] <= -as.numeric(dpmsr_set$x$foldchange_cutoff))) 
+      
+      if(dpmsr_set$x$final_data_output=="Protein"){
+        filtered_df <- filter(filtered_df,  
+                            filtered_df[[dpmsr_set$y$stats$groups$mf[i] ]] >= as.numeric(dpmsr_set$x$missing_factor) | filtered_df$Peptides > 1)
+      }else{
+        filtered_df <- filter(filtered_df, filtered_df[[dpmsr_set$y$stats$groups$mf[i] ]] >= as.numeric(dpmsr_set$x$missing_factor))
+      }
       
       if(dpmsr_set$y$stats$stats_spqc_cv_filter){
-        filtered_df <- subset(filtered_df, 
-                              filtered_df[ , str_c(dpmsr_set$y$stats$comp_spqc, "_CV")] <= as.numeric(dpmsr_set$y$stats$stats_spqc_cv_filter_factor ))
+        filtered_df <- filter(filtered_df, filtered_df[[str_c(dpmsr_set$y$stats$comp_spqc, "_CV")]] <= as.numeric(dpmsr_set$y$stats$stats_spqc_cv_filter_factor ) )
       }
+
       
       cat(file=stderr(), str_c("Saving excel...", comp_string), "\n")
       addWorksheet(wb, comp_string)

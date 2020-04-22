@@ -9,7 +9,15 @@ Simple_Excel <- function(df, filename) {
   writeData(wb, sheet =1, df)  
   saveWorkbook(wb, filename, overwrite = TRUE)
 }
-
+#----------------------------------------------------------------------------------------
+# create final excel documents
+Simple_Excel_name <- function(df, filename, sheet_name) {
+  require(openxlsx)
+  wb <- createWorkbook()
+  addWorksheet(wb, sheet_name)
+  writeData(wb, sheet =1, df)  
+  saveWorkbook(wb, filename, overwrite = TRUE)
+}
 #----------------------------------------------------------------------------------------
 # create final excel documents
 Final_Excel <- function() {

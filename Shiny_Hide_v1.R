@@ -166,6 +166,29 @@
     }
   })
   
+  
+  observe({
+    if (input$radio_impute==1 | input$radio_impute==8 ){
+      shinyjs::show("bottom_x")
+    }else {
+      shinyjs::hide("bottom_x")
+    }
+  })
+  
+  
+  
+  observe({
+    if (input$radio_impute==1 ){
+      shinyjs::show("checkbox_missing_50")
+      shinyjs::show("text_i2")
+    }else {
+      shinyjs::hide("checkbox_missing_50")
+      shinyjs::hide("text_i2")
+    }
+  })
+  
+  
+  
   observe({
     if (!input$checkbox_tmt_filter){
       shinyjs::hide("tmt_filter_sd")
@@ -380,11 +403,11 @@
     if(input$start_stats==0){
       shinyjs::disable("create_stats_plots") 
       shinyjs::disable("create_stats_volcano") 
-      shinyjs::disable("stats_data_show")
+      #shinyjs::disable("stats_data_show")
     }else{
       shinyjs::enable("create_stats_plots") 
       shinyjs::enable("create_stats_volcano") 
-      shinyjs::enable("stats_data_show")
+      #shinyjs::enable("stats_data_show")
     }
   })
   

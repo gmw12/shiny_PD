@@ -241,6 +241,7 @@ update_widget_post_processing <- function(session, input, output){
       updateSelectInput(session, "select_data_comp_string_enrich", choices = dpmsr_set$y$stats$groups$comp_name)
       updateCheckboxInput(session, "stats_spqc_cv_filter", value = dpmsr_set$y$stats$stats_spqc_cv_filter)
       updateNumericInput(session, "stats_spqc_cv_filter_factor", value = dpmsr_set$y$stats$stats_spqc_cv_filter_factor)
+      updatePickerInput(session, "comp_spqc", selected = dpmsr_set$y$stats$comp_spqc )
       for (i in 1:nrow(dpmsr_set$y$stats$groups)){
         updatePickerInput(session, str_c("comp_", i, "N"), selected= dpmsr_set$y$stats[[str_c("comp",i,"_N")]] )
         updatePickerInput(session, str_c("comp_", i, "D"), selected= dpmsr_set$y$stats[[str_c("comp",i,"_D")]] )

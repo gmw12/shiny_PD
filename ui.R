@@ -196,7 +196,7 @@ shinyUI(fluidPage(
                       tags$head(tags$style("#text_i1{color: blue; font-size: 20px; font-style: bold;}")),
                       br(),
                       radioButtons("radio_impute", label=NULL,
-                                   choices = list("Duke" = 1, "Floor" = 2, "Minimum" = 3,"Average" = 4,
+                                   choices = list("Duke/BottomX" = 1, "Floor" = 2, "Minimum" = 3,"Average" = 4,
                                                   "KNN"= 5, "LocalLeastSquares" = 6, "MLE" = 7, "BottomX" = 8
                                    ),
                                    selected = 1),
@@ -280,8 +280,7 @@ shinyUI(fluidPage(
                                  fluidRow(
                                    column(width=2, offset =0,
                                           selectInput("plot_select", label = NULL, 
-                                                      choices = list("barplot", "boxplot", "cluster", "pca2d", "heatmap",
-                                                                     "MDS", "density", "heatmap"), 
+                                                      choices = list("barplot", "boxplot"), 
                                                       selected = "barplot"),
                                           checkboxInput("checkbox_nc1", label = "Sample Loading - Total"),
                                           checkboxInput("checkbox_nc2", label = "Trimmed Mean - 10%"),
@@ -480,8 +479,8 @@ shinyUI(fluidPage(
                                    column(width=1, offset =0,
                                           numericInput("foldchange_cutoff", label="FC cutoff", value = 2)
                                    ),
-                                   column(width=1, offset =0,
-                                          numericInput("missing_factor", label="Measured %", value = 0.6)
+                                   column(width=2, offset =0,
+                                          numericInput("missing_factor", label="Measured % (decimal)", value = 0.6)
                                    ),
                                    column(width=2, offset =0,
                                           pickerInput(inputId = "comp_spqc", label = "SPQC Group?",  choices = "None", 
@@ -954,7 +953,7 @@ shinyUI(fluidPage(
                                    column(width=1, offset =0,
                                           textInput("stats_data_accession", label="Accession", value = "0", width = 100)
                                    ),
-                                   column(width=2, offset =0,
+                                   column(width=1, offset =0,
                                           textInput("stats_data_description", label="Description", value = "0", width = 200)
                                    ),
                                    column(width=3, offset =0,
@@ -963,15 +962,16 @@ shinyUI(fluidPage(
                                                       selected = 1),
                                    ),
                          
-                                   column(width=3, offset =0,
+                                   column(width=1, offset =0,
                                           dropdownButton(
                                             tags$h5("Stat filters applied after TopN, Accession, Description"),
                                             br(),
                                             numericInput("stats_data_pvalue", label="pvalue", value = 0),
                                             numericInput("stats_data_foldchange1", label="foldchange up", value = 0),
                                             numericInput("stats_data_foldchange2", label="foldchange dn (absolute value)", value = 0),
-                                            numericInput("stats_missing_factor", label="Measured %", value = 0),
+                                            numericInput("stats_missing_factor", label="Measured % (decimal)", value = 0),
                                             numericInput("stats2_spqc_cv_filter_factor", label="SPQC %CV Cutoff", value = 0),
+                                            checkboxInput("stats_include_all", label="Include all samples? (not just comparisons)", value = 0),
                                             circle = TRUE, status = "info", icon = icon("gear"), width = "300px", size = "sm",
                                             tooltip = tooltipOptions(title = "Click to see stat filters")
                                           )
@@ -979,6 +979,13 @@ shinyUI(fluidPage(
 
                                    column(width=1, offset =0,
                                           actionButton("stats_data_show", label = "Filter Data", width = 100,
+                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                                   ),
+                                   column(width=2, offset =1,
+                                          textInput("stats_data_filename", label="File Name", value = "my_data.xlsx", width = 250)
+                                   ),
+                                   column(width=1, offset =0,
+                                          actionButton("stats_data_save", label = "Save Data", width = 100,
                                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
                                    )
                                  ),

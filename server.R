@@ -448,12 +448,25 @@ observeEvent(input$data_show, {
         df_Comp <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$comp_name [comp_number]) ) 
         df_final <- cbind(df[1:(dpmsr_set$y$info_columns_final)], df_N, df_D, df_spqc, df_spqc_cv, df_Comp)
         
-        filter_df <- subset(df_final, df_final[ , dpmsr_set$y$stats$groups$pval[comp_number]] <= input$stats_data_pvalue &  
-                              (df_final[ , dpmsr_set$y$stats$groups$fc[comp_number]] >= input$stats_data_foldchange1 | 
-                                 df_final[ , dpmsr_set$y$stats$groups$fc[comp_number]] <= -input$stats_data_foldchange2)) 
-        filter_df <- subset(filter_df, filter_df[ , dpmsr_set$y$stats$groups$mf[comp_number]] >= input$stats_missing_factor )
+        if(input$stats_include_all) {df_final <- df}
+        
+        # filter_df <- subset(df_final, df_final[ , dpmsr_set$y$stats$groups$pval[comp_number]] <= input$stats_data_pvalue &  
+        #                       (df_final[ , dpmsr_set$y$stats$groups$fc[comp_number]] >= input$stats_data_foldchange1 | 
+        #                          df_final[ , dpmsr_set$y$stats$groups$fc[comp_number]] <= -input$stats_data_foldchange2)) 
+        
+        filter_df <- filter(df_final, df_final[[dpmsr_set$y$stats$groups$pval[comp_number]]] <= input$stats_data_pvalue &  
+                              (df_final[[dpmsr_set$y$stats$groups$fc[comp_number]]] >= input$stats_data_foldchange1 | 
+                                 df_final[[dpmsr_set$y$stats$groups$fc[comp_number]]] <= -input$stats_data_foldchange2)) 
+
+        if(dpmsr_set$x$final_data_output=="Protein"){
+          filter_df <- filter(filter_df,  
+                              filter_df[[dpmsr_set$y$stats$groups$mf[comp_number] ]] >= input$stats_missing_factor | filter_df$Peptides > 1)
+        }else{
+          filter_df <- filter(filter_df, filter_df[[dpmsr_set$y$stats$groups$mf[comp_number] ]] >= input$stats_missing_factor)
+        }
+        
         if(input$stats2_spqc_cv_filter_factor >0){
-          filter_df <- subset(filter_df, filter_df[ , str_c(dpmsr_set$y$stats$comp_spqc, "_CV")] <= input$stats2_spqc_cv_filter_factor )
+          filter_df <- filter(filter_df, filter_df[[str_c(dpmsr_set$y$stats$comp_spqc, "_CV")]] <= input$stats2_spqc_cv_filter_factor )
         }
         
         
@@ -469,6 +482,8 @@ observeEvent(input$data_show, {
       
       output$stats_data_final<- renderRHandsontable({
         rhandsontable(filter_df, rowHeaders = NULL, columnHeaderwidth = 200, width = 1500, height = 1500) %>%
+          hot_table(highlightCol = TRUE, highlightRow = TRUE) %>%
+          hot_cols(columnSorting = TRUE) %>%
           hot_cols(fixedColumnsLeft = 1, colWidths = 80, halign = "htCenter" ) %>%
           hot_col(col = "Peptides", format="0")  %>%
           #hot_col(col = colnames(df_N), format="0", digits =0) %>%
@@ -482,9 +497,24 @@ observeEvent(input$data_show, {
       removeModal()
     })  
     
+    #-------------------------------------------------------------------------------------------------------------      
+    #-------------------------------------------------------------------------------------------------------------  
     
     
     
+    observeEvent(input$stats_data_save, { 
+
+      if (!is.null(isolate(input$stats_data_final)))
+      {
+        showModal(modalDialog("Saving Data...", footer = NULL))  
+        cat(file=stderr(), "stats saving rhandsontable to excel..." , "\n") 
+        #Convert to R object
+        x <- hot_to_r(isolate(input$stats_data_final))
+        Simple_Excel_name(x, str_c(dpmsr_set$file$extra_dir,  input$stats_data_filename), "data")
+        removeModal()
+      }
+    
+    })
 
     #-------------------------------------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------------------------------------
