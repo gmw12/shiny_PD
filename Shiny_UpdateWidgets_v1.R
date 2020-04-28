@@ -195,6 +195,8 @@ update_widget_post_processing <- function(session, input, output){
   updateSelectInput(session, "select_final_data", choices = names(dpmsr_set$data$final), selected= "impute")
   updateSelectInput(session, "select_final_data_stats", choices = names(dpmsr_set$data$final), selected= "impute")
   
+  updateTextInput(session, "final_stats_name", value = str_c("Final_", dpmsr_set$data$stats$final_comp,  "_stats.xlsx"))
+  
   #----------------------------------------------------------------------
   #updates choice list only (not what was selected)
   updatePickerInput(session, "comp_1N", choices = dpmsr_set$y$uniquegroups, selected= "-")
@@ -231,6 +233,7 @@ update_widget_post_processing <- function(session, input, output){
       updateSelectInput(session, "select_final_data_stats", selected = dpmsr_set$data$stats$final_comp)
       updatePickerInput(session, "comp_spqc", selected= dpmsr_set$y$stats$comp_spqc)
       updatePickerInput(session, "stats_plot_comp", choices = dpmsr_set$y$stats$groups$comp_name)
+      updatePickerInput(session, "stats_oneprotein_plot_comp", choices = dpmsr_set$y$stats$groups$comp_name, selected = dpmsr_set$y$stats$groups$comp_name[1])
       updatePickerInput(session, "stats_select_data_comp", choices = dpmsr_set$y$stats$groups$comp_name)
       updatePickerInput(session, "stats_select_data_comp", choices = dpmsr_set$y$stats$groups$comp_name)
       updateSelectInput(session, "select_data_comp_motif", choices = dpmsr_set$y$stats$groups$comp_name)

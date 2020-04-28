@@ -12,11 +12,17 @@ apply_impute <- function(){
   
   norm_list2 <- dpmsr_set$y$norm_list2
   if (2 %in% dpmsr_set$y$norm_list2)
-    {dpmsr_set$data$impute$tmm <<- tmm_normalize(dpmsr_set$data$impute$impute, dpmsr_set$data$impute$impute, "TMM_Norm")}
+  {dpmsr_set$data$impute$tmm <<- tmm_normalize(dpmsr_set$data$impute$impute, dpmsr_set$data$impute$impute, "TMM_Norm")
+    Simple_Excel(dpmsr_set$data$impute$tmm, str_c(dpmsr_set$file$extra_prefix, "_TMM_", dpmsr_set$x$impute_method, "_impute.xlsx", collapse = " "))
+    }
   if (3 %in% dpmsr_set$y$norm_list2)
-  {dpmsr_set$data$impute$sltmm <<- tmm_normalize(dpmsr_set$data$impute$sl,dpmsr_set$data$impute$sl, "SLTMM_Norm")}
+  {dpmsr_set$data$impute$sltmm <<- tmm_normalize(dpmsr_set$data$impute$sl,dpmsr_set$data$impute$sl, "SLTMM_Norm")
+    Simple_Excel(dpmsr_set$data$impute$sltmm, str_c(dpmsr_set$file$extra_prefix, "_SLTMM_", dpmsr_set$x$impute_method, "_impute.xlsx", collapse = " "))
+  }
   if (11 %in% dpmsr_set$y$norm_list2)
-  {dpmsr_set$data$impute$protein <<- protein_normalize(dpmsr_set$data$impute$impute, "Protein_Norm")}
+  {dpmsr_set$data$impute$protein <<- protein_normalize(dpmsr_set$data$impute$impute, "Protein_Norm")
+    Simple_Excel(dpmsr_set$data$impute$protein, str_c(dpmsr_set$file$extra_prefix, "_Protein_", dpmsr_set$x$impute_method, "_impute.xlsx", collapse = " "))
+    }
 }
 
 
@@ -140,7 +146,8 @@ impute_multi <- function(data_in, distribution_in){
          }
         }
       }
-    
+   
+
     #save group dataframe
     assign(dpmsr_set$y$sample_groups$Group[i], df[1:dpmsr_set$y$sample_groups$Count[i]])
   }
@@ -149,8 +156,9 @@ impute_multi <- function(data_in, distribution_in){
   df3 <- get(dpmsr_set$y$sample_groups$Group[1])
   for(i in 2:dpmsr_set$y$group_number)  {df3 <- cbind(df3, get(dpmsr_set$y$sample_groups$Group[i]))}
   
-  if (dpmsr_set$x$impute_method == "LocalLeastSquares"){df3 <- impute_lls(df)}
-  if (dpmsr_set$x$impute_method == "KNN"){df3 <- impute_knn(df)}  
+  if (dpmsr_set$x$impute_method == "LocalLeastSquares"){df3 <- impute_lls(df3)}
+  if (dpmsr_set$x$impute_method == "KNN"){df3 <- impute_knn(df3)}  
+  
   
   df3 <- data.frame(2^df3)
 

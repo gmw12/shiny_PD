@@ -86,7 +86,7 @@ interactive_go_volcano <- function(session, input, output)
 #------------------------------------------------------------------------------------------------------------------------
 #match(namesdf, names(df))
 
-interactive_barplot <- function(session, input, output, df, namex, color_list)
+interactive_barplot <- function(session, input, output, df, namex, color_list, output_name, comp_name)
 {
   datay <- colSums(df, na.rm = TRUE)
   df2 <- data.frame(namex)
@@ -98,27 +98,26 @@ interactive_barplot <- function(session, input, output, df, namex, color_list)
   create_stats_barplot <- reactive({
     ggplot(data=df2, aes(x=Sample, y=Total_Intensity)) +
       geom_bar(stat="identity", fill=color_list)+ theme_classic() + 
-      ggtitle(input$stats_barplot_title) + 
-      ylab(input$stats_barplot_y_axis_label) +
+      ggtitle(input[[str_c(output_name, "_title")]]) + 
+      ylab(input[[str_c(output_name, "_y_axis_label")]]) +
       xlab(NULL) +
       #scale_y_discrete(labels = NULL) +
       coord_cartesian(ylim=NULL, expand = TRUE) +
-      theme(plot.title = element_text(hjust = 0.5, size=input$stats_barplot_title_size), 
-            axis.title = element_text(size=input$stats_barplot_label_size, color="black"),
-            axis.text.x = element_text(size=input$stats_barplot_label_size, angle = 90,  color="black"),
-            axis.text.y = element_text(size=input$stats_barplot_label_size,  color="black"),
+      theme(plot.title = element_text(hjust = 0.5, size=input[[str_c(output_name, "_title_size")]]), 
+            axis.title = element_text(size=input[[str_c(output_name, "_label_size")]], color="black"),
+            axis.text.x = element_text(size=input[[str_c(output_name, "_label_size")]], angle = 90,  color="black"),
+            axis.text.y = element_text(size=input[[str_c(output_name, "_label_size")]],  color="black"),
       ) 
   })
   
-  output$stats_barplot <- renderPlot({
+  output[[output_name]] <- renderPlot({
     req(create_stats_barplot())
     create_stats_barplot()
   })
   
-  output$download_stats_barplot <- downloadHandler(
+  output[[str_c("download_", output_name)]] <- downloadHandler(
     filename = function(){
-      str_c("stats_Barplot_", dpmsr_set$y$stats$groups$comp_name[as.numeric(input$stats_plot_comp)],
-            ".png", collapse = " ")
+      str_c("Stats_Barplot_", comp_name,  ".png", collapse = " ")
     },
     content = function(file){
       req(create_stats_barplot())
@@ -475,482 +474,704 @@ interactive_stats_volcano <- function(session, input, output, i)
 }
 
 
-
 #------------------------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------------------------
+#match(namesdf, names(df))
 
-interactive_stats_volcano1 <- function(session, input, output)
+interactive_grouped_barplot <- function(session, input, output, comp_string, df, info_columns, comp_name)
 {
-  df <- dpmsr_set$data$stats$final
-  df <- subset(df, df[ , dpmsr_set$y$stats$groups$mf[1]] >= input$missing_factor )
-  df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[1]))
-  df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[1]))
-  
-  #df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[1]))
-  #df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[1]))
-  
-  df <- cbind(df$Accession, df$Description, df_fc, df_pval)
-  colnames(df) <- c("Accession", "Description", "fc", "fc2", "pval")
-  df$Accession <- as.character(df$Accession)
-  df$Description <- as.character(df$Description)
-  df$log_pvalue <- -log(as.numeric(df$pval), 10)
-  df$log_fc <- log(as.numeric(df$fc2), 2)
-  
-  volcano1_stats_plot <- reactive({
-    ggplot(df, aes(x = log_fc, y = log_pvalue)) +
-      theme_minimal() +
-      geom_point(alpha=0.4, size=input$volcano1_stats_plot_dot_size, color = input$volcano1_stats_dot_color) +
-      xlab(input$volcano1_statsplot_x_axis_label) + ylab(input$volcano1_stats_plot_y_axis_label) +
-      scale_colour_gradient(low = input$volcano1_stats_dot_color, high = input$volcano1_stats_dot_color) +
-      ggtitle(input$volcano1_stats_plot_title)+    
-      xlim(-max(df$log_fc), max(df$log_fc)) +
-      theme(plot.title = element_text(size=input$volcano1_stats_plot_title_size, hjust = 0.5),
-            axis.title = element_text(size=input$volcano1_stats_plot_label_size, color="black"),
-            axis.text.x = element_text(size=10, color="black"),
-            axis.text.y = element_text(size=10,  color="black"),
-            legend.position = "none")
-  })
-  
-  output$volcano1_stats_plot<- renderPlot({
-    req(volcano1_stats_plot())
-    volcano1_stats_plot()
-  })
-  
-  output$download_stats_volcano1 <- downloadHandler(
-    filename = function(){
-      str_c("Volcano_", dpmsr_set$y$stats$groups$comp_name[1], ".png", collapse = " ")
-    },
-    content = function(file){
-      req(volcano1_stats_plot())
-      ggsave(file, plot = volcano1_stats_plot(), device = 'png')
-    }
-  )
-  
-  output$volcano1_stats_hover_info <- renderUI({
-    hover <- input$volcano1_stats_hover
-    point <- nearPoints(df, hover, threshold = 5, maxpoints = 1, addDist = TRUE)
-    if (nrow(point) == 0) return(NULL)
-    left_pct <- (hover$x - hover$domain$left) / (hover$domain$right - hover$domain$left)
-    top_pct <- (hover$domain$top - hover$y) / (hover$domain$top - hover$domain$bottom)
-    
-    left_px <- left_pct * (hover$range$right - hover$range$left)
-    top_px <- top_pct * (hover$range$bottom - hover$range$top)
 
-    cat(file=stderr(), str_c("top_pct = ", top_pct), "\n")
-    cat(file=stderr(), str_c("top_px = ", top_px), "\n")
+  updateTextInput(session, "stats_oneprotein_grouped_barplot_title", value = as.character(input$stats_oneprotein_accession))
+  if(input$stats_use_zscore){  updateTextInput(session, "stats_oneprotein_grouped_barplot_y_axis_label", value = "Z_Score") }
+  
+  xdf<<-df
+  xinfo_columns <<- info_columns
+  xcomp_string <<- comp_string
+  
+  cat(file=stderr(), "Interactive group barplot...1" , "\n")
+  cat(file=stderr(), comp_string , "\n")
+  # create peptide lookup table
+  peptide_pos_lookup <- dpmsr_set$data$data_raw_peptide %>% dplyr::select(Sequence, Positions.in.Master.Proteins)
+  colnames(peptide_pos_lookup) <- c("Sequence", "Position")
+  peptide_pos_lookup$Position <- gsub("\\]; \\[", "xxx",  peptide_pos_lookup$Position)
+  s <- strsplit(peptide_pos_lookup$Position, split = "; ")
+  peptide_pos_lookup <- data.frame(Sequence = rep(peptide_pos_lookup$Sequence, sapply(s, length)), Position = unlist(s))
+  peptide_pos_lookup$Count <- str_count(peptide_pos_lookup$Position, "xxx")
+  peptide_pos_lookup <- peptide_pos_lookup %>% separate(Position, c("Accession", "Start_Stop"), sep = " ")
+  peptide_pos_lookup$Start_Stop <- gsub("\\[", "",  peptide_pos_lookup$Start_Stop)
+  peptide_pos_lookup$Start_Stop <- gsub("\\]", "",  peptide_pos_lookup$Start_Stop)
+  peptide_pos_lookup$Start_Stop <- gsub("xxx", ", ",  peptide_pos_lookup$Start_Stop)
+  peptide_pos_lookup$AS <- str_c(peptide_pos_lookup$Accession, " ", peptide_pos_lookup$Sequence)
+  s <- strsplit(peptide_pos_lookup$Start_Stop, split = ", ")
+  peptide_pos_lookup <- data.frame(AS = rep(peptide_pos_lookup$AS, sapply(s, length)), Position = unlist(s))
+  peptide_pos_lookup <- peptide_pos_lookup %>% separate(AS, c("Accession", "Sequence"), sep = " ")
+  peptide_pos_lookup <- peptide_pos_lookup %>% separate(Position, c("Start", "Stop"), sep = "-")
+  peptide_pos_lookup$dup <- str_c(peptide_pos_lookup$Accession, peptide_pos_lookup$Sequence, peptide_pos_lookup$Start, peptide_pos_lookup$Stop)
+  peptide_pos_lookup <- peptide_pos_lookup[!duplicated(peptide_pos_lookup$dup),]
+  peptide_pos_lookup$dup <- NULL
+  
+  peptide_pos_lookup <- subset(peptide_pos_lookup, Accession %in% as.character(input$stats_oneprotein_accession)  )
+  #peptide_pos_lookup <- subset(peptide_pos_lookup, Accession %in% "P60202"  )
+  cat(file=stderr(), "Interactive group barplot...2" , "\n")
+  
+  testname <- colnames(df[(info_columns+1):ncol(df)])
+  df <- cbind(df$Sequence, df[(info_columns+1):ncol(df)])
+  testname2 <- list(match(testname, names(df)))
+  df_test <- gather(df, test, z_score, unlist(testname2))
+  colnames(df_test) <- c("Sequence", "Name", "y")
+  
+  cat(file=stderr(), "Interactive group barplot...3" , "\n")
+  
+
+  for (i in 1:length(comp_string)){
     
-    if(top_pct > 0.3){
-      top_custom <- 10
+    cat(file=stderr(), str_c("comp_string = ", comp_string) , "\n")
+    
+    comp_number <- which(dpmsr_set$y$stats$groups$comp_name == comp_string[i])
+    
+    cat(file=stderr(), str_c("comp_number = ", comp_number) , "\n")
+    
+    stats_data_N <- df_test
+    stats_data_D <- df_test
+    
+    groupN <- unlist(str_split(dpmsr_set$y$stats$groups$comp_N[comp_number], "_"))
+    groupD <- unlist(str_split(dpmsr_set$y$stats$groups$comp_D[comp_number], "_"))
+    
+    cat(file=stderr(), str_c("groupN = ", groupN) , "\n")
+    cat(file=stderr(), str_c("groupD = ", groupD) , "\n")
+    
+    for(stats_group in groupN){stats_data_N <- stats_data_N %>% filter(str_detect(Name, stats_group))   }
+    for(stats_group in groupD){stats_data_D <- stats_data_D %>% filter(str_detect(Name, stats_group))   }
+    
+    stats_data_N$Comp <- dpmsr_set$y$stats$groups$comp_N[comp_number]
+    stats_data_D$Comp <- dpmsr_set$y$stats$groups$comp_D[comp_number]
+    
+    if (i==1){
+      stats_data_all <- rbind(stats_data_N, stats_data_D)
     }else{
-      top_custom <- 200
+      stats_data_all <- rbind(stats_data_all, stats_data_N, stats_data_D)
     }
+  }
+  
+  xstats_data_all <<- stats_data_all
+  cat(file=stderr(), "Interactive group barplot...4" , "\n")
+  
+  
+  #add spqc to plots
+  if(input$stats_oneprotein_plot_spqc){
+    stats_data_spqc <- df_test %>% filter(str_detect(Name, dpmsr_set$y$stats$comp_spqc)) 
+    stats_data_spqc$Comp <- dpmsr_set$y$stats$comp_spqc
+    stats_data_all <- rbind(stats_data_all, stats_data_spqc)
+    }
+  
+  cat(file=stderr(), "Interactive group barplot...5" , "\n")
+  new_df <- merge(stats_data_all, peptide_pos_lookup, by="Sequence")
+  new_df$Position <- str_c(new_df$Start, "-", new_df$Stop)
+
+  new_df$Name <- NULL
+  new_df$Accession <- NULL
+  
+  new_df$Comp<- as.character(new_df$Comp)
+  new_df$Position <- as.character(new_df$Position )
+  new_df$Sequence <- as.character(new_df$Sequence)
+  
+  new_df2 <- new_df %>% group_by(Comp, Sequence, Position, Start, Stop) %>% summarise(y_mean=mean(y), sd=sd(y))
+
+  new_df2 <- data.frame(ungroup(new_df2))
+  new_df2$Start<- as.numeric(new_df2$Start)
+  new_df2$Stop<- as.numeric(new_df2$Stop)
+  new_df2 <- new_df2[order(new_df2$Comp,new_df2$Start, new_df2$Stop), ]
+
+  new_df2$Position <- as.character(new_df2$Position)
+  new_df2_sort <- unique(new_df2$Position)
+  new_df2$Position <- factor(new_df2$Position, levels = new_df2_sort)
+  
+  cat(file=stderr(), "Interactive group barplot...6" , "\n")
+  xnew_df2 <<- new_df2
+  # Grouped
+  create_stats_barplot <- reactive({
+      ggplot(new_df2, aes(fill=Comp, y=y_mean, x=Position)) + 
+        geom_col(color="black", width = 0.5,
+                 position=position_dodge(0.5))+
+          theme_classic() + 
+          ggtitle(input$stats_oneprotein_grouped_barplot_title) + 
+          ylab(input$stats_oneprotein_grouped_barplot_y_axis_label) +
+          xlab(input$stats_oneprotein_grouped_barplot_x_axis_label) +
+          coord_cartesian(ylim=NULL, expand = TRUE) +
+          theme(plot.title = element_text(hjust = 0.5, size=input$stats_oneprotein_grouped_barplot_title_size), 
+                axis.title = element_text(size=input$stats_oneprotein_grouped_barplot_label_size, color="black"),
+                axis.text.x = element_text(size=input$stats_oneprotein_grouped_barplot_label_size, angle = 90,  color="black"),
+                axis.text.y = element_text(size=input$stats_oneprotein_grouped_barplot_label_size,  color="black"),
+          ) +
+        geom_errorbar(aes(ymin=y_mean -sd, ymax=y_mean+sd), width=.25,
+                    position=position_dodge(0.5)) +
+        geom_hline(yintercept = 0, linetype="dotted", color = "black")+
+        geom_hline(yintercept = 1, linetype="dotted", color = "black")+
+        geom_hline(yintercept = -1, linetype="dotted", color = "black")
     
-    style <- paste0("position:absolute; z-index:100; background-color: rgba(245, 245, 245, 0.85); ",
-                    "left:", 10, "px; top:", top_custom, "px;")
-    # actual tooltip created as wellPanel
-    wellPanel(
-      style = style,
-      p(HTML(paste0("<b> Accession: </b>", point$Accession, "<br/>",
-                    "<b> Description: </b>", point$Description, "<br/>",
-                    "<b> FC: </b>", point$fc, "<br/>",
-                    "<b> pvalue: </b>", point$pval, "<br/>")))
-    )
   })
+    
+     output$stats_oneprotein_grouped_barplot <- renderPlot({
+       req(create_stats_barplot())
+       create_stats_barplot()
+     })
+     
+     output$download_stats_oneprotein_grouped_barplot <- downloadHandler(
+       filename = function(){
+         str_c("Grouped_Barplot_", as.character(input$stats_oneprotein_accession), "_", comp_name,  ".png", collapse = " ")
+       },
+       content = function(file){
+         req(create_stats_barplot())
+         ggsave(file, plot = create_stats_barplot(), device = 'png')
+       }
+     )  
+    
+  
 }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+#   
+#   datay <- colSums(df, na.rm = TRUE)
+#   df2 <- data.frame(namex)
+#   df2$Total_Intensity <- datay
+#   colnames(df2) <- c("Sample", "Total_Intensity")
+#   df2$Sample <- factor(df2$Sample, levels = df2$Sample)
+#   ymax <- max(datay)
+#   
+#   create_stats_barplot <- reactive({
+#     ggplot(data=df2, aes(x=Sample, y=Total_Intensity)) +
+#       geom_bar(stat="identity", fill=color_list)+ theme_classic() + 
+#       ggtitle(input[[str_c(output_name, "_title")]]) + 
+#       ylab(input[[str_c(output_name, "_y_axis_label")]]) +
+#       xlab(NULL) +
+#       #scale_y_discrete(labels = NULL) +
+#       coord_cartesian(ylim=NULL, expand = TRUE) +
+#       theme(plot.title = element_text(hjust = 0.5, size=input[[str_c(output_name, "_title_size")]]), 
+#             axis.title = element_text(size=input[[str_c(output_name, "_label_size")]], color="black"),
+#             axis.text.x = element_text(size=input[[str_c(output_name, "_label_size")]], angle = 90,  color="black"),
+#             axis.text.y = element_text(size=input[[str_c(output_name, "_label_size")]],  color="black"),
+#       ) 
+#   })
+#   
+#   output[[output_name]] <- renderPlot({
+#     req(create_stats_barplot())
+#     create_stats_barplot()
+#   })
+#   
+#   output[[str_c("download_", output_name)]] <- downloadHandler(
+#     filename = function(){
+#       str_c("Stats_Barplot_", comp_name,  ".png", collapse = " ")
+#     },
+#     content = function(file){
+#       req(create_stats_barplot())
+#       ggsave(file, plot = create_stats_barplot(), device = 'png')
+#     }
+#   )
+#   
+# }
+
+
+
+
+
+
+
+
+
+
+
+
+
+# #------------------------------------------------------------------------------------------------------------------------
+# #------------------------------------------------------------------------------------------------------------------------
+# 
+# interactive_stats_volcano1 <- function(session, input, output)
+# {
+#   df <- dpmsr_set$data$stats$final
+#   df <- subset(df, df[ , dpmsr_set$y$stats$groups$mf[1]] >= input$missing_factor )
+#   df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[1]))
+#   df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[1]))
+#   
+#   #df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[1]))
+#   #df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[1]))
+#   
+#   df <- cbind(df$Accession, df$Description, df_fc, df_pval)
+#   colnames(df) <- c("Accession", "Description", "fc", "fc2", "pval")
+#   df$Accession <- as.character(df$Accession)
+#   df$Description <- as.character(df$Description)
+#   df$log_pvalue <- -log(as.numeric(df$pval), 10)
+#   df$log_fc <- log(as.numeric(df$fc2), 2)
+#   
+#   volcano1_stats_plot <- reactive({
+#     ggplot(df, aes(x = log_fc, y = log_pvalue)) +
+#       theme_minimal() +
+#       geom_point(alpha=0.4, size=input$volcano1_stats_plot_dot_size, color = input$volcano1_stats_dot_color) +
+#       xlab(input$volcano1_statsplot_x_axis_label) + ylab(input$volcano1_stats_plot_y_axis_label) +
+#       scale_colour_gradient(low = input$volcano1_stats_dot_color, high = input$volcano1_stats_dot_color) +
+#       ggtitle(input$volcano1_stats_plot_title)+    
+#       xlim(-max(df$log_fc), max(df$log_fc)) +
+#       theme(plot.title = element_text(size=input$volcano1_stats_plot_title_size, hjust = 0.5),
+#             axis.title = element_text(size=input$volcano1_stats_plot_label_size, color="black"),
+#             axis.text.x = element_text(size=10, color="black"),
+#             axis.text.y = element_text(size=10,  color="black"),
+#             legend.position = "none")
+#   })
+#   
+#   output$volcano1_stats_plot<- renderPlot({
+#     req(volcano1_stats_plot())
+#     volcano1_stats_plot()
+#   })
+#   
+#   output$download_stats_volcano1 <- downloadHandler(
+#     filename = function(){
+#       str_c("Volcano_", dpmsr_set$y$stats$groups$comp_name[1], ".png", collapse = " ")
+#     },
+#     content = function(file){
+#       req(volcano1_stats_plot())
+#       ggsave(file, plot = volcano1_stats_plot(), device = 'png')
+#     }
+#   )
+#   
+#   output$volcano1_stats_hover_info <- renderUI({
+#     hover <- input$volcano1_stats_hover
+#     point <- nearPoints(df, hover, threshold = 5, maxpoints = 1, addDist = TRUE)
+#     if (nrow(point) == 0) return(NULL)
+#     left_pct <- (hover$x - hover$domain$left) / (hover$domain$right - hover$domain$left)
+#     top_pct <- (hover$domain$top - hover$y) / (hover$domain$top - hover$domain$bottom)
+#     
+#     left_px <- left_pct * (hover$range$right - hover$range$left)
+#     top_px <- top_pct * (hover$range$bottom - hover$range$top)
+# 
+#     cat(file=stderr(), str_c("top_pct = ", top_pct), "\n")
+#     cat(file=stderr(), str_c("top_px = ", top_px), "\n")
+#     
+#     if(top_pct > 0.3){
+#       top_custom <- 10
+#     }else{
+#       top_custom <- 200
+#     }
+#     
+#     style <- paste0("position:absolute; z-index:100; background-color: rgba(245, 245, 245, 0.85); ",
+#                     "left:", 10, "px; top:", top_custom, "px;")
+#     # actual tooltip created as wellPanel
+#     wellPanel(
+#       style = style,
+#       p(HTML(paste0("<b> Accession: </b>", point$Accession, "<br/>",
+#                     "<b> Description: </b>", point$Description, "<br/>",
+#                     "<b> FC: </b>", point$fc, "<br/>",
+#                     "<b> pvalue: </b>", point$pval, "<br/>")))
+#     )
+#   })
+# }
+# 
+# #------------------------------------------------------------------------------------------------------------------------
+# #------------------------------------------------------------------------------------------------------------------------
+# 
+# interactive_stats_volcano2 <- function(session, input, output)
+# {
+#   df <- dpmsr_set$data$stats$final
+#   df <- subset(df, df[ , dpmsr_set$y$stats$groups$mf[2]] >= input$missing_factor )
+#   df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[2]))
+#   df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[2]))
+#   
+#   #df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[1]))
+#   #df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[1]))
+#   
+#   df <- cbind(df$Accession, df$Description, df_fc, df_pval)
+#   colnames(df) <- c("Accession", "Description", "fc", "fc2", "pval")
+#   df$Accession <- as.character(df$Accession)
+#   df$Description <- as.character(df$Description)
+#   df$log_pvalue <- -log(as.numeric(df$pval), 10)
+#   df$log_fc <- log(as.numeric(df$fc2), 2)
+#   
+#   volcano2_stats_plot <- reactive({
+#     ggplot(df, aes(x = log_fc, y = log_pvalue)) +
+#       theme_minimal() +
+#       geom_point(alpha=0.4, size=input$volcano2_stats_plot_dot_size, color = input$volcano2_stats_dot_color) +
+#       xlab(input$volcano2_statsplot_x_axis_label) + ylab(input$volcano2_stats_plot_y_axis_label) +
+#       scale_colour_gradient(low = input$volcano2_stats_dot_color, high = input$volcano2_stats_dot_color) +
+#       ggtitle(input$volcano2_stats_plot_title)+    
+#       xlim(-max(df$log_fc), max(df$log_fc)) +
+#       theme(plot.title = element_text(size=input$volcano2_stats_plot_title_size, hjust = 0.5),
+#             axis.title = element_text(size=input$volcano2_stats_plot_label_size, color="black"),
+#             axis.text.x = element_text(size=10, color="black"),
+#             axis.text.y = element_text(size=10,  color="black"),
+#             legend.position = "none")
+#   })
+#   
+#   output$volcano2_stats_plot<- renderPlot({
+#     req(volcano2_stats_plot())
+#     volcano2_stats_plot()
+#   })
+#   
+#   output$download_stats_volcano2 <- downloadHandler(
+#     filename = function(){
+#       str_c("Volcano_", dpmsr_set$y$stats$groups$comp_name[2], ".png", collapse = " ")
+#     },
+#     content = function(file){
+#       req(volcano2_stats_plot())
+#       ggsave(file, plot = volcano2_stats_plot(), device = 'png')
+#     }
+#   )
+#   
+#   output$volcano2_stats_hover_info <- renderUI({
+#     hover <- input$volcano2_stats_hover
+#     point <- nearPoints(df, hover, threshold = 5, maxpoints = 1, addDist = TRUE)
+#     if (nrow(point) == 0) return(NULL)
+#     left_pct <- (hover$x - hover$domain$left) / (hover$domain$right - hover$domain$left)
+#     top_pct <- (hover$domain$top - hover$y) / (hover$domain$top - hover$domain$bottom)
+#     
+#     left_px <- left_pct * (hover$range$right - hover$range$left)
+#     top_px <- top_pct * (hover$range$bottom - hover$range$top)
+#     
+#     if(top_pct > 0.3){
+#       top_custom <- 10
+#     }else{
+#       top_custom <- 200
+#     }
+#     
+#     style <- paste0("position:absolute; z-index:100; background-color: rgba(245, 245, 245, 0.85); ",
+#                     "left:", 10, "px; top:", top_custom, "px;")
+#     # actual tooltip created as wellPanel
+#     wellPanel(
+#       style = style,
+#       p(HTML(paste0("<b> Accession: </b>", point$Accession, "<br/>",
+#                     "<b> Description: </b>", point$Description, "<br/>",
+#                     "<b> FC: </b>", point$fc, "<br/>",
+#                     "<b> pvalue: </b>", point$pval, "<br/>")))
+#     )
+#   })
+# }
+# 
+# #------------------------------------------------------------------------------------------------------------------------
+# #------------------------------------------------------------------------------------------------------------------------
+# 
+# interactive_stats_volcano3 <- function(session, input, output)
+# {
+#   df <- dpmsr_set$data$stats$final
+#   df <- subset(df, df[ , dpmsr_set$y$stats$groups$mf[3]] >= input$missing_factor )
+#   df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[3]))
+#   df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[3]))
+#   
+#   #df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[1]))
+#   #df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[1]))
+#   
+#   df <- cbind(df$Accession, df$Description, df_fc, df_pval)
+#   colnames(df) <- c("Accession", "Description", "fc", "fc2", "pval")
+#   df$Accession <- as.character(df$Accession)
+#   df$Description <- as.character(df$Description)
+#   df$log_pvalue <- -log(as.numeric(df$pval), 10)
+#   df$log_fc <- log(as.numeric(df$fc2), 2)
+#   
+#   volcano3_stats_plot <- reactive({
+#     ggplot(df, aes(x = log_fc, y = log_pvalue)) +
+#       theme_minimal() +
+#       geom_point(alpha=0.4, size=input$volcano3_stats_plot_dot_size, color = input$volcano3_stats_dot_color) +
+#       xlab(input$volcano3_statsplot_x_axis_label) + ylab(input$volcano3_stats_plot_y_axis_label) +
+#       scale_colour_gradient(low = input$volcano3_stats_dot_color, high = input$volcano3_stats_dot_color) +
+#       ggtitle(input$volcano3_stats_plot_title)+    
+#       xlim(-max(df$log_fc), max(df$log_fc)) +
+#       theme(plot.title = element_text(size=input$volcano3_stats_plot_title_size, hjust = 0.5),
+#             axis.title = element_text(size=input$volcano3_stats_plot_label_size, color="black"),
+#             axis.text.x = element_text(size=10, color="black"),
+#             axis.text.y = element_text(size=10,  color="black"),
+#             legend.position = "none")
+#   })
+#   
+#   output$volcano3_stats_plot<- renderPlot({
+#     req(volcano3_stats_plot())
+#     volcano3_stats_plot()
+#   })
+#   
+#   output$download_stats_volcano3 <- downloadHandler(
+#     filename = function(){
+#       str_c("Volcano_", dpmsr_set$y$stats$groups$comp_name[3], ".png", collapse = " ")
+#     },
+#     content = function(file){
+#       req(volcano3_stats_plot())
+#       ggsave(file, plot = volcano3_stats_plot(), device = 'png')
+#     }
+#   )
+#   
+#   output$volcano3_stats_hover_info <- renderUI({
+#     hover <- input$volcano3_stats_hover
+#     point <- nearPoints(df, hover, threshold = 5, maxpoints = 1, addDist = TRUE)
+#     if (nrow(point) == 0) return(NULL)
+#     left_pct <- (hover$x - hover$domain$left) / (hover$domain$right - hover$domain$left)
+#     top_pct <- (hover$domain$top - hover$y) / (hover$domain$top - hover$domain$bottom)
+#     
+#     left_px <- left_pct * (hover$range$right - hover$range$left)
+#     top_px <- top_pct * (hover$range$bottom - hover$range$top)
+#     
+#     if(top_pct > 0.3){
+#       top_custom <- 10
+#     }else{
+#       top_custom <- 200
+#     }
+#     
+#     style <- paste0("position:absolute; z-index:100; background-color: rgba(245, 245, 245, 0.85); ",
+#                     "left:", 10, "px; top:", top_custom, "px;")
+#     # actual tooltip created as wellPanel
+#     wellPanel(
+#       style = style,
+#       p(HTML(paste0("<b> Accession: </b>", point$Accession, "<br/>",
+#                     "<b> Description: </b>", point$Description, "<br/>",
+#                     "<b> FC: </b>", point$fc, "<br/>",
+#                     "<b> pvalue: </b>", point$pval, "<br/>")))
+#     )
+#   })
+# }
+# 
+# 
+# #------------------------------------------------------------------------------------------------------------------------
+# #------------------------------------------------------------------------------------------------------------------------
+# 
+# interactive_stats_volcano4 <- function(session, input, output)
+# {
+#   df <- dpmsr_set$data$stats$final
+#   df <- subset(df, df[ , dpmsr_set$y$stats$groups$mf[4]] >= input$missing_factor )
+#   df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[4]))
+#   df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[4]))
+#   
+#   #df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[1]))
+#   #df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[1]))
+#   
+#   df <- cbind(df$Accession, df$Description, df_fc, df_pval)
+#   colnames(df) <- c("Accession", "Description", "fc", "fc2", "pval")
+#   df$Accession <- as.character(df$Accession)
+#   df$Description <- as.character(df$Description)
+#   df$log_pvalue <- -log(as.numeric(df$pval), 10)
+#   df$log_fc <- log(as.numeric(df$fc2), 2)
+#   
+#   volcano4_stats_plot <- reactive({
+#     ggplot(df, aes(x = log_fc, y = log_pvalue)) +
+#       theme_minimal() +
+#       geom_point(alpha=0.4, size=input$volcano4_stats_plot_dot_size, color = input$volcano4_stats_dot_color) +
+#       xlab(input$volcano4_statsplot_x_axis_label) + ylab(input$volcano4_statsp_lot_y_axis_label) +
+#       scale_colour_gradient(low = input$volcano4_stats_dot_color, high = input$volcano4_stats_dot_color) +
+#       ggtitle(input$volcano4_stats_plot_title)+    
+#       xlim(-max(df$log_fc), max(df$log_fc)) +
+#       theme(plot.title = element_text(size=input$volcano4_stats_plot_title_size, hjust = 0.5),
+#             axis.title = element_text(size=input$volcano4_stats_plot_label_size, color="black"),
+#             axis.text.x = element_text(size=10, color="black"),
+#             axis.text.y = element_text(size=10,  color="black"),
+#             legend.position = "none")
+#   })
+#   
+#   output$volcano4_stats_plot<- renderPlot({
+#     req(volcano4_stats_plot())
+#     volcano4_stats_plot()
+#   })
+#   
+#   output$download_stats_volcano4 <- downloadHandler(
+#     filename = function(){
+#       str_c("Volcano_", dpmsr_set$y$stats$groups$comp_name[4], ".png", collapse = " ")
+#     },
+#     content = function(file){
+#       req(volcano4_stats_plot())
+#       ggsave(file, plot = volcano4_stats_plot(), device = 'png')
+#     }
+#   )
+#   
+#   output$volcano4_stats_hover_info <- renderUI({
+#     hover <- input$volcano4_stats_hover
+#     point <- nearPoints(df, hover, threshold = 5, maxpoints = 1, addDist = TRUE)
+#     if (nrow(point) == 0) return(NULL)
+#     left_pct <- (hover$x - hover$domain$left) / (hover$domain$right - hover$domain$left)
+#     top_pct <- (hover$domain$top - hover$y) / (hover$domain$top - hover$domain$bottom)
+#     
+#     left_px <- left_pct * (hover$range$right - hover$range$left)
+#     top_px <- top_pct * (hover$range$bottom - hover$range$top)
+#     
+#     if(top_pct > 0.3){
+#       top_custom <- 10
+#     }else{
+#       top_custom <- 200
+#     }
+#     
+#     style <- paste0("position:absolute; z-index:100; background-color: rgba(245, 245, 245, 0.85); ",
+#                     "left:", 10, "px; top:", top_custom, "px;")
+#     # actual tooltip created as wellPanel
+#     wellPanel(
+#       style = style,
+#       p(HTML(paste0("<b> Accession: </b>", point$Accession, "<br/>",
+#                     "<b> Description: </b>", point$Description, "<br/>",
+#                     "<b> FC: </b>", point$fc, "<br/>",
+#                     "<b> pvalue: </b>", point$pval, "<br/>")))
+#     )
+#   })
+# }
+# 
+# #------------------------------------------------------------------------------------------------------------------------
+# #------------------------------------------------------------------------------------------------------------------------
+# 
+# interactive_stats_volcano5 <- function(session, input, output)
+# {
+#   df <- dpmsr_set$data$stats$final
+#   df <- subset(df, df[ , dpmsr_set$y$stats$groups$mf[5]] >= input$missing_factor )
+#   df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[5]))
+#   df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[5]))
+#   
+#   #df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[1]))
+#   #df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[1]))
+#   
+#   df <- cbind(df$Accession, df$Description, df_fc, df_pval)
+#   colnames(df) <- c("Accession", "Description", "fc", "fc2", "pval")
+#   df$Accession <- as.character(df$Accession)
+#   df$Description <- as.character(df$Description)
+#   df$log_pvalue <- -log(as.numeric(df$pval), 10)
+#   df$log_fc <- log(as.numeric(df$fc2), 2)
+#   
+#   volcano5_stats_plot <- reactive({
+#     ggplot(df, aes(x = log_fc, y = log_pvalue)) +
+#       theme_minimal() +
+#       geom_point(alpha=0.4, size=input$volcano5_stats_plot_dot_size, color = input$volcano5_stats_dot_color) +
+#       xlab(input$volcano5_statsplot_x_axis_label) + ylab(input$volcano5_statsp_lot_y_axis_label) +
+#       scale_colour_gradient(low = input$volcano5_stats_dot_color, high = input$volcano5_stats_dot_color) +
+#       ggtitle(input$volcano5_stats_plot_title)+    
+#       xlim(-max(df$log_fc), max(df$log_fc)) +
+#       theme(plot.title = element_text(size=input$volcano5_stats_plot_title_size, hjust = 0.5),
+#             axis.title = element_text(size=input$volcano5_stats_plot_label_size, color="black"),
+#             axis.text.x = element_text(size=10, color="black"),
+#             axis.text.y = element_text(size=10,  color="black"),
+#             legend.position = "none")
+#   })
+#   
+#   output$volcano5_stats_plot<- renderPlot({
+#     req(volcano5_stats_plot())
+#     volcano5_stats_plot()
+#   })
+#   
+#   output$download_stats_volcano5 <- downloadHandler(
+#     filename = function(){
+#       str_c("Volcano_", dpmsr_set$y$stats$groups$comp_name[5], ".png", collapse = " ")
+#     },
+#     content = function(file){
+#       req(volcano5_stats_plot())
+#       ggsave(file, plot = volcano5_stats_plot(), device = 'png')
+#     }
+#   )
+#   
+#   output$volcano5_stats_hover_info <- renderUI({
+#     hover <- input$volcano5_stats_hover
+#     point <- nearPoints(df, hover, threshold = 5, maxpoints = 1, addDist = TRUE)
+#     if (nrow(point) == 0) return(NULL)
+#     left_pct <- (hover$x - hover$domain$left) / (hover$domain$right - hover$domain$left)
+#     top_pct <- (hover$domain$top - hover$y) / (hover$domain$top - hover$domain$bottom)
+#     
+#     left_px <- left_pct * (hover$range$right - hover$range$left)
+#     top_px <- top_pct * (hover$range$bottom - hover$range$top)
+#     
+#     if(top_pct > 0.3){
+#       top_custom <- 10
+#     }else{
+#       top_custom <- 200
+#     }
+#     
+#     style <- paste0("position:absolute; z-index:100; background-color: rgba(245, 245, 245, 0.85); ",
+#                     "left:", 10, "px; top:", top_custom, "px;")
+#     # actual tooltip created as wellPanel
+#     wellPanel(
+#       style = style,
+#       p(HTML(paste0("<b> Accession: </b>", point$Accession, "<br/>",
+#                     "<b> Description: </b>", point$Description, "<br/>",
+#                     "<b> FC: </b>", point$fc, "<br/>",
+#                     "<b> pvalue: </b>", point$pval, "<br/>")))
+#     )
+#   })
+# }
+# 
+# 
+# #------------------------------------------------------------------------------------------------------------------------
+# #------------------------------------------------------------------------------------------------------------------------
+# 
+# interactive_stats_volcano6 <- function(session, input, output)
+# {
+#   df <- dpmsr_set$data$stats$final
+#   df <- subset(df, df[ , dpmsr_set$y$stats$groups$mf[6]] >= input$missing_factor )
+#   df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[6]))
+#   df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[6]))
+#   
+#   #df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[1]))
+#   #df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[1]))
+#   
+#   df <- cbind(df$Accession, df$Description, df_fc, df_pval)
+#   colnames(df) <- c("Accession", "Description", "fc", "fc2", "pval")
+#   df$Accession <- as.character(df$Accession)
+#   df$Description <- as.character(df$Description)
+#   df$log_pvalue <- -log(as.numeric(df$pval), 10)
+#   df$log_fc <- log(as.numeric(df$fc2), 2)
+#   
+#   volcano6_stats_plot <- reactive({
+#     ggplot(df, aes(x = log_fc, y = log_pvalue)) +
+#       theme_minimal() +
+#       geom_point(alpha=0.4, size=input$volcano6_stats_plot_dot_size, color = input$volcano6_stats_dot_color) +
+#       xlab(input$volcano6_statsplot_x_axis_label) + ylab(input$volcano6_statsp_lot_y_axis_label) +
+#       scale_colour_gradient(low = input$volcano6_stats_dot_color, high = input$volcano6_stats_dot_color) +
+#       ggtitle(input$volcano6_stats_plot_title)+    
+#       xlim(-max(df$log_fc), max(df$log_fc)) +
+#       theme(plot.title = element_text(size=input$volcano6_stats_plot_title_size, hjust = 0.5),
+#             axis.title = element_text(size=input$volcano6_stats_plot_label_size, color="black"),
+#             axis.text.x = element_text(size=10, color="black"),
+#             axis.text.y = element_text(size=10,  color="black"),
+#             legend.position = "none")
+#   })
+#   
+#   output$volcano6_stats_plot<- renderPlot({
+#     req(volcano6_stats_plot())
+#     volcano6_stats_plot()
+#   })
+#   
+#   output$download_stats_volcano6 <- downloadHandler(
+#     filename = function(){
+#       str_c("Volcano_", dpmsr_set$y$stats$groups$comp_name[6], ".png", collapse = " ")
+#     },
+#     content = function(file){
+#       req(volcano6_stats_plot())
+#       ggsave(file, plot = volcano6_stats_plot(), device = 'png')
+#     }
+#   )
+#   
+#   output$volcano6_stats_hover_info <- renderUI({
+#     hover <- input$volcano6_stats_hover
+#     point <- nearPoints(df, hover, threshold = 5, maxpoints = 1, addDist = TRUE)
+#     if (nrow(point) == 0) return(NULL)
+#     left_pct <- (hover$x - hover$domain$left) / (hover$domain$right - hover$domain$left)
+#     top_pct <- (hover$domain$top - hover$y) / (hover$domain$top - hover$domain$bottom)
+#     
+#     left_px <- left_pct * (hover$range$right - hover$range$left)
+#     top_px <- top_pct * (hover$range$bottom - hover$range$top)
+#     
+#     if(top_pct > 0.3){
+#       top_custom <- 10
+#     }else{
+#       top_custom <- 200
+#     }
+#     
+#     style <- paste0("position:absolute; z-index:100; background-color: rgba(245, 245, 245, 0.85); ",
+#                     "left:", 10, "px; top:", top_custom, "px;")
+#     # actual tooltip created as wellPanel
+#     wellPanel(
+#       style = style,
+#       p(HTML(paste0("<b> Accession: </b>", point$Accession, "<br/>",
+#                     "<b> Description: </b>", point$Description, "<br/>",
+#                     "<b> FC: </b>", point$fc, "<br/>",
+#                     "<b> pvalue: </b>", point$pval, "<br/>")))
+#     )
+#   })
+# }
+# 
+# 
+# 
 
 #------------------------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------------------------
+#match(namesdf, names(df))
 
-interactive_stats_volcano2 <- function(session, input, output)
-{
-  df <- dpmsr_set$data$stats$final
-  df <- subset(df, df[ , dpmsr_set$y$stats$groups$mf[2]] >= input$missing_factor )
-  df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[2]))
-  df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[2]))
-  
-  #df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[1]))
-  #df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[1]))
-  
-  df <- cbind(df$Accession, df$Description, df_fc, df_pval)
-  colnames(df) <- c("Accession", "Description", "fc", "fc2", "pval")
-  df$Accession <- as.character(df$Accession)
-  df$Description <- as.character(df$Description)
-  df$log_pvalue <- -log(as.numeric(df$pval), 10)
-  df$log_fc <- log(as.numeric(df$fc2), 2)
-  
-  volcano2_stats_plot <- reactive({
-    ggplot(df, aes(x = log_fc, y = log_pvalue)) +
-      theme_minimal() +
-      geom_point(alpha=0.4, size=input$volcano2_stats_plot_dot_size, color = input$volcano2_stats_dot_color) +
-      xlab(input$volcano2_statsplot_x_axis_label) + ylab(input$volcano2_stats_plot_y_axis_label) +
-      scale_colour_gradient(low = input$volcano2_stats_dot_color, high = input$volcano2_stats_dot_color) +
-      ggtitle(input$volcano2_stats_plot_title)+    
-      xlim(-max(df$log_fc), max(df$log_fc)) +
-      theme(plot.title = element_text(size=input$volcano2_stats_plot_title_size, hjust = 0.5),
-            axis.title = element_text(size=input$volcano2_stats_plot_label_size, color="black"),
-            axis.text.x = element_text(size=10, color="black"),
-            axis.text.y = element_text(size=10,  color="black"),
-            legend.position = "none")
-  })
-  
-  output$volcano2_stats_plot<- renderPlot({
-    req(volcano2_stats_plot())
-    volcano2_stats_plot()
-  })
-  
-  output$download_stats_volcano2 <- downloadHandler(
-    filename = function(){
-      str_c("Volcano_", dpmsr_set$y$stats$groups$comp_name[2], ".png", collapse = " ")
-    },
-    content = function(file){
-      req(volcano2_stats_plot())
-      ggsave(file, plot = volcano2_stats_plot(), device = 'png')
-    }
-  )
-  
-  output$volcano2_stats_hover_info <- renderUI({
-    hover <- input$volcano2_stats_hover
-    point <- nearPoints(df, hover, threshold = 5, maxpoints = 1, addDist = TRUE)
-    if (nrow(point) == 0) return(NULL)
-    left_pct <- (hover$x - hover$domain$left) / (hover$domain$right - hover$domain$left)
-    top_pct <- (hover$domain$top - hover$y) / (hover$domain$top - hover$domain$bottom)
-    
-    left_px <- left_pct * (hover$range$right - hover$range$left)
-    top_px <- top_pct * (hover$range$bottom - hover$range$top)
-    
-    if(top_pct > 0.3){
-      top_custom <- 10
-    }else{
-      top_custom <- 200
-    }
-    
-    style <- paste0("position:absolute; z-index:100; background-color: rgba(245, 245, 245, 0.85); ",
-                    "left:", 10, "px; top:", top_custom, "px;")
-    # actual tooltip created as wellPanel
-    wellPanel(
-      style = style,
-      p(HTML(paste0("<b> Accession: </b>", point$Accession, "<br/>",
-                    "<b> Description: </b>", point$Description, "<br/>",
-                    "<b> FC: </b>", point$fc, "<br/>",
-                    "<b> pvalue: </b>", point$pval, "<br/>")))
-    )
-  })
-}
-
-#------------------------------------------------------------------------------------------------------------------------
-#------------------------------------------------------------------------------------------------------------------------
-
-interactive_stats_volcano3 <- function(session, input, output)
-{
-  df <- dpmsr_set$data$stats$final
-  df <- subset(df, df[ , dpmsr_set$y$stats$groups$mf[3]] >= input$missing_factor )
-  df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[3]))
-  df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[3]))
-  
-  #df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[1]))
-  #df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[1]))
-  
-  df <- cbind(df$Accession, df$Description, df_fc, df_pval)
-  colnames(df) <- c("Accession", "Description", "fc", "fc2", "pval")
-  df$Accession <- as.character(df$Accession)
-  df$Description <- as.character(df$Description)
-  df$log_pvalue <- -log(as.numeric(df$pval), 10)
-  df$log_fc <- log(as.numeric(df$fc2), 2)
-  
-  volcano3_stats_plot <- reactive({
-    ggplot(df, aes(x = log_fc, y = log_pvalue)) +
-      theme_minimal() +
-      geom_point(alpha=0.4, size=input$volcano3_stats_plot_dot_size, color = input$volcano3_stats_dot_color) +
-      xlab(input$volcano3_statsplot_x_axis_label) + ylab(input$volcano3_stats_plot_y_axis_label) +
-      scale_colour_gradient(low = input$volcano3_stats_dot_color, high = input$volcano3_stats_dot_color) +
-      ggtitle(input$volcano3_stats_plot_title)+    
-      xlim(-max(df$log_fc), max(df$log_fc)) +
-      theme(plot.title = element_text(size=input$volcano3_stats_plot_title_size, hjust = 0.5),
-            axis.title = element_text(size=input$volcano3_stats_plot_label_size, color="black"),
-            axis.text.x = element_text(size=10, color="black"),
-            axis.text.y = element_text(size=10,  color="black"),
-            legend.position = "none")
-  })
-  
-  output$volcano3_stats_plot<- renderPlot({
-    req(volcano3_stats_plot())
-    volcano3_stats_plot()
-  })
-  
-  output$download_stats_volcano3 <- downloadHandler(
-    filename = function(){
-      str_c("Volcano_", dpmsr_set$y$stats$groups$comp_name[3], ".png", collapse = " ")
-    },
-    content = function(file){
-      req(volcano3_stats_plot())
-      ggsave(file, plot = volcano3_stats_plot(), device = 'png')
-    }
-  )
-  
-  output$volcano3_stats_hover_info <- renderUI({
-    hover <- input$volcano3_stats_hover
-    point <- nearPoints(df, hover, threshold = 5, maxpoints = 1, addDist = TRUE)
-    if (nrow(point) == 0) return(NULL)
-    left_pct <- (hover$x - hover$domain$left) / (hover$domain$right - hover$domain$left)
-    top_pct <- (hover$domain$top - hover$y) / (hover$domain$top - hover$domain$bottom)
-    
-    left_px <- left_pct * (hover$range$right - hover$range$left)
-    top_px <- top_pct * (hover$range$bottom - hover$range$top)
-    
-    if(top_pct > 0.3){
-      top_custom <- 10
-    }else{
-      top_custom <- 200
-    }
-    
-    style <- paste0("position:absolute; z-index:100; background-color: rgba(245, 245, 245, 0.85); ",
-                    "left:", 10, "px; top:", top_custom, "px;")
-    # actual tooltip created as wellPanel
-    wellPanel(
-      style = style,
-      p(HTML(paste0("<b> Accession: </b>", point$Accession, "<br/>",
-                    "<b> Description: </b>", point$Description, "<br/>",
-                    "<b> FC: </b>", point$fc, "<br/>",
-                    "<b> pvalue: </b>", point$pval, "<br/>")))
-    )
-  })
-}
-
-
-#------------------------------------------------------------------------------------------------------------------------
-#------------------------------------------------------------------------------------------------------------------------
-
-interactive_stats_volcano4 <- function(session, input, output)
-{
-  df <- dpmsr_set$data$stats$final
-  df <- subset(df, df[ , dpmsr_set$y$stats$groups$mf[4]] >= input$missing_factor )
-  df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[4]))
-  df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[4]))
-  
-  #df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[1]))
-  #df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[1]))
-  
-  df <- cbind(df$Accession, df$Description, df_fc, df_pval)
-  colnames(df) <- c("Accession", "Description", "fc", "fc2", "pval")
-  df$Accession <- as.character(df$Accession)
-  df$Description <- as.character(df$Description)
-  df$log_pvalue <- -log(as.numeric(df$pval), 10)
-  df$log_fc <- log(as.numeric(df$fc2), 2)
-  
-  volcano4_stats_plot <- reactive({
-    ggplot(df, aes(x = log_fc, y = log_pvalue)) +
-      theme_minimal() +
-      geom_point(alpha=0.4, size=input$volcano4_stats_plot_dot_size, color = input$volcano4_stats_dot_color) +
-      xlab(input$volcano4_statsplot_x_axis_label) + ylab(input$volcano4_statsp_lot_y_axis_label) +
-      scale_colour_gradient(low = input$volcano4_stats_dot_color, high = input$volcano4_stats_dot_color) +
-      ggtitle(input$volcano4_stats_plot_title)+    
-      xlim(-max(df$log_fc), max(df$log_fc)) +
-      theme(plot.title = element_text(size=input$volcano4_stats_plot_title_size, hjust = 0.5),
-            axis.title = element_text(size=input$volcano4_stats_plot_label_size, color="black"),
-            axis.text.x = element_text(size=10, color="black"),
-            axis.text.y = element_text(size=10,  color="black"),
-            legend.position = "none")
-  })
-  
-  output$volcano4_stats_plot<- renderPlot({
-    req(volcano4_stats_plot())
-    volcano4_stats_plot()
-  })
-  
-  output$download_stats_volcano4 <- downloadHandler(
-    filename = function(){
-      str_c("Volcano_", dpmsr_set$y$stats$groups$comp_name[4], ".png", collapse = " ")
-    },
-    content = function(file){
-      req(volcano4_stats_plot())
-      ggsave(file, plot = volcano4_stats_plot(), device = 'png')
-    }
-  )
-  
-  output$volcano4_stats_hover_info <- renderUI({
-    hover <- input$volcano4_stats_hover
-    point <- nearPoints(df, hover, threshold = 5, maxpoints = 1, addDist = TRUE)
-    if (nrow(point) == 0) return(NULL)
-    left_pct <- (hover$x - hover$domain$left) / (hover$domain$right - hover$domain$left)
-    top_pct <- (hover$domain$top - hover$y) / (hover$domain$top - hover$domain$bottom)
-    
-    left_px <- left_pct * (hover$range$right - hover$range$left)
-    top_px <- top_pct * (hover$range$bottom - hover$range$top)
-    
-    if(top_pct > 0.3){
-      top_custom <- 10
-    }else{
-      top_custom <- 200
-    }
-    
-    style <- paste0("position:absolute; z-index:100; background-color: rgba(245, 245, 245, 0.85); ",
-                    "left:", 10, "px; top:", top_custom, "px;")
-    # actual tooltip created as wellPanel
-    wellPanel(
-      style = style,
-      p(HTML(paste0("<b> Accession: </b>", point$Accession, "<br/>",
-                    "<b> Description: </b>", point$Description, "<br/>",
-                    "<b> FC: </b>", point$fc, "<br/>",
-                    "<b> pvalue: </b>", point$pval, "<br/>")))
-    )
-  })
-}
-
-#------------------------------------------------------------------------------------------------------------------------
-#------------------------------------------------------------------------------------------------------------------------
-
-interactive_stats_volcano5 <- function(session, input, output)
-{
-  df <- dpmsr_set$data$stats$final
-  df <- subset(df, df[ , dpmsr_set$y$stats$groups$mf[5]] >= input$missing_factor )
-  df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[5]))
-  df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[5]))
-  
-  #df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[1]))
-  #df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[1]))
-  
-  df <- cbind(df$Accession, df$Description, df_fc, df_pval)
-  colnames(df) <- c("Accession", "Description", "fc", "fc2", "pval")
-  df$Accession <- as.character(df$Accession)
-  df$Description <- as.character(df$Description)
-  df$log_pvalue <- -log(as.numeric(df$pval), 10)
-  df$log_fc <- log(as.numeric(df$fc2), 2)
-  
-  volcano5_stats_plot <- reactive({
-    ggplot(df, aes(x = log_fc, y = log_pvalue)) +
-      theme_minimal() +
-      geom_point(alpha=0.4, size=input$volcano5_stats_plot_dot_size, color = input$volcano5_stats_dot_color) +
-      xlab(input$volcano5_statsplot_x_axis_label) + ylab(input$volcano5_statsp_lot_y_axis_label) +
-      scale_colour_gradient(low = input$volcano5_stats_dot_color, high = input$volcano5_stats_dot_color) +
-      ggtitle(input$volcano5_stats_plot_title)+    
-      xlim(-max(df$log_fc), max(df$log_fc)) +
-      theme(plot.title = element_text(size=input$volcano5_stats_plot_title_size, hjust = 0.5),
-            axis.title = element_text(size=input$volcano5_stats_plot_label_size, color="black"),
-            axis.text.x = element_text(size=10, color="black"),
-            axis.text.y = element_text(size=10,  color="black"),
-            legend.position = "none")
-  })
-  
-  output$volcano5_stats_plot<- renderPlot({
-    req(volcano5_stats_plot())
-    volcano5_stats_plot()
-  })
-  
-  output$download_stats_volcano5 <- downloadHandler(
-    filename = function(){
-      str_c("Volcano_", dpmsr_set$y$stats$groups$comp_name[5], ".png", collapse = " ")
-    },
-    content = function(file){
-      req(volcano5_stats_plot())
-      ggsave(file, plot = volcano5_stats_plot(), device = 'png')
-    }
-  )
-  
-  output$volcano5_stats_hover_info <- renderUI({
-    hover <- input$volcano5_stats_hover
-    point <- nearPoints(df, hover, threshold = 5, maxpoints = 1, addDist = TRUE)
-    if (nrow(point) == 0) return(NULL)
-    left_pct <- (hover$x - hover$domain$left) / (hover$domain$right - hover$domain$left)
-    top_pct <- (hover$domain$top - hover$y) / (hover$domain$top - hover$domain$bottom)
-    
-    left_px <- left_pct * (hover$range$right - hover$range$left)
-    top_px <- top_pct * (hover$range$bottom - hover$range$top)
-    
-    if(top_pct > 0.3){
-      top_custom <- 10
-    }else{
-      top_custom <- 200
-    }
-    
-    style <- paste0("position:absolute; z-index:100; background-color: rgba(245, 245, 245, 0.85); ",
-                    "left:", 10, "px; top:", top_custom, "px;")
-    # actual tooltip created as wellPanel
-    wellPanel(
-      style = style,
-      p(HTML(paste0("<b> Accession: </b>", point$Accession, "<br/>",
-                    "<b> Description: </b>", point$Description, "<br/>",
-                    "<b> FC: </b>", point$fc, "<br/>",
-                    "<b> pvalue: </b>", point$pval, "<br/>")))
-    )
-  })
-}
-
-
-#------------------------------------------------------------------------------------------------------------------------
-#------------------------------------------------------------------------------------------------------------------------
-
-interactive_stats_volcano6 <- function(session, input, output)
-{
-  df <- dpmsr_set$data$stats$final
-  df <- subset(df, df[ , dpmsr_set$y$stats$groups$mf[6]] >= input$missing_factor )
-  df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[6]))
-  df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[6]))
-  
-  #df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[1]))
-  #df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[1]))
-  
-  df <- cbind(df$Accession, df$Description, df_fc, df_pval)
-  colnames(df) <- c("Accession", "Description", "fc", "fc2", "pval")
-  df$Accession <- as.character(df$Accession)
-  df$Description <- as.character(df$Description)
-  df$log_pvalue <- -log(as.numeric(df$pval), 10)
-  df$log_fc <- log(as.numeric(df$fc2), 2)
-  
-  volcano6_stats_plot <- reactive({
-    ggplot(df, aes(x = log_fc, y = log_pvalue)) +
-      theme_minimal() +
-      geom_point(alpha=0.4, size=input$volcano6_stats_plot_dot_size, color = input$volcano6_stats_dot_color) +
-      xlab(input$volcano6_statsplot_x_axis_label) + ylab(input$volcano6_statsp_lot_y_axis_label) +
-      scale_colour_gradient(low = input$volcano6_stats_dot_color, high = input$volcano6_stats_dot_color) +
-      ggtitle(input$volcano6_stats_plot_title)+    
-      xlim(-max(df$log_fc), max(df$log_fc)) +
-      theme(plot.title = element_text(size=input$volcano6_stats_plot_title_size, hjust = 0.5),
-            axis.title = element_text(size=input$volcano6_stats_plot_label_size, color="black"),
-            axis.text.x = element_text(size=10, color="black"),
-            axis.text.y = element_text(size=10,  color="black"),
-            legend.position = "none")
-  })
-  
-  output$volcano6_stats_plot<- renderPlot({
-    req(volcano6_stats_plot())
-    volcano6_stats_plot()
-  })
-  
-  output$download_stats_volcano6 <- downloadHandler(
-    filename = function(){
-      str_c("Volcano_", dpmsr_set$y$stats$groups$comp_name[6], ".png", collapse = " ")
-    },
-    content = function(file){
-      req(volcano6_stats_plot())
-      ggsave(file, plot = volcano6_stats_plot(), device = 'png')
-    }
-  )
-  
-  output$volcano6_stats_hover_info <- renderUI({
-    hover <- input$volcano6_stats_hover
-    point <- nearPoints(df, hover, threshold = 5, maxpoints = 1, addDist = TRUE)
-    if (nrow(point) == 0) return(NULL)
-    left_pct <- (hover$x - hover$domain$left) / (hover$domain$right - hover$domain$left)
-    top_pct <- (hover$domain$top - hover$y) / (hover$domain$top - hover$domain$bottom)
-    
-    left_px <- left_pct * (hover$range$right - hover$range$left)
-    top_px <- top_pct * (hover$range$bottom - hover$range$top)
-    
-    if(top_pct > 0.3){
-      top_custom <- 10
-    }else{
-      top_custom <- 200
-    }
-    
-    style <- paste0("position:absolute; z-index:100; background-color: rgba(245, 245, 245, 0.85); ",
-                    "left:", 10, "px; top:", top_custom, "px;")
-    # actual tooltip created as wellPanel
-    wellPanel(
-      style = style,
-      p(HTML(paste0("<b> Accession: </b>", point$Accession, "<br/>",
-                    "<b> Description: </b>", point$Description, "<br/>",
-                    "<b> FC: </b>", point$fc, "<br/>",
-                    "<b> pvalue: </b>", point$pval, "<br/>")))
-    )
-  })
-}

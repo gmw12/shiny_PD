@@ -178,7 +178,7 @@
   
   
   observe({
-    if (input$radio_impute==1 ){
+    if (input$radio_impute==1 | input$radio_impute == 5 |  input$radio_impute == 6){
       shinyjs::show("checkbox_missing_50")
       shinyjs::show("text_i2")
     }else {

@@ -137,6 +137,8 @@ pvalue_gw <- function(x, y) {
   return(temp_pval)
 }
 
+
+
 exactTest_gw <- function(x, y) {
   #x <- log2(x)
   #y <- log2(y)

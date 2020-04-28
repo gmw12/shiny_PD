@@ -348,7 +348,7 @@ observeEvent(input$data_show, {
       removeModal()
       showModal(modalDialog("Saving Final Excel...", footer = NULL))      
       cat(file=stderr(), "Saving Final Excel...", "\n")
-      stats_Final_Excel()
+      stats_Final_Excel(session, input, output)
       removeModal()
     }
     )      
@@ -382,7 +382,7 @@ observeEvent(input$data_show, {
       color_list <- dpmsr_set$design$colorlist[comp_rows]
       groupx <- dpmsr_set$design$Group[comp_rows]
       
-      interactive_barplot(session, input, output, df, namex, color_list)
+      interactive_barplot(session, input, output, df, namex, color_list, "stats_barplot", input$stats_plot_comp)
       interactive_boxplot(session, input, output, df, namex, color_list)
       interactive_pca2d(session, input, output, df, namex, color_list, groupx)
       interactive_pca3d(session, input, output, df, namex, color_list, groupx)
@@ -419,79 +419,88 @@ observeEvent(input$data_show, {
     observeEvent(input$stats_data_show, { 
       showModal(modalDialog("Working...", footer = NULL))  
       cat(file=stderr(), "stats data show triggered..." , "\n")
-      filter_df <- dpmsr_set$data$stats$final
       
-      if(input$stats_data_topn != 0 ){
-        filter_df$sum <- rowSums(filter_df[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)])
-        filter_df <- filter_df[order(-filter_df$sum),]                      
-        filter_df <- filter_df[1:input$stats_data_topn,]
-        filter_df$sum <- NULL
-      }
+      filter_df <- stats_data_table_filter(session, input, output)
       
-      if(input$stats_data_accession != "0" ){
-        filter_df <-subset(filter_df, Accession %in% as.character(input$stats_data_accession)  )
-      }
+      filter_df_colnames <- colnames(filter_df)
+      filter_df_colnames <- gsub("_v_", " v ", filter_df_colnames)
+      filter_df_colnames <- gsub("_FC", " FC", filter_df_colnames)
+      filter_df_colnames <- gsub("_CV", " CV", filter_df_colnames)
+      filter_df_colnames <- gsub("_MF", " MF", filter_df_colnames)
+      filter_df_colnames <- gsub("_pval", " pval", filter_df_colnames)
+      filter_df_colnames <- gsub("_", ".", filter_df_colnames)
+      colnames(filter_df) <-  filter_df_colnames
+        
       
-      if(input$stats_data_description != "0") {
-        filter_df <-filter_df[grep(as.character(input$stats_data_description), filter_df$Description), ]
-      }
+      pval_cols <- colnames(filter_df %>% dplyr::select(contains("pval") ) )
+      sample_cols <- c(colnames(filter_df %>% dplyr::select(contains("Normalized"))),
+                           colnames(filter_df %>% dplyr::select(contains("Imputed"))) )
+      sample_col_numbers <- list(match(sample_cols, names(filter_df)))
+      sample_col_numbers <- unlist(sample_col_numbers)
+      cv_cols <- colnames(filter_df %>% dplyr::select(contains("CV") ) )
+      mf_cols <- colnames(filter_df %>% dplyr::select(contains("MF") ) )
       
-      #if(input$stats_data_pvalue != 0 & input$stats_data_foldchange1 != 0 & input$stats_data_foldchange2 != 0) {
-      if(input$stats_data_pvalue != 0) {
-        df <- filter_df
-        comp_string <- input$stats_select_data_comp
-        comp_number <- which(grepl(comp_string, dpmsr_set$y$stats$groups$comp_name))
-        df_N <- df %>% dplyr::select(unlist(dpmsr_set$y$stats$groups$com_N_headers[comp_number]))  
-        df_D <- df %>% dplyr::select(unlist(dpmsr_set$y$stats$groups$com_D_headers[comp_number]) ) 
-        df_spqc <- df[unlist(dpmsr_set$y$stats$comp_spqc_sample_numbers)]
-        df_spqc_cv <- df %>% dplyr::select(contains(str_c(dpmsr_set$y$stats$comp_spqc, "_CV") )) 
-        df_Comp <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$comp_name [comp_number]) ) 
-        df_final <- cbind(df[1:(dpmsr_set$y$info_columns_final)], df_N, df_D, df_spqc, df_spqc_cv, df_Comp)
-        
-        if(input$stats_include_all) {df_final <- df}
-        
-        # filter_df <- subset(df_final, df_final[ , dpmsr_set$y$stats$groups$pval[comp_number]] <= input$stats_data_pvalue &  
-        #                       (df_final[ , dpmsr_set$y$stats$groups$fc[comp_number]] >= input$stats_data_foldchange1 | 
-        #                          df_final[ , dpmsr_set$y$stats$groups$fc[comp_number]] <= -input$stats_data_foldchange2)) 
-        
-        filter_df <- filter(df_final, df_final[[dpmsr_set$y$stats$groups$pval[comp_number]]] <= input$stats_data_pvalue &  
-                              (df_final[[dpmsr_set$y$stats$groups$fc[comp_number]]] >= input$stats_data_foldchange1 | 
-                                 df_final[[dpmsr_set$y$stats$groups$fc[comp_number]]] <= -input$stats_data_foldchange2)) 
-
-        if(dpmsr_set$x$final_data_output=="Protein"){
-          filter_df <- filter(filter_df,  
-                              filter_df[[dpmsr_set$y$stats$groups$mf[comp_number] ]] >= input$stats_missing_factor | filter_df$Peptides > 1)
-        }else{
-          filter_df <- filter(filter_df, filter_df[[dpmsr_set$y$stats$groups$mf[comp_number] ]] >= input$stats_missing_factor)
-        }
-        
-        if(input$stats2_spqc_cv_filter_factor >0){
-          filter_df <- filter(filter_df, filter_df[[str_c(dpmsr_set$y$stats$comp_spqc, "_CV")]] <= input$stats2_spqc_cv_filter_factor )
-        }
-        
-        
-        filter_df_colnames <- colnames(filter_df)
-        filter_df_colnames <- gsub("_v_", " v ", filter_df_colnames)
-        filter_df_colnames <- gsub("_FC", " FC", filter_df_colnames)
-        filter_df_colnames <- gsub("_MF", " MF", filter_df_colnames)
-        filter_df_colnames <- gsub("_pval", " pval", filter_df_colnames)
-        filter_df_colnames <- gsub("_", "", filter_df_colnames)
-        colnames(filter_df) <-  filter_df_colnames
-        
-      }
+      stats_DT <-  DT::datatable(filter_df,
+                      rownames = FALSE,
+                      extensions = c("FixedColumns"), #, "Buttons"),
+                      options=list(
+                          #dom = 'Bfrtipl',
+                          autoWidth = TRUE,
+                          scrollX = TRUE,
+                          scrollY=500,
+                          scrollCollapse=TRUE,
+                          columnDefs = list(list(targets = c(0), visibile = TRUE, "width"='30', className = 'dt-center'),
+                                            list(targets = c(2), visible = TRUE, "width"='20', className = 'dt-center'),
+                                            list(
+                                              targets = c(1),
+                                              width = '250',
+                                              render = JS(
+                                                "function(data, type, row, meta) {",
+                                                "return type === 'display' && data.length > 35 ?",
+                                                "'<span title=\"' + data + '\">' + data.substr(0, 35) + '...</span>' : data;",
+                                                "}")
+                                            ),
+                                            list(
+                                              targets = c(3),
+                                              width = '100',
+                                              render = JS(
+                                                "function(data, type, row, meta) {",
+                                                "return type === 'display' && data.length > 20 ?",
+                                                "'<span title=\"' + data + '\">' + data.substr(0, 20) + '...</span>' : data;",
+                                                "}")
+                                            )
+                                            ),
+                          ordering = TRUE,
+                          orderClasses= TRUE,
+                          fixedColumns = list(leftColumns = 1),
+                          pageLength = 100, lengthMenu = c(10,50,100,200)),
+                          #buttons=c('copy', 'csv', 'excelHtml5', 'pdf')),
+                        callback = JS('table.page(3).draw(false);'
+                        ))
+     
+      stats_DT <- stats_DT %>%  formatRound(columns=c(sample_col_numbers), digits=0)
       
-      output$stats_data_final<- renderRHandsontable({
-        rhandsontable(filter_df, rowHeaders = NULL, columnHeaderwidth = 200, width = 1500, height = 1500) %>%
-          hot_table(highlightCol = TRUE, highlightRow = TRUE) %>%
-          hot_cols(columnSorting = TRUE) %>%
-          hot_cols(fixedColumnsLeft = 1, colWidths = 80, halign = "htCenter" ) %>%
-          hot_col(col = "Peptides", format="0")  %>%
-          #hot_col(col = colnames(df_N), format="0", digits =0) %>%
-          #hot_col(col = colnames(df_D), format="0", digits =0) %>%
-          #hot_col(col = (dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number+1):(ncol(dpmsr_set$data$final$impute)), format="0.00") %>%
-          hot_col(col = "Description", halign = "htLeft", colWidths = 350) %>%
-          hot_rows(rowHeights = 10)
-      })
+      output$stats_data_final <-  DT::renderDataTable({stats_DT })
+        
+      # output$stats_data_final<- renderRHandsontable({
+      #   rhandsontable(filter_df, rowHeaders = NULL, columnHeaderwidth = 200, width = 1500, height = 1500) %>%
+      #     hot_table(highlightCol = TRUE, highlightRow = TRUE) %>%
+      #     hot_cols(columnSorting = TRUE) %>%
+      #     hot_cols(fixedColumnsLeft = 1, colWidths = 80, halign = "htCenter" ) %>%
+      #     hot_col(col = "Peptides", type="numeric", format="0")  %>%
+      #     hot_col(col = sample_cols, type="numeric", format="0.0")  %>%
+      #     hot_col(col = cv_cols, type="numeric", format="0.0")  %>%
+      #     hot_col(col = mf_cols, type="numeric", format="0.0")  %>%
+      #     hot_col(col = pval_cols, type="numeric")  %>%
+      #     hot_col(col = pval_cols, renderer = "
+      #              function (instance, td, row, col, prop, value, cellProperties) {
+      #                Handsontable.renderers.NumericRenderer.apply(this, arguments);
+      #                 value = value.toExponential(2); 
+      #              }") %>%
+      #     
+      #     hot_col(col = "Description", halign = "htLeft", colWidths = 350) %>%
+      #     hot_rows(rowHeights = 10)
+      # })
       
       
       removeModal()
@@ -504,18 +513,63 @@ observeEvent(input$data_show, {
     
     observeEvent(input$stats_data_save, { 
 
-      if (!is.null(isolate(input$stats_data_final)))
-      {
         showModal(modalDialog("Saving Data...", footer = NULL))  
-        cat(file=stderr(), "stats saving rhandsontable to excel..." , "\n") 
+        cat(file=stderr(), "stats saving datatable to excel..." , "\n") 
         #Convert to R object
-        x <- hot_to_r(isolate(input$stats_data_final))
-        Simple_Excel_name(x, str_c(dpmsr_set$file$extra_dir,  input$stats_data_filename), "data")
+        #x <- hot_to_r(isolate(input$stats_data_final))
+        x <- stats_data_table_filter(session, input, output)
+        filename <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", input$stats_data_filename)
+        Simple_Excel_name(x, filename, "data")
         removeModal()
-      }
     
     })
 
+    
+    #-------------------------------------------------------------------------------------------------------------      
+    #-------------------------------------------------------------------------------------------------------------  
+    
+    
+    observeEvent(input$create_stats_oneprotein_plots, { 
+ 
+      df_list <- oneprotein_data(session, input, output)
+      for(j in names(df_list)){assign(j, df_list[[j]]) }
+      
+      interactive_barplot(session, input, output, df, namex, color_list, "stats_oneprotein_barplot", input$stats_oneprotein_plot_comp)
+      
+      interactive_grouped_barplot(session, input, output, comp_string, df_peptide, peptide_info_columns, input$stats_oneprotein_plot_comp)
+      
+      output$oneprotein_peptide_table<- renderRHandsontable({
+        rhandsontable(df_peptide, rowHeaders = NULL, columnHeaderwidth = 200, width = 1200, height = 500) %>%
+          hot_cols(fixedColumnsLeft = 2, colWidths = 80, halign = "htCenter" ) %>%
+          #hot_col(col = "Peptides", format="0") %>%
+          #hot_col(col = dpmsr_set$y$info_columns_final:(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number), format="0", digits =0) %>%
+          #hot_col(col = (dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number+1):(ncol(dpmsr_set$data$final$impute)), format="0.00") %>%
+          hot_col(col = "Description", halign = "htLeft", colWidths = 350) %>%
+          hot_rows(rowHeights = 10)
+      })
+      
+      removeModal()
+       
+    })
+    
+    #-------------------------------------------------------------------------------------------------------------      
+    #-------------------------------------------------------------------------------------------------------------  
+    
+    
+    
+    observeEvent(input$stats_oneprotein_data_save, { 
+      
+      showModal(modalDialog("Saving Data...", footer = NULL))  
+      cat(file=stderr(), "stats saving datatable to excel..." , "\n") 
+      
+      df_list <- oneprotein_data(session, input, output)
+      for(j in names(df_list)){assign(j, df_list[[j]]) }
+      
+      filename <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", input$stats_oneprotein_data_filename)
+      Simple_Excel_name(df_peptide, filename, "data")
+      removeModal()
+      
+    })
     #-------------------------------------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------------------------------------
     observeEvent(input$motif_show, {
@@ -701,8 +755,6 @@ observeEvent(input$data_show, {
     )
     
 
-    
-    
     
     #-------------------------------------------------------------------------------------------------------------      
     #-------------------------------------------------------------------------------------------------------------   

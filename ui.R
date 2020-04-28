@@ -4,6 +4,7 @@ library(shinyjs)
 library(shinyWidgets)
 library(rhandsontable)
 library(rgl)
+library(DT)
 
 shinyUI(fluidPage(
   useShinyjs(),
@@ -500,6 +501,10 @@ shinyUI(fluidPage(
                                             circle = TRUE, status = "info", icon = icon("gear"), width = "300px", size = "sm",
                                             tooltip = tooltipOptions(title = "Click to see more options!")
                                      )
+                                   ),
+                                   column(width=2, offset =0,
+                                          textInput("final_stats_name", label="Final Stats Excel Name", 
+                                                    value = str_c("Final_CompHere_stats.xlsx"))
                                    )
                                  ),
                                  hr(),
@@ -942,8 +947,169 @@ shinyUI(fluidPage(
                                           ),
                                           downloadButton('download_stats_volcano6')
                                    ) # end col
+                                 ), #end fr   
+                                 
+                                 fluidRow(
+                                   column(width=5, offset =0,
+                                          dropdownButton(
+                                            textInput("volcano7_stats_plot_title", label="plot title", 
+                                                      value = "Volcano", width = 200),
+                                            textInput("volcano7_stats_plot_y_axis_label", label="y axis label", value = "-log_pvalue", width = 200),
+                                            textInput("volcano7_stats_plot_x_axis_label", label="x axis label", value = "log_FC", width = 200),
+                                            colourpicker::colourInput("volcano7_stats_dot_color", "Select Color", "blue"),
+                                            sliderInput("volcano7_stats_plot_dot_size", label = h5("Point Size"), min = 1, 
+                                                        max = 10, value = 2),
+                                            sliderInput("volcano7_stats_plot_label_size", label = h5("Label Size"), min = 1, 
+                                                        max = 50, value = 20),
+                                            sliderInput("volcano7_stats_plot_title_size", label = h5("Title Size"), min = 10, 
+                                                        max = 50, value = 20), 
+                                            
+                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            tooltip = tooltipOptions(title = "Click to see inputs !")
+                                          ),
+                                          div(
+                                            style = "position:relative",
+                                            plotOutput("volcano7_stats_plot", width = 600, height = 600,
+                                                       hover = hoverOpts("volcano7_stats_hover", delay = 100, delayType = "debounce")),
+                                            uiOutput("volcano7_stats_hover_info")
+                                          ),
+                                          downloadButton('download_stats_volcano7')
+                                   ), # end col
+                                   column(width=5, offset =0,
+                                          dropdownButton(
+                                            textInput("volcano8_stats_plot_title", label="plot title", 
+                                                      value = "Volcano", width = 200),
+                                            textInput("volcano8_stats_plot_y_axis_label", label="y axis label", value = "-log_pvalue", width = 200),
+                                            textInput("volcano8_stats_plot_x_axis_label", label="x axis label", value = "log_FC", width = 200),
+                                            colourpicker::colourInput("volcano8_stats_dot_color", "Select Color", "blue"),
+                                            sliderInput("volcano8_stats_plot_dot_size", label = h5("Point Size"), min = 1, 
+                                                        max = 10, value = 2),
+                                            sliderInput("volcano8_stats_plot_label_size", label = h5("Label Size"), min = 1, 
+                                                        max = 50, value = 20),
+                                            sliderInput("volcano8_stats_plot_title_size", label = h5("Title Size"), min = 10, 
+                                                        max = 50, value = 20), 
+                                            
+                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            tooltip = tooltipOptions(title = "Click to see inputs !")
+                                          ),
+                                          div(
+                                            style = "position:relative",
+                                            plotOutput("volcano8_stats_plot", width = 600, height = 600,
+                                                       hover = hoverOpts("volcano8_stats_hover", delay = 100, delayType = "debounce")),
+                                            uiOutput("volcano8_stats_hover_info")
+                                          ),
+                                          downloadButton('download_stats_volcano8')
+                                   ) # end col
+                                 ), #end fr
+                                 
+                                 fluidRow(
+                                   column(width=5, offset =0,
+                                          dropdownButton(
+                                            textInput("volcano9_stats_plot_title", label="plot title", 
+                                                      value = "Volcano", width = 200),
+                                            textInput("volcano9_stats_plot_y_axis_label", label="y axis label", value = "-log_pvalue", width = 200),
+                                            textInput("volcano9_stats_plot_x_axis_label", label="x axis label", value = "log_FC", width = 200),
+                                            colourpicker::colourInput("volcano9_stats_dot_color", "Select Color", "blue"),
+                                            sliderInput("volcano9_stats_plot_dot_size", label = h5("Point Size"), min = 1, 
+                                                        max = 10, value = 2),
+                                            sliderInput("volcano9_stats_plot_label_size", label = h5("Label Size"), min = 1, 
+                                                        max = 50, value = 20),
+                                            sliderInput("volcano9_stats_plot_title_size", label = h5("Title Size"), min = 10, 
+                                                        max = 50, value = 20), 
+                                            
+                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            tooltip = tooltipOptions(title = "Click to see inputs !")
+                                          ),
+                                          div(
+                                            style = "position:relative",
+                                            plotOutput("volcano9_stats_plot", width = 600, height = 600,
+                                                       hover = hoverOpts("volcano9_stats_hover", delay = 100, delayType = "debounce")),
+                                            uiOutput("volcano9_stats_hover_info")
+                                          ),
+                                          downloadButton('download_stats_volcano9')
+                                   ), # end col
+                                   column(width=5, offset =0,
+                                          dropdownButton(
+                                            textInput("volcano10_stats_plot_title", label="plot title", 
+                                                      value = "Volcano", width = 200),
+                                            textInput("volcano10_stats_plot_y_axis_label", label="y axis label", value = "-log_pvalue", width = 200),
+                                            textInput("volcano10_stats_plot_x_axis_label", label="x axis label", value = "log_FC", width = 200),
+                                            colourpicker::colourInput("volcano10_stats_dot_color", "Select Color", "blue"),
+                                            sliderInput("volcano10_stats_plot_dot_size", label = h5("Point Size"), min = 1, 
+                                                        max = 10, value = 2),
+                                            sliderInput("volcano10_stats_plot_label_size", label = h5("Label Size"), min = 1, 
+                                                        max = 50, value = 20),
+                                            sliderInput("volcano10_stats_plot_title_size", label = h5("Title Size"), min = 10, 
+                                                        max = 50, value = 20), 
+                                            
+                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            tooltip = tooltipOptions(title = "Click to see inputs !")
+                                          ),
+                                          div(
+                                            style = "position:relative",
+                                            plotOutput("volcano10_stats_plot", width = 600, height = 600,
+                                                       hover = hoverOpts("volcano10_stats_hover", delay = 100, delayType = "debounce")),
+                                            uiOutput("volcano10_stats_hover_info")
+                                          ),
+                                          downloadButton('download_stats_volcano10')
+                                   ) # end col
+                                 ), #end fr   
+                                 
+                                 fluidRow(
+                                   column(width=5, offset =0,
+                                          dropdownButton(
+                                            textInput("volcano11_stats_plot_title", label="plot title", 
+                                                      value = "Volcano", width = 200),
+                                            textInput("volcano11_stats_plot_y_axis_label", label="y axis label", value = "-log_pvalue", width = 200),
+                                            textInput("volcano11_stats_plot_x_axis_label", label="x axis label", value = "log_FC", width = 200),
+                                            colourpicker::colourInput("volcano11_stats_dot_color", "Select Color", "blue"),
+                                            sliderInput("volcano11_stats_plot_dot_size", label = h5("Point Size"), min = 1, 
+                                                        max = 10, value = 2),
+                                            sliderInput("volcano11_stats_plot_label_size", label = h5("Label Size"), min = 1, 
+                                                        max = 50, value = 20),
+                                            sliderInput("volcano11_stats_plot_title_size", label = h5("Title Size"), min = 10, 
+                                                        max = 50, value = 20), 
+                                            
+                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            tooltip = tooltipOptions(title = "Click to see inputs !")
+                                          ),
+                                          div(
+                                            style = "position:relative",
+                                            plotOutput("volcano11_stats_plot", width = 600, height = 600,
+                                                       hover = hoverOpts("volcano11_stats_hover", delay = 100, delayType = "debounce")),
+                                            uiOutput("volcano11_stats_hover_info")
+                                          ),
+                                          downloadButton('download_stats_volcano11')
+                                   ), # end col
+                                   column(width=5, offset =0,
+                                          dropdownButton(
+                                            textInput("volcano12_stats_plot_title", label="plot title", 
+                                                      value = "Volcano", width = 200),
+                                            textInput("volcano12_stats_plot_y_axis_label", label="y axis label", value = "-log_pvalue", width = 200),
+                                            textInput("volcano12_stats_plot_x_axis_label", label="x axis label", value = "log_FC", width = 200),
+                                            colourpicker::colourInput("volcano12_stats_dot_color", "Select Color", "blue"),
+                                            sliderInput("volcano12_stats_plot_dot_size", label = h5("Point Size"), min = 1, 
+                                                        max = 10, value = 2),
+                                            sliderInput("volcano12_stats_plot_label_size", label = h5("Label Size"), min = 1, 
+                                                        max = 50, value = 20),
+                                            sliderInput("volcano12_stats_plot_title_size", label = h5("Title Size"), min = 10, 
+                                                        max = 50, value = 20), 
+                                            
+                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            tooltip = tooltipOptions(title = "Click to see inputs !")
+                                          ),
+                                          div(
+                                            style = "position:relative",
+                                            plotOutput("volcano12_stats_plot", width = 600, height = 600,
+                                                       hover = hoverOpts("volcano12_stats_hover", delay = 100, delayType = "debounce")),
+                                            uiOutput("volcano12_stats_hover_info")
+                                          ),
+                                          downloadButton('download_stats_volcano12')
+                                   ) # end col
                                  ) #end fr   
                         ), # end volcano
+                        
+
                         
                         tabPanel("Data", value = "tp_stats_data",
                                  fluidRow( 
@@ -990,16 +1156,97 @@ shinyUI(fluidPage(
                                    )
                                  ),
                                  fluidRow(
+                                   column(width=12, offset =0,
                                    hr(),
                                    tags$head(tags$style("#stats_data_final{color: blue;
-                                 font-size: 12px;
-                                 }"
+                                                           font-size: 12px;
+                                                           }"
                                    )
                                    ),
-                                   rHandsontableOutput("stats_data_final")
+                                   #rHandsontableOutput("stats_data_final")
+                                   DT::dataTableOutput("stats_data_final", width='100%')
                                  )
-                        ) #end data
+                              )
+                        ), #end data
+               
                         
+                        tabPanel("One Protein", value = "tp_stats_oneprotein",
+                                 fluidRow(
+                                   column(width=1, offset =0,
+                                          textInput("stats_oneprotein_accession", label="Accession", value = "0", width = 100)
+                                   ),
+                                   column(width=3, offset =0,
+                                          pickerInput(inputId = "stats_oneprotein_plot_comp", label = "Comparison(s) to plot",  choices = "None", 
+                                                      options = list(`actions-box` = TRUE, size = 100,
+                                                                     `selected-text-format` = "count > 5"),  multiple = TRUE)
+                                   ),
+                                   column(width=1, offset =0,
+                                          checkboxInput("stats_oneprotein_plot_spqc", label = "Add SPQC?")
+                                   ),
+                                   column(width=1, offset =0,
+                                          checkboxInput("stats_use_zscore", label = "Use zscore?")
+                                   ),
+                                   column(width=1, offset =0,
+                                          actionButton("create_stats_oneprotein_plots", label = "Create Plots", width = 100,
+                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                                   ),
+                                   column(width=2, offset =1,
+                                          textInput("stats_oneprotein_data_filename", label="File Name", value = "my_protein_data.xlsx", width = 250)
+                                   ),
+                                   column(width=1, offset =0,
+                                          actionButton("stats_oneprotein_data_save", label = "Save Data", width = 100,
+                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                                   )
+                                 ),
+                                 fluidRow(
+                                   column(width=12, offset =0,
+                                          dropdownButton(
+                                            textInput("stats_oneprotein_barplot_y_axis_label", label="y axis label", value = "Intensity", width = 200),
+                                            textInput("stats_oneprotein_barplot_title", label="plot title", value = "Barplot", width = 200),
+                                            sliderInput("stats_oneprotein_barplot_label_size", label = h5("Label Size"), min = 1, 
+                                                        max = 50, value = 11),
+                                            sliderInput("stats_oneprotein_barplot_title_size", label = h5("Title Size"), min = 10, 
+                                                        max = 50, value = 20),
+                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            tooltip = tooltipOptions(title = "Click to see inputs !")
+                                          ),
+                                          div(
+                                            style = "position:relative",
+                                            plotOutput("stats_oneprotein_barplot", width = 1200, height = 400)
+                                          ),
+                                          downloadButton('download_stats_oneprotein_barplot')
+                                   )
+                                   ),
+                                  fluidRow(
+                                   column(width=12, offset =0,
+                                          dropdownButton(
+                                            textInput("stats_oneprotein_grouped_barplot_y_axis_label", label="y axis label", value = "Intensity", width = 200),
+                                            textInput("stats_oneprotein_grouped_barplot_x_axis_label", label="x axis label", value = "Sequence", width = 200),
+                                            textInput("stats_oneprotein_grouped_barplot_title", label="plot title", value = "Grouped Barplot", width = 200),
+                                            sliderInput("stats_oneprotein_grouped_barplot_label_size", label = h5("Label Size"), min = 1, 
+                                                        max = 50, value = 11),
+                                            sliderInput("stats_oneprotein_grouped_barplot_title_size", label = h5("Title Size"), min = 10, 
+                                                        max = 50, value = 20),
+                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            tooltip = tooltipOptions(title = "Click to see inputs !")
+                                          ),
+                                          div(
+                                            style = "position:relative",
+                                            plotOutput("stats_oneprotein_grouped_barplot", width = 1200, height = 400)
+                                          ),
+                                          downloadButton('download_stats_oneprotein_grouped_barplot')
+                                   )
+                                   
+                                   
+                                   ),
+                                 
+                                 fluidRow(
+                                  br(),
+                                  hr(),
+                                  rHandsontableOutput("oneprotein_peptide_table")
+                                 )
+                                  )
+                                 
              ) # end of navbar panel
     ),  #end of tab panel
     
@@ -1027,7 +1274,7 @@ shinyUI(fluidPage(
                           numericInput("pval_filter_wiki", label="  pvalue", value = 0.05, width = 100)
                    ),
                    column(width=1, offset =0,  
-                          numericInput("fc_filter_wiki", label="    FC", value = 2, width = 100)
+                          numericInput("fc_filter_wiki", label="    FC (+ or -)", value = 2, width = 100)
                    ),
                    column(width=1, offset =0,
                           numericInput("mf_filter_wiki", label="Measured %", value = 0)
@@ -1060,7 +1307,7 @@ shinyUI(fluidPage(
                           numericInput("pval_filter_profile", label="  pvalue", value = 0.05, width = 100)
                    ),
                    column(width=1, offset =0,  
-                          numericInput("fc_filter_profile", label="    FC", value = 2, width = 100)
+                          numericInput("fc_filter_profile", label="    FC (+ or -)", value = 2, width = 100)
                    ),
                    column(width=1, offset =0,
                           numericInput("mf_filter_profile", label="Measured %", value = 0)
@@ -1107,7 +1354,7 @@ shinyUI(fluidPage(
                           numericInput("pval_filter_go", label="  pvalue", value = 0.05, width = 200)
                    ),
                    column(width=1, offset =0,  
-                          numericInput("fc_filter_go", label="    FC", value = 2, width = 200)
+                          numericInput("fc_filter_go", label="    FC (+ or -)", value = 2, width = 200)
                    ),
                    column(width=1, offset =0,
                           numericInput("mf_filter_go", label="Measured %", value = 0)
@@ -1186,7 +1433,7 @@ shinyUI(fluidPage(
                           numericInput("pval_filter_string", label="  pvalue", value = 0.05, width = 200)
                    ),
                    column(width=1, offset =0,  
-                          numericInput("fc_filter_string", label="    FC", value = 2, width = 200)
+                          numericInput("fc_filter_string", label="    FC (+ or -)", value = 2, width = 200)
                    ),
                    column(width=3, offset =0,
                           selectInput("select_data_comp_string", label = "comparison", 
@@ -1222,7 +1469,7 @@ shinyUI(fluidPage(
                           numericInput("pval_filter_string_enrich", label="  pvalue", value = 0.05, width = 200)
                    ),
                    column(width=1, offset =0,  
-                          numericInput("fc_filter_string_enrich", label="    FC", value = 2, width = 200)
+                          numericInput("fc_filter_string_enrich", label="    FC (+ or -)", value = 2, width = 200)
                    ),
                    
                    column(width=3, offset =0,
