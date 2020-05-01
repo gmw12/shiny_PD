@@ -401,6 +401,14 @@
   
   observe({
     if(input$start_stats==0){
+      shinyjs::disable("save_stats") 
+    }else{
+      shinyjs::enable("save_stats")
+    }
+  })
+  
+  observe({
+    if(input$start_stats==0){
       shinyjs::disable("create_stats_plots") 
       shinyjs::disable("create_stats_volcano") 
       #shinyjs::disable("stats_data_show")
@@ -420,7 +428,13 @@
     }
   })
   
-
+  observe({
+    if(input$stats_comp_cv_filter){
+      shinyjs::show("stats_comp_cv_filter_factor") 
+    }else{
+      shinyjs::hide("stats_comp_cv_filter_factor") 
+    }
+  })
   
 }
 

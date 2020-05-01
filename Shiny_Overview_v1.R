@@ -150,6 +150,7 @@ project_overview <- function(){
 
 
 #--FAIMS----------------------------------------------------------   
+  FAIMS_overview <- function(){  
     df3 <- data.frame(dpmsr_set$data$data_raw_msms$Comp.Voltage.in.V)
     df3$count <- 1
     colnames(df3) <- c("CV", "Count")
@@ -163,9 +164,10 @@ project_overview <- function(){
       theme(plot.title = element_text(hjust = 0.5)) 
     file_name <- str_c(dpmsr_set$file$qc_dir, "FAIMS_PSM_CV.png")
     ggsave(file_name, width=5, height=3)
+}
 
-
- 
+ try(FAIMS_overview(), silent=TRUE)
+    
     #--PI--------------------------------------     
     df2 <- data.frame(pI(dpmsr_set$data$data_raw_peptide$Sequence, pKscale="EMBOSS"))
     colnames(df2) <- "PI"

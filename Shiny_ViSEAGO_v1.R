@@ -4,27 +4,19 @@ run_go_analysis <- function(input, output, data_in){
   comp_number <- which(grepl(comp_string, dpmsr_set$y$stats$groups$comp_name))
   
   cat(file=stderr(), str_c("Run go analysis..." ), "\n")
-  cat(file=stderr(), str_c("comp_string... ", comp_string ), "\n")
-  cat(file=stderr(), str_c("comp_number... ", comp_number ), "\n")
-  cat(file=stderr(), str_c("pval filter... ", input$pval_filter_go ), "\n")
-  cat(file=stderr(), str_c("fc filter... ", input$fc_filter_go ), "\n")
+
+  data_in <-   stats_filter(dpmsr_set$data$stats$final, comp_number) 
   
-  if(input$pval_filter_go != 0 & input$fc_filter_go > 0) {
-    go_df <- subset(data_in, data_in[ , dpmsr_set$y$stats$groups$pval[comp_number]] <= input$pval_filter_go &  
-                      (data_in[ , dpmsr_set$y$stats$groups$fc[comp_number]] >= input$fc_filter_go )) 
-    go_df <- subset(go_df, go_df[ , dpmsr_set$y$stats$groups$mf[comp_number]] >= input$mf_filter_go )
-    atest <- go_df$Accession
+  if(input$go_direction == 'Up') {
+    go_df <- subset(data_in, data_in[ , dpmsr_set$y$stats$groups$fc[comp_number]] >= 0 ) 
+  }else{
+    go_df <- subset(data_in, data_in[ , dpmsr_set$y$stats$groups$fc[comp_number]] <= 0 ) 
   }
   
-  if(input$pval_filter_go != 0 & input$fc_filter_go < 0) {
-    go_df <- subset(data_in, data_in[ , dpmsr_set$y$stats$groups$pval[comp_number]] <= input$pval_filter_go &  
-                      (data_in[ , dpmsr_set$y$stats$groups$fc[comp_number]] <= input$fc_filter_go )) 
-    go_df <- subset(go_df, go_df[ , dpmsr_set$y$stats$groups$mf[comp_number]] >= input$mf_filter_go)
-    atest <- go_df$Accession    
-  } 
+  atest <- go_df$Accession
     
     selection <- atest
-    background <- data_in$Accession
+    background <- dpmsr_set$data$stats$final$Accession
     #-----------------------------
 
 
@@ -71,11 +63,6 @@ setup_go_volcano <- function(input, output, data_in){
   comp_number <- which(grepl(comp_string, dpmsr_set$y$stats$groups$comp_name))
   
   cat(file=stderr(), str_c("Setup go volcano..." ), "\n")
-  cat(file=stderr(), str_c("comp_string... ", comp_string ), "\n")
-  cat(file=stderr(), str_c("comp_number... ", comp_number ), "\n")
-  cat(file=stderr(), str_c("pval filter... ", dpmsr_set$y$stats$groups$pval[comp_number] ), "\n")
-  cat(file=stderr(), str_c("fc filter... ", dpmsr_set$y$stats$groups$fc2[comp_number] ), "\n")
-  
   volcano_df <- cbind(data_in$Accession,
                       data_in[ ,dpmsr_set$y$stats$groups$pval[comp_number]],
                       data_in[ ,dpmsr_set$y$stats$groups$fc2[comp_number]]) 
@@ -110,12 +97,19 @@ create_go_volcano <- function(input, output, session){
 
   sub_df$log_pvalue <- -log(as.numeric(sub_df$pvalue), 10)
   sub_df$log_fc <- log(as.numeric(sub_df$foldchange), 2)
+
+  testdf <- data.frame(cbind(dpmsr_set$data$stats$final$Accession, dpmsr_set$data$stats$final$Description))
+  colnames(testdf) <- c("Accession", "Description")
+  volcano_data <- merge(x=sub_df, y=testdf, by.x="Accession", by.y="Accession")
   
-  #Simple_Excel(mergedf, "mergedf.xlsx")
-  #Simple_Excel(sub_df, "sub_df.xlsx")
-  
-  return(sub_df)
+  return(volcano_data)
 }
+
+
+
+
+
+#-------------------------------------------------------------------------------------------
 
 
 test_e <- function()

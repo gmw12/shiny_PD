@@ -190,7 +190,8 @@ stat_calc <- function(session, input, output) {
   dpmsr_set$y$stats$foldchange_cutoff <<- input$stats_foldchange_cutoff
   dpmsr_set$y$stats$stats_spqc_cv_filter <<- input$stats_spqc_cv_filter
   dpmsr_set$y$stats$stats_spqc_cv_filter_factor <<- input$stats_spqc_cv_filter_factor
-  
+  dpmsr_set$y$stats$stats_comp_cv_filter <<- input$stats_spqc_cv_filter
+  dpmsr_set$y$stats$stats_comp_cv_filter_factor <<- input$stats_spqc_cv_filter_factor
   return()
 }
 
@@ -268,45 +269,9 @@ stats_Final_Excel <- function(session, input, output) {
     z=1
     for(i in 1:as.numeric(dpmsr_set$y$stats$comp_number))  {
       comp_string <- dpmsr_set$y$stats$groups$comp_name[i]
-      df_N <- df %>% dplyr::select(unlist(dpmsr_set$y$stats$groups$com_N_headers[i]))  
-      df_D <- df %>% dplyr::select(unlist(dpmsr_set$y$stats$groups$com_D_headers[i]) ) 
-      df_spqc <- df[unlist(dpmsr_set$y$stats$comp_spqc_sample_numbers)]
-      df_cv_N <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$cv_N[i]) ) 
-      df_cv_D <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$cv_D[i]) ) 
-      df_spqc_cv <- df %>% dplyr::select(contains(str_c(dpmsr_set$y$stats$comp_spqc, "_CV") )) 
-      df_Comp <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$comp_name [i]) ) 
-      df_final <- cbind(df[1:(dpmsr_set$y$info_columns_final)], df_N, df_D, df_spqc, df_cv_N, df_cv_D, df_spqc_cv, df_Comp)
       
-      df_final <- df
-      
-      # filtered_df <- subset(df_final, df_final[ , dpmsr_set$y$stats$groups$pval[i]] <= as.numeric(dpmsr_set$x$pvalue_cutoff) &  
-      #                         (df_final[ , dpmsr_set$y$stats$groups$fc[i]] >= as.numeric(dpmsr_set$x$foldchange_cutoff) | 
-      #                            df_final[ , dpmsr_set$y$stats$groups$fc[i]] <= -as.numeric(dpmsr_set$x$foldchange_cutoff))) 
-      
-      #filtered_df <- subset(filtered_df, filtered_df[ , dpmsr_set$y$stats$groups$mf[i]] >= as.numeric(dpmsr_set$x$missing_factor))
-      
-      # if(dpmsr_set$y$stats$stats_spqc_cv_filter){
-      #   filtered_df <- subset(filtered_df, 
-      #                         filtered_df[ , str_c(dpmsr_set$y$stats$comp_spqc, "_CV")] <= as.numeric(dpmsr_set$y$stats$stats_spqc_cv_filter_factor ))
-      # }
-      
-      
-      filtered_df <- filter(df_final, df_final[[dpmsr_set$y$stats$groups$pval[i]]] <= as.numeric(dpmsr_set$x$pvalue_cutoff) &  
-                            (df_final[[dpmsr_set$y$stats$groups$fc[i]]] >= as.numeric(dpmsr_set$x$foldchange_cutoff) | 
-                               df_final[[dpmsr_set$y$stats$groups$fc[i]]] <= -as.numeric(dpmsr_set$x$foldchange_cutoff))) 
-      
-      if(dpmsr_set$x$final_data_output=="Protein"){
-      #   filtered_df <- filter(filtered_df,  
-      #                       filtered_df[[dpmsr_set$y$stats$groups$mf[i] ]] >= as.numeric(dpmsr_set$x$missing_factor) | filtered_df$Peptides > 1)
-      # }else{
-        filtered_df <- filter(filtered_df, filtered_df[[dpmsr_set$y$stats$groups$mf[i] ]] >= as.numeric(dpmsr_set$x$missing_factor))
-      }
-      
-      if(dpmsr_set$y$stats$stats_spqc_cv_filter){
-        filtered_df <- filter(filtered_df, filtered_df[[str_c(dpmsr_set$y$stats$comp_spqc, "_CV")]] <= as.numeric(dpmsr_set$y$stats$stats_spqc_cv_filter_factor ) )
-      }
-
-      
+      filtered_df <- stats_filter(dpmsr_set$data$stats$final, i)  
+  
       cat(file=stderr(), str_c("Saving excel...", comp_string), "\n")
       addWorksheet(wb, comp_string)
       writeData(wb, sheet = nextsheet, filtered_df)
@@ -318,64 +283,50 @@ stats_Final_Excel <- function(session, input, output) {
     
 }
 
-
-
 # data table filter ------------------------------------------------------
 
 stats_data_table_filter <- function(session, input, output) {
-  filter_df <- dpmsr_set$data$stats$final
+  
+  comp_string <- input$stats_select_data_comp
+  comp_number <- which(grepl(comp_string, dpmsr_set$y$stats$groups$comp_name))
+  
+  if(input$stats_include_all) {
+      df_filter <- dpmsr_set$data$stats$final
+      sample_number <- dpmsr_set$y$sample_number
+    }else{
+      df <- dpmsr_set$data$stats$final
+      df_N <- df %>% dplyr::select(unlist(dpmsr_set$y$stats$groups$com_N_headers[comp_number]))  
+      df_D <- df %>% dplyr::select(unlist(dpmsr_set$y$stats$groups$com_D_headers[comp_number]) ) 
+      df_cv_N <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$cv_N[comp_number]) ) 
+      df_cv_D <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$cv_D[comp_number]) ) 
+      df_spqc <- df %>% dplyr::select(unlist(dpmsr_set$y$stats$comp_spqc_sample_headers ))  
+      df_spqc_cv <- df %>% dplyr::select(contains(str_c(dpmsr_set$y$stats$comp_spqc, "_CV") )) 
+      df_Comp <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$comp_name [comp_number]) ) 
+      df_filter <- cbind(df[1:(dpmsr_set$y$info_columns_final)], df_N, df_D, df_spqc, df_cv_N, df_cv_D, df_spqc_cv, df_Comp)
+      sample_number <- ncol(df_N) + ncol(df_D) + ncol(df_spqc)
+    }
+  
+  if(input$stats_add_filters){
+    df_filter <- stats_filter(df_filter, comp_number)
+  }
+  
   
   if(input$stats_data_topn != 0 ){
-    filter_df$sum <- rowSums(filter_df[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)])
-    filter_df <- filter_df[order(-filter_df$sum),]                      
-    filter_df <- filter_df[1:input$stats_data_topn,]
-    filter_df$sum <- NULL
+    df_filter$sum <- rowSums(df_filter[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+sample_number)])
+    df_filter <- df_filter[order(-df_filter$sum),]                      
+    df_filter <- df_filter[1:input$stats_data_topn,]
+    df_filter$sum <- NULL
   }
   
   if(input$stats_data_accession != "0" ){
-    filter_df <-subset(filter_df, Accession %in% as.character(input$stats_data_accession)  )
+    df_filter <-subset(df_filter, Accession %in% as.character(input$stats_data_accession)  )
   }
   
   if(input$stats_data_description != "0") {
-    filter_df <-filter_df[grep(as.character(input$stats_data_description), filter_df$Description), ]
+    df_filter <-df_filter[grep(as.character(input$stats_data_description), df_filter$Description), ]
   }
   
-  #if(input$stats_data_pvalue != 0 & input$stats_data_foldchange1 != 0 & input$stats_data_foldchange2 != 0) {
-  if(input$stats_data_pvalue != 0) {
-    df <- filter_df
-    comp_string <- input$stats_select_data_comp
-    comp_number <- which(grepl(comp_string, dpmsr_set$y$stats$groups$comp_name))
-    df_N <- df %>% dplyr::select(unlist(dpmsr_set$y$stats$groups$com_N_headers[comp_number]))  
-    df_D <- df %>% dplyr::select(unlist(dpmsr_set$y$stats$groups$com_D_headers[comp_number]) ) 
-    df_cv_N <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$cv_N[comp_number]) ) 
-    df_cv_D <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$cv_D[comp_number]) ) 
-    df_spqc <- df %>% dplyr::select(unlist(dpmsr_set$y$stats$comp_spqc_sample_headers ))  
-    df_spqc_cv <- df %>% dplyr::select(contains(str_c(dpmsr_set$y$stats$comp_spqc, "_CV") )) 
-    df_Comp <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$comp_name [comp_number]) ) 
-    df_final <- cbind(df[1:(dpmsr_set$y$info_columns_final)], df_N, df_D, df_spqc, df_cv_N, df_cv_D, df_spqc_cv, df_Comp)
-    
-    if(input$stats_include_all) {df_final <- df}
-    
-    # filter_df <- subset(df_final, df_final[ , dpmsr_set$y$stats$groups$pval[comp_number]] <= input$stats_data_pvalue &  
-    #                       (df_final[ , dpmsr_set$y$stats$groups$fc[comp_number]] >= input$stats_data_foldchange1 | 
-    #                          df_final[ , dpmsr_set$y$stats$groups$fc[comp_number]] <= -input$stats_data_foldchange2)) 
-    
-    filter_df <- filter(df_final, df_final[[dpmsr_set$y$stats$groups$pval[comp_number]]] <= input$stats_data_pvalue &  
-                          (df_final[[dpmsr_set$y$stats$groups$fc[comp_number]]] >= input$stats_data_foldchange1 | 
-                             df_final[[dpmsr_set$y$stats$groups$fc[comp_number]]] <= -input$stats_data_foldchange2)) 
-    
-    if(dpmsr_set$x$final_data_output=="Protein"){
-    #   filter_df <- filter(filter_df,  
-    #                       filter_df[[dpmsr_set$y$stats$groups$mf[comp_number] ]] >= input$stats_missing_factor | filter_df$Peptides > 1)
-    # }else{
-      filter_df <- filter(filter_df, filter_df[[dpmsr_set$y$stats$groups$mf[comp_number] ]] >= input$stats_missing_factor)
-    }
-    
-    if(input$stats2_spqc_cv_filter_factor >0){
-      filter_df <- filter(filter_df, filter_df[[str_c(dpmsr_set$y$stats$comp_spqc, "_CV")]] <= input$stats2_spqc_cv_filter_factor )
-    }
-  }
-  return(filter_df)
+  return(df_filter)
 }
 
 
@@ -441,4 +392,59 @@ oneprotein_data <- function(session, input, output) {
     if(input$stats_use_zscore){df_peptide <- peptide_zscore(df_peptide, peptide_info_columns)}
 
     return(list("df"=df, "df_peptide"=df_peptide, "namex"=namex, "color_list"=color_list, "comp_string"=comp_string, "peptide_info_columns"=peptide_info_columns))
-  }
+}
+    
+
+
+
+# stat filter ------------------------------------------------------  
+    stats_filter <- function(df, comp_number) { 
+      
+      filtered_df <- filter(df, df[[dpmsr_set$y$stats$groups$pval[comp_number]]] <= as.numeric(dpmsr_set$x$pvalue_cutoff) &  
+                              (df[[dpmsr_set$y$stats$groups$fc[comp_number]]] >= as.numeric(dpmsr_set$x$foldchange_cutoff) | 
+                                 df[[dpmsr_set$y$stats$groups$fc[comp_number]]] <= -as.numeric(dpmsr_set$x$foldchange_cutoff))) 
+      
+      filtered_df <- filter(filtered_df, filtered_df[[dpmsr_set$y$stats$groups$mf[comp_number] ]] >= as.numeric(dpmsr_set$x$missing_factor))
+      
+      
+      if(dpmsr_set$y$stats$stats_spqc_cv_filter){
+        filtered_df <- filter(filtered_df, filtered_df[[str_c(dpmsr_set$y$stats$comp_spqc, "_CV")]] <= as.numeric(dpmsr_set$y$stats$stats_spqc_cv_filter_factor ) )
+      }
+      
+      if(dpmsr_set$y$stats$stats_comp_cv_filter){
+        filtered_df <- filter(filtered_df, filtered_df[[dpmsr_set$y$stats$groups$cv_N[comp_number]]] <= as.numeric(dpmsr_set$y$stats$stats_comp_cv_filter_factor) | 
+                                filtered_df[[dpmsr_set$y$stats$groups$cv_D[comp_number]]] <= as.numeric(dpmsr_set$y$stats$stats_comp_cv_filter_factor) )
+      }
+     
+      return(filtered_df)
+       
+    }      
+    
+    
+  peptide_position_lookup <- function(session, input, output)  {
+    # create peptide lookup table
+    peptide_pos_lookup <- dpmsr_set$data$data_raw_peptide %>% dplyr::select(Sequence, Positions.in.Master.Proteins)
+    colnames(peptide_pos_lookup) <- c("Sequence", "Position")
+    peptide_pos_lookup$Position <- gsub("\\]; \\[", "xxx",  peptide_pos_lookup$Position)
+    s <- strsplit(peptide_pos_lookup$Position, split = "; ")
+    peptide_pos_lookup <- data.frame(Sequence = rep(peptide_pos_lookup$Sequence, sapply(s, length)), Position = unlist(s))
+    peptide_pos_lookup$Count <- str_count(peptide_pos_lookup$Position, "xxx")
+    peptide_pos_lookup <- peptide_pos_lookup %>% separate(Position, c("Accession", "Start_Stop"), sep = " ")
+    peptide_pos_lookup$Start_Stop <- gsub("\\[", "",  peptide_pos_lookup$Start_Stop)
+    peptide_pos_lookup$Start_Stop <- gsub("\\]", "",  peptide_pos_lookup$Start_Stop)
+    peptide_pos_lookup$Start_Stop <- gsub("xxx", ", ",  peptide_pos_lookup$Start_Stop)
+    peptide_pos_lookup$AS <- str_c(peptide_pos_lookup$Accession, " ", peptide_pos_lookup$Sequence)
+    s <- strsplit(peptide_pos_lookup$Start_Stop, split = ", ")
+    peptide_pos_lookup <- data.frame(AS = rep(peptide_pos_lookup$AS, sapply(s, length)), Position = unlist(s))
+    peptide_pos_lookup <- peptide_pos_lookup %>% separate(AS, c("Accession", "Sequence"), sep = " ")
+    peptide_pos_lookup <- peptide_pos_lookup %>% separate(Position, c("Start", "Stop"), sep = "-")
+    peptide_pos_lookup$dup <- str_c(peptide_pos_lookup$Accession, peptide_pos_lookup$Sequence, peptide_pos_lookup$Start, peptide_pos_lookup$Stop)
+    peptide_pos_lookup <- peptide_pos_lookup[!duplicated(peptide_pos_lookup$dup),]
+    peptide_pos_lookup$dup <- NULL
+    
+    peptide_pos_lookup <- subset(peptide_pos_lookup, Accession %in% as.character(input$stats_oneprotein_accession)  )
+    #peptide_pos_lookup <- subset(peptide_pos_lookup, Accession %in% "P60202"  )  
+  
+    return(peptide_pos_lookup)
+    
+    }

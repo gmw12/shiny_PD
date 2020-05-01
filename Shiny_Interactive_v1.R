@@ -2,9 +2,9 @@ interactive_go_volcano <- function(session, input, output)
 {
     volcano_data <- create_go_volcano(input, output, session)
     
-    testdf <- data.frame(cbind(dpmsr_set$data$stats$final$Accession, dpmsr_set$data$stats$final$Description))
-    colnames(testdf) <- c("Accession", "Description")
-    volcano_data <- merge(x=volcano_data, y=testdf, by.x="Accession", by.y="Accession")
+    # testdf <- data.frame(cbind(dpmsr_set$data$stats$final$Accession, dpmsr_set$data$stats$final$Description))
+    # colnames(testdf) <- c("Accession", "Description")
+    # volcano_data <- merge(x=volcano_data, y=testdf, by.x="Accession", by.y="Accession")
     
     
     volcano_go_plot <- reactive({
@@ -80,6 +80,8 @@ interactive_go_volcano <- function(session, input, output)
                       "<b> pvalue: </b>", point$pvalue, "<br/>")))
       )
     })
+    
+    return(volcano_data)
 }
 
 #------------------------------------------------------------------------------------------------------------------------
@@ -478,40 +480,15 @@ interactive_stats_volcano <- function(session, input, output, i)
 #------------------------------------------------------------------------------------------------------------------------
 #match(namesdf, names(df))
 
-interactive_grouped_barplot <- function(session, input, output, comp_string, df, info_columns, comp_name)
+interactive_grouped_barplot <- function(session, input, output, comp_string, df, info_columns, comp_name, peptide_pos_lookup)
 {
 
   updateTextInput(session, "stats_oneprotein_grouped_barplot_title", value = as.character(input$stats_oneprotein_accession))
   if(input$stats_use_zscore){  updateTextInput(session, "stats_oneprotein_grouped_barplot_y_axis_label", value = "Z_Score") }
   
-  xdf<<-df
-  xinfo_columns <<- info_columns
-  xcomp_string <<- comp_string
-  
   cat(file=stderr(), "Interactive group barplot...1" , "\n")
   cat(file=stderr(), comp_string , "\n")
-  # create peptide lookup table
-  peptide_pos_lookup <- dpmsr_set$data$data_raw_peptide %>% dplyr::select(Sequence, Positions.in.Master.Proteins)
-  colnames(peptide_pos_lookup) <- c("Sequence", "Position")
-  peptide_pos_lookup$Position <- gsub("\\]; \\[", "xxx",  peptide_pos_lookup$Position)
-  s <- strsplit(peptide_pos_lookup$Position, split = "; ")
-  peptide_pos_lookup <- data.frame(Sequence = rep(peptide_pos_lookup$Sequence, sapply(s, length)), Position = unlist(s))
-  peptide_pos_lookup$Count <- str_count(peptide_pos_lookup$Position, "xxx")
-  peptide_pos_lookup <- peptide_pos_lookup %>% separate(Position, c("Accession", "Start_Stop"), sep = " ")
-  peptide_pos_lookup$Start_Stop <- gsub("\\[", "",  peptide_pos_lookup$Start_Stop)
-  peptide_pos_lookup$Start_Stop <- gsub("\\]", "",  peptide_pos_lookup$Start_Stop)
-  peptide_pos_lookup$Start_Stop <- gsub("xxx", ", ",  peptide_pos_lookup$Start_Stop)
-  peptide_pos_lookup$AS <- str_c(peptide_pos_lookup$Accession, " ", peptide_pos_lookup$Sequence)
-  s <- strsplit(peptide_pos_lookup$Start_Stop, split = ", ")
-  peptide_pos_lookup <- data.frame(AS = rep(peptide_pos_lookup$AS, sapply(s, length)), Position = unlist(s))
-  peptide_pos_lookup <- peptide_pos_lookup %>% separate(AS, c("Accession", "Sequence"), sep = " ")
-  peptide_pos_lookup <- peptide_pos_lookup %>% separate(Position, c("Start", "Stop"), sep = "-")
-  peptide_pos_lookup$dup <- str_c(peptide_pos_lookup$Accession, peptide_pos_lookup$Sequence, peptide_pos_lookup$Start, peptide_pos_lookup$Stop)
-  peptide_pos_lookup <- peptide_pos_lookup[!duplicated(peptide_pos_lookup$dup),]
-  peptide_pos_lookup$dup <- NULL
   
-  peptide_pos_lookup <- subset(peptide_pos_lookup, Accession %in% as.character(input$stats_oneprotein_accession)  )
-  #peptide_pos_lookup <- subset(peptide_pos_lookup, Accession %in% "P60202"  )
   cat(file=stderr(), "Interactive group barplot...2" , "\n")
   
   testname <- colnames(df[(info_columns+1):ncol(df)])

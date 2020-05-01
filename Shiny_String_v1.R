@@ -15,7 +15,6 @@ setup_string <- function(input, output, data_in){
                                                  score_threshold=0, input_directory="")
   } 
   
-  
   for (i in 1:dpmsr_set$x$comp_number){
     comp_name <- dpmsr_set$y$stats$groups$comp_name[i]
     pval_col <- dpmsr_set$y$stats$groups$pval[i]
@@ -36,22 +35,29 @@ setup_string <- function(input, output, data_in){
   
 #-------------------------------------------------------------------
   
-run_string <- function(input, output){ 
-  input_fc <- input$fc_filter_string
-  if (input_fc < 0){input_fc <- -1/input_fc}
+run_string <- function(session, input, output){
+  
+  if(input$string_direction == "Up"){
+    input_fc <- input$foldchange_cutoff
+  }else{
+    input_fc <- 1/input$foldchange_cutoff
+  }
+  
   input_fc <- log(input_fc, 2)
-  input_pval <- input$pval_filter_string
+  input_pval <- input$pvalue_cutoff
   input_comp <- input$select_data_comp_string
   
   df <- dpmsr_set$string[[input_comp]]
   df <- subset(df, pvalue < input_pval)
-  if (input$fc_filter_string_enrich >0){
+  xdf1<<-df
+  xinput_fc <<- input_fc
+  if (input$string_direction == "Up"){
     df <- subset(df, logFC >= input_fc)
   }else{
     df <- subset(df, logFC <= input_fc)
   }
   df <- df[order(-df$logFC),]
-  
+  xdf2<<-df
   if (nrow(df) > input$protein_number){
     hits <- df$STRING_id[1:input$protein_number]
   }else{
@@ -73,17 +79,22 @@ run_string <- function(input, output){
 #--------------------------------------------------------------------
 
 run_string_enrich <- function(input, output, data_in){
-
-  input_fc <- input$fc_filter_string_enrich
-  if (input_fc < 0){input_fc <- -1/input_fc}
+  
+  if(input$string_enrich_direction == "Up"){
+    input_fc <- input$foldchange_cutoff
+  }else{
+    input_fc <- 1/input$foldchange_cutoff
+  }
   
   input_fc <- log(input_fc, 2)
-  input_pval <- input$pval_filter_string_enrich
+  input_pval <- input$pvalue_cutoff
+  
   input_comp <- input$select_data_comp_string_enrich
   
   df <- dpmsr_set$string[[input_comp]]
   df <- subset(df, pvalue < input_pval)
-  if (input$fc_filter_string_enrich >0){
+  
+  if (input$string_enrich_direction == "Up"){
     df <- subset(df, logFC >= input_fc)
   }else{
     df <- subset(df, logFC <= input_fc)

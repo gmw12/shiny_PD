@@ -5,9 +5,11 @@ library(shinyWidgets)
 library(rhandsontable)
 library(rgl)
 library(DT)
+library(shinyalert)
 
 shinyUI(fluidPage(
   useShinyjs(),
+  useShinyalert(),
   setBackgroundColor("DarkGray", shinydashboard = TRUE),
   setBackgroundColor("LightGray", shinydashboard = FALSE),
   titlePanel("Proteome Discoverer Data Processing"),
@@ -493,6 +495,8 @@ shinyUI(fluidPage(
                                      dropdownButton(
                                             checkboxInput("stats_spqc_cv_filter", label = "Filter by SPQC CV"),
                                             numericInput("stats_spqc_cv_filter_factor", label="SPQC %CV Cutoff", value = 50),
+                                            checkboxInput("stats_comp_cv_filter", label = "Require one group CV below cuttoff"),
+                                            numericInput("stats_comp_cv_filter_factor", label="Comp %CV Cutoff", value = 50),
                                             checkboxInput("pair_comp", label = "Pairwise Comparisons"),
                                             checkboxInput("checkbox_out_ptm", label = "Report Specific Modification Only"),
                                             textInput("report_grep", label="Filter(grep) for Modification", value = "Enter value"),
@@ -645,6 +649,10 @@ shinyUI(fluidPage(
                                           br(),
                                           br(),
                                           actionButton("start_stats", label = "Start Anlaysis", width = 300,
+                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                                          br(),
+                                          br(),
+                                          actionButton("save_stats", label = "Save Stats to Excel", width = 300,
                                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
                                  )
                         ),
@@ -1127,27 +1135,15 @@ shinyUI(fluidPage(
                                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
                                                       selected = 1),
                                    ),
-                         
-                                   column(width=1, offset =0,
-                                          dropdownButton(
-                                            tags$h5("Stat filters applied after TopN, Accession, Description"),
-                                            br(),
-                                            numericInput("stats_data_pvalue", label="pvalue", value = 0),
-                                            numericInput("stats_data_foldchange1", label="foldchange up", value = 0),
-                                            numericInput("stats_data_foldchange2", label="foldchange dn (absolute value)", value = 0),
-                                            numericInput("stats_missing_factor", label="Measured % (decimal)", value = 0),
-                                            numericInput("stats2_spqc_cv_filter_factor", label="SPQC %CV Cutoff", value = 0),
-                                            checkboxInput("stats_include_all", label="Include all samples? (not just comparisons)", value = 0),
-                                            circle = TRUE, status = "info", icon = icon("gear"), width = "300px", size = "sm",
-                                            tooltip = tooltipOptions(title = "Click to see stat filters")
-                                          )
+                                   column(width=2, offset =0,
+                                          checkboxInput("stats_include_all", label="View all samples?", value = 0),
+                                          checkboxInput("stats_add_filters", label="Apply stat filters (from setup)?", value = 0),
                                    ),
-
                                    column(width=1, offset =0,
                                           actionButton("stats_data_show", label = "Filter Data", width = 100,
                                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
                                    ),
-                                   column(width=2, offset =1,
+                                   column(width=2, offset =0,
                                           textInput("stats_data_filename", label="File Name", value = "my_data.xlsx", width = 250)
                                    ),
                                    column(width=1, offset =0,
@@ -1163,7 +1159,6 @@ shinyUI(fluidPage(
                                                            }"
                                    )
                                    ),
-                                   #rHandsontableOutput("stats_data_final")
                                    DT::dataTableOutput("stats_data_final", width='100%')
                                  )
                               )
@@ -1270,21 +1265,15 @@ shinyUI(fluidPage(
         
         tabPanel("WikiPathways", id="wiki",
                  fluidRow( 
-                   column(width=1, offset =0,  
-                          numericInput("pval_filter_wiki", label="  pvalue", value = 0.05, width = 100)
-                   ),
-                   column(width=1, offset =0,  
-                          numericInput("fc_filter_wiki", label="    FC (+ or -)", value = 2, width = 100)
-                   ),
-                   column(width=1, offset =0,
-                          numericInput("mf_filter_wiki", label="Measured %", value = 0)
-                   ),
-                   column(width=2, offset =0,
+                   column(width=3, offset =0,
                           selectInput("select_data_comp_wiki", label = "comparison", 
                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
                                       selected = 1)
                    ),
-                   column(width=1, offset =0,
+                   column(width=3, offset =0,  
+                          radioButtons("wiki_direction", label="Fold Change Direction", choices = list("Up", "Down"),  selected = "Up", width = 200)
+                   ),
+                   column(width=1, offset =1,
                           actionButton("wiki_show", label = "Find WikiPathway", width = 150,
                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
                    )
@@ -1303,19 +1292,13 @@ shinyUI(fluidPage(
         
         tabPanel("Go Profile", id="go_profile",
                  fluidRow( 
-                   column(width=1, offset =0,  
-                          numericInput("pval_filter_profile", label="  pvalue", value = 0.05, width = 100)
-                   ),
-                   column(width=1, offset =0,  
-                          numericInput("fc_filter_profile", label="    FC (+ or -)", value = 2, width = 100)
-                   ),
-                   column(width=1, offset =0,
-                          numericInput("mf_filter_profile", label="Measured %", value = 0)
-                   ),
                    column(width=2, offset =0,
                           selectInput("select_data_comp_profile", label = "comparison", 
                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
                                       selected = 1)
+                   ),
+                   column(width=3, offset =0,  
+                          radioButtons("profile_direction", label="Fold Change Direction", choices = list("Up", "Down"),  selected = "Up", width = 200)
                    ),
                    column(width=2, offset =0,
                           selectInput("select_ont_profile", label = "ontology", 
@@ -1350,19 +1333,13 @@ shinyUI(fluidPage(
         
         tabPanel("Go Analysis", id="go",
                  fluidRow( 
-                   column(width=1, offset =0,  
-                          numericInput("pval_filter_go", label="  pvalue", value = 0.05, width = 200)
-                   ),
-                   column(width=1, offset =0,  
-                          numericInput("fc_filter_go", label="    FC (+ or -)", value = 2, width = 200)
-                   ),
-                   column(width=1, offset =0,
-                          numericInput("mf_filter_go", label="Measured %", value = 0)
-                   ),
                    column(width=3, offset =0,
                           selectInput("select_data_comp_go", label = "comparison", 
                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
                                       selected = 1)
+                   ),
+                   column(width=3, offset =0,  
+                          radioButtons("go_direction", label="Fold Change Direction", choices = list("Up", "Down"),  selected = "Up", width = 200)
                    ),
                    column(width=1, offset =0,
                           selectInput("select_ont_go", label = "ontology", 
@@ -1419,6 +1396,26 @@ shinyUI(fluidPage(
                        uiOutput("hover_info")
                      )
                    )
+                 ),
+                 fluidRow(
+                   column(width=2, offset =0,
+                          textInput("volcano_data_filename", label="File Name", value = "my_volcano_data.xlsx", width = 250)
+                   ),
+                   column(width=1, offset =0,
+                          actionButton("volcano_data_save", label = "Save Data", width = 100,
+                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                   )
+                 ),
+                 fluidRow(
+                   column(width=12, offset =0,
+                          hr(),
+                          tags$head(tags$style("#volcano_data_final{color: blue;
+                                                           font-size: 12px;
+                                                           }"
+                          )
+                          ),
+                          DT::dataTableOutput("volcano_data_final", width='100%')
+                   )
                  )
         ), #end of go volcano 
         
@@ -1429,19 +1426,16 @@ shinyUI(fluidPage(
                           actionButton("setup_string", label = "String Setup", width = 150,
                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
                    ),
-                   column(width=1, offset =0,  
-                          numericInput("pval_filter_string", label="  pvalue", value = 0.05, width = 200)
-                   ),
-                   column(width=1, offset =0,  
-                          numericInput("fc_filter_string", label="    FC (+ or -)", value = 2, width = 200)
-                   ),
                    column(width=3, offset =0,
                           selectInput("select_data_comp_string", label = "comparison", 
                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
                                       selected = 1)
                    ),
+                   column(width=3, offset =0,  
+                          radioButtons("string_direction", label="Fold Change Direction", choices = list("Up", "Down"),  selected = "Up", width = 200)
+                   ),
                    column(width=1, offset =0,
-                          selectInput("protein_number", label = "#Proteins", 
+                          selectInput("protein_number", label = "Max #Proteins", 
                                       choices = list(10, 50, 100, 150, 200, 250, 300, 350, 400), 
                                       selected = 200)
                    ),                   
@@ -1465,17 +1459,13 @@ shinyUI(fluidPage(
         
         tabPanel("StringDB_enrich", id="string_enrich",
                  fluidRow( 
-                   column(width=1, offset =0,  
-                          numericInput("pval_filter_string_enrich", label="  pvalue", value = 0.05, width = 200)
-                   ),
-                   column(width=1, offset =0,  
-                          numericInput("fc_filter_string_enrich", label="    FC (+ or -)", value = 2, width = 200)
-                   ),
-                   
                    column(width=3, offset =0,
                           selectInput("select_data_comp_string_enrich", label = "comparison", 
                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
                                       selected = 1)
+                   ),
+                   column(width=3, offset =0,  
+                          radioButtons("string_enrich_direction", label="Fold Change Direction", choices = list("Up", "Down"),  selected = "Up", width = 200)
                    ),
                    column(width=1, offset =0,
                           selectInput("select_string_enrich", label = "Enrichment", 

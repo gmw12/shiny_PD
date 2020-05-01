@@ -346,13 +346,18 @@ observeEvent(input$data_show, {
       cat(file=stderr(), "Calculating stats...", "\n")
       stat_calc(session, input, output)
       removeModal()
+    }
+    )    
+    
+    #-------------------------------------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------------------------------------
+    observeEvent(input$save_stats, {
       showModal(modalDialog("Saving Final Excel...", footer = NULL))      
       cat(file=stderr(), "Saving Final Excel...", "\n")
       stats_Final_Excel(session, input, output)
       removeModal()
     }
-    )      
-    
+    )    
     #-------------------------------------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------------------------------------
     
@@ -482,28 +487,7 @@ observeEvent(input$data_show, {
       
       output$stats_data_final <-  DT::renderDataTable({stats_DT })
         
-      # output$stats_data_final<- renderRHandsontable({
-      #   rhandsontable(filter_df, rowHeaders = NULL, columnHeaderwidth = 200, width = 1500, height = 1500) %>%
-      #     hot_table(highlightCol = TRUE, highlightRow = TRUE) %>%
-      #     hot_cols(columnSorting = TRUE) %>%
-      #     hot_cols(fixedColumnsLeft = 1, colWidths = 80, halign = "htCenter" ) %>%
-      #     hot_col(col = "Peptides", type="numeric", format="0")  %>%
-      #     hot_col(col = sample_cols, type="numeric", format="0.0")  %>%
-      #     hot_col(col = cv_cols, type="numeric", format="0.0")  %>%
-      #     hot_col(col = mf_cols, type="numeric", format="0.0")  %>%
-      #     hot_col(col = pval_cols, type="numeric")  %>%
-      #     hot_col(col = pval_cols, renderer = "
-      #              function (instance, td, row, col, prop, value, cellProperties) {
-      #                Handsontable.renderers.NumericRenderer.apply(this, arguments);
-      #                 value = value.toExponential(2); 
-      #              }") %>%
-      #     
-      #     hot_col(col = "Description", halign = "htLeft", colWidths = 350) %>%
-      #     hot_rows(rowHeights = 10)
-      # })
-      
-      
-      removeModal()
+    removeModal()
     })  
     
     #-------------------------------------------------------------------------------------------------------------      
@@ -531,23 +515,38 @@ observeEvent(input$data_show, {
     
     observeEvent(input$create_stats_oneprotein_plots, { 
  
-      df_list <- oneprotein_data(session, input, output)
-      for(j in names(df_list)){assign(j, df_list[[j]]) }
-      
-      interactive_barplot(session, input, output, df, namex, color_list, "stats_oneprotein_barplot", input$stats_oneprotein_plot_comp)
-      
-      interactive_grouped_barplot(session, input, output, comp_string, df_peptide, peptide_info_columns, input$stats_oneprotein_plot_comp)
-      
-      output$oneprotein_peptide_table<- renderRHandsontable({
-        rhandsontable(df_peptide, rowHeaders = NULL, columnHeaderwidth = 200, width = 1200, height = 500) %>%
-          hot_cols(fixedColumnsLeft = 2, colWidths = 80, halign = "htCenter" ) %>%
-          #hot_col(col = "Peptides", format="0") %>%
-          #hot_col(col = dpmsr_set$y$info_columns_final:(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number), format="0", digits =0) %>%
-          #hot_col(col = (dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number+1):(ncol(dpmsr_set$data$final$impute)), format="0.00") %>%
-          hot_col(col = "Description", halign = "htLeft", colWidths = 350) %>%
-          hot_rows(rowHeights = 10)
+      if(!input$stats_oneprotein_accession==0) {
+        df_list <- oneprotein_data(session, input, output)
+        for(j in names(df_list)){assign(j, df_list[[j]]) }
+        
+        interactive_barplot(session, input, output, df, namex, color_list, "stats_oneprotein_barplot", input$stats_oneprotein_plot_comp)
+        peptide_pos_lookup <-  peptide_position_lookup(session, input, output)
+        
+        interactive_grouped_barplot(session, input, output, comp_string, df_peptide, peptide_info_columns, input$stats_oneprotein_plot_comp, peptide_pos_lookup)
+        
+        df_peptide <- merge(df_peptide, peptide_pos_lookup, by=(c("Accession", "Sequence"))    )
+        df_peptide$Start <- as.numeric(df_peptide$Start)
+        df_peptide$Stop <- as.numeric(df_peptide$Stop)
+        df_peptide<- df_peptide %>% dplyr::select(Stop, everything())
+        df_peptide <- df_peptide %>% dplyr::select(Start, everything())
+        df_peptide <- df_peptide[order(df_peptide$Start, df_peptide$Stop), ]
+        
+        output$oneprotein_peptide_table<- renderRHandsontable({
+          rhandsontable(df_peptide, rowHeaders = NULL, columnHeaderwidth = 200, width = 1200, height = 500) %>%
+            hot_cols(fixedColumnsLeft = 2, colWidths = 80, halign = "htCenter" ) %>%
+            #hot_col(col = "Peptides", format="0") %>%
+            #hot_col(col = dpmsr_set$y$info_columns_final:(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number), format="0", digits =0) %>%
+            #hot_col(col = (dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number+1):(ncol(dpmsr_set$data$final$impute)), format="0.00") %>%
+            hot_col(col = "Description", halign = "htLeft", colWidths = 350) %>%
+            hot_col(col = "Sequence", halign = "htLeft", colWidths = 200) %>%
+            hot_col(col = "Start", halign = "htCenter", format="0") %>%
+            hot_col(col = "Stop", halign = "htCenter", format="0") %>%
+            hot_rows(rowHeights = 10)
       })
       
+      }else{
+        shinyalert("Oops!", "No Accession...", type = "error")
+      }
       removeModal()
        
     })
@@ -606,7 +605,7 @@ observeEvent(input$data_show, {
     #-------------------------------------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------------------------------------
     observeEvent(input$set_pathway, {
-      showModal(modalDialog("Working...", footer = NULL))  
+      showModal(modalDialog("Downloading and Setting up databases...", footer = NULL))  
       set_pathway(input, output, session)
       removeModal()
       updateTabsetPanel(session, "nlp1", selected = "wiki")
@@ -615,22 +614,25 @@ observeEvent(input$data_show, {
     #-------------------------------------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------------------------------------
     observeEvent(input$wiki_show, {
-      showModal(modalDialog("Working...", footer = NULL))  
+      showModal(modalDialog("Wiki Pathway Enrichment...", footer = NULL))  
       
-      wiki_df <- dpmsr_set$data$stats$final
-      wiki_data <- run_wiki(input, output, wiki_df)
-      #wiki_data <- wiki_data[[1]]
+      wiki_data <<- try(run_wiki(session, input, output), silent = TRUE)
+
+      if ( class(wiki_data) != "try-error"){
+        output$wiki_table<- renderRHandsontable({
+          rhandsontable(wiki_data, rowHeaders = NULL, readOnly = TRUE) %>%
+            hot_cols(colWidths = 80, halign = "htCenter" ) %>%
+            hot_col(col = "ID", halign = "htCenter", colWidths = 120) %>%
+            hot_col(col = "Description", halign = "htCenter", colWidths = 250) %>%
+            hot_col(col = "pvalue", halign = "htCenter", colWidths = 150, format = '0.000000') %>% 
+            hot_col(col = "p.adjust", halign = "htCenter", colWidths = 150, format = '0.000000') %>% 
+            hot_col(col = "qvalue", halign = "htCenter", colWidths = 100, format = '0.00000') %>% 
+            hot_col(col = "geneID", halign = "htCenter", colWidths = 400)
+        })
+      }else{
+        shinyalert("Oops!", "Wiki Pathway enrichment failed...", type = "error")
+      }
       
-      output$wiki_table<- renderRHandsontable({
-        rhandsontable(wiki_data, rowHeaders = NULL, readOnly = TRUE) %>%
-          hot_cols(colWidths = 80, halign = "htCenter" ) %>%
-          hot_col(col = "ID", halign = "htCenter", colWidths = 120) %>%
-          hot_col(col = "Description", halign = "htCenter", colWidths = 250) %>%
-          hot_col(col = "pvalue", halign = "htCenter", colWidths = 150, format = '0.000000') %>% 
-          hot_col(col = "p.adjust", halign = "htCenter", colWidths = 150, format = '0.000000') %>% 
-          hot_col(col = "qvalue", halign = "htCenter", colWidths = 100, format = '0.00000') %>% 
-          hot_col(col = "geneID", halign = "htCenter", colWidths = 400)
-      })
       removeModal()
       }
     )
@@ -638,28 +640,35 @@ observeEvent(input$data_show, {
     #-------------------------------------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------------------------------------
     observeEvent(input$profile_show, {
-      showModal(modalDialog("Working...", footer = NULL))  
+      showModal(modalDialog("Creating Go Profile...", footer = NULL))  
       
       profile_df <- dpmsr_set$data$stats$final
-      profile_data <- run_profile(input, output, profile_df)
       
-      go_profile_result <- profile_data@result[1:5]
-      go_profile_result <- go_profile_result[order(-go_profile_result$Count),]
+      profile_data <- try(run_profile(input, output, profile_df), silent=TRUE)
       
-      output$go_profile_table <- renderRHandsontable({
-        rhandsontable(go_profile_result, rowHeaders = NULL, readOnly = TRUE) %>%
-          hot_cols(colWidths = 80, halign = "htCenter" ) %>%
-          hot_col(col = "ID", halign = "htCenter", colWidths = 120) %>%
-          hot_col(col = "Description", halign = "htCenter", colWidths = 250) %>%
-          hot_col(col = "Count", halign = "htCenter", colWidths = 50) %>%
-          hot_col(col = "GeneRatio", halign = "htCenter", colWidths = 100) %>%
-          hot_col(col = "geneID", halign = "htCenter", colWidths = 150)
-      })
+      if ( class(profile_data) != "try-error"){
       
-      output$go_profile_plot <- renderPlot({
-        barplot(profile_data, title = str_c("Go Profile ", input$select_ont_profile, " level=", input$select_level_profile), 
-                drop=TRUE, showCategory=12, order=TRUE)
-      })
+        go_profile_result <- profile_data@result[1:5]
+        go_profile_result <- go_profile_result[order(-go_profile_result$Count),]
+        
+        
+        output$go_profile_table <- renderRHandsontable({
+          rhandsontable(go_profile_result, rowHeaders = NULL, readOnly = TRUE) %>%
+            hot_cols(colWidths = 80, halign = "htCenter" ) %>%
+            hot_col(col = "ID", halign = "htCenter", colWidths = 120) %>%
+            hot_col(col = "Description", halign = "htCenter", colWidths = 250) %>%
+            hot_col(col = "Count", halign = "htCenter", colWidths = 50) %>%
+            hot_col(col = "GeneRatio", halign = "htCenter", colWidths = 100) %>%
+            hot_col(col = "geneID", halign = "htCenter", colWidths = 150)
+        })
+        
+        output$go_profile_plot <- renderPlot({
+          barplot(profile_data, title = str_c("Go Profile ", input$select_ont_profile, " level=", input$select_level_profile), 
+                  drop=TRUE, showCategory=12, order=TRUE)
+        })
+      }else{
+        shinyalert("Oops!", "Go Profile enrichment failed...", type = "error")
+      }
       
       removeModal()
     }
@@ -667,24 +676,30 @@ observeEvent(input$data_show, {
     #-------------------------------------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------------------------------------
     observeEvent(input$go_show, {
-      showModal(modalDialog("Working...", footer = NULL))  
+      showModal(modalDialog("Go Enrichment Analysis...", footer = NULL))  
       
       go_df <- dpmsr_set$data$stats$final
       #go_data <<- try(run_go_analysis(input, output, go_df), silent = FALSE)
-      go_data <- run_go_analysis(input, output, go_df)
+      go_data <- try(run_go_analysis(input, output, go_df), silent=TRUE)
       #go_data <- goresult
-      setup_go_volcano(input, output, go_df)
-      #go_data <- try(go_data[order(go_data$pvalue),], silent = TRUE)
       
-      output$go_table <- renderRHandsontable({
-        rhandsontable(go_data, rowHeaders = NULL, readOnly = FALSE) %>%
-          hot_cols(colWidths = 80, halign = "htCenter" ) %>%
-          hot_col(col = "GO.ID", halign = "htCenter", colWidths = 100) %>%
-          hot_col(col = "Term", halign = "htCenter", colWidths = 200) %>%
-          hot_col(col = "Rank in classicFisher", halign = "htCenter", colWidths = 200)   %>%
-          hot_col(col = "classicFisher", halign = "htCenter", colWidths = 100)  
-      })
-      
+      if ( class(go_data) != "try-error"){
+        setup_go_volcano(input, output, go_df)
+        #go_data <- try(go_data[order(go_data$pvalue),], silent = TRUE)
+        
+        output$go_table <- renderRHandsontable({
+          rhandsontable(go_data, rowHeaders = NULL, readOnly = FALSE) %>%
+            hot_cols(colWidths = 80, halign = "htCenter" ) %>%
+            hot_col(col = "GO.ID", halign = "htCenter", colWidths = 100) %>%
+            hot_col(col = "Term", halign = "htCenter", colWidths = 200) %>%
+            hot_col(col = "Rank in classicFisher", halign = "htCenter", colWidths = 200)   %>%
+            hot_col(col = "classicFisher", halign = "htCenter", colWidths = 100)  
+        })
+      }else{
+        shinyalert("Oops!", "Go Analysis failed...", type = "error")
+      } 
+        
+        
       # output$wiki_plot <- renderPlot({
       #   barplot(wiki_data, title = str_c("WikiPathways ", input$select_ont_wiki, " level=", input$select_level_wiki), 
       #           drop=TRUE, showCategory=12, order=TRUE)
@@ -693,16 +708,98 @@ observeEvent(input$data_show, {
       removeModal()
     }
     )   
+    
+    
     #-------------------------------------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------------------------------------
     observeEvent(input$go_volcano, {
-      showModal(modalDialog("Working...", footer = NULL))  
-      interactive_go_volcano(session, input, output)
+      showModal(modalDialog("Preparing Go Volcano...", footer = NULL))  
+      
+      volcano_data <- interactive_go_volcano(session, input, output)
+      volcano_go_data <- subset(dpmsr_set$data$stats$final, Accession %in% volcano_data$Accession  )
+      
+      volcano_go_data_colnames <- colnames(volcano_go_data )
+      volcano_go_data_colnames <- gsub("_v_", " v ", volcano_go_data_colnames)
+      volcano_go_data_colnames <- gsub("_FC", " FC", volcano_go_data_colnames)
+      volcano_go_data_colnames <- gsub("_CV", " CV", volcano_go_data_colnames)
+      volcano_go_data_colnames <- gsub("_MF", " MF", volcano_go_data_colnames)
+      volcano_go_data_colnames <- gsub("_pval", " pval", volcano_go_data_colnames)
+      volcano_go_data_colnames <- gsub("_", ".", volcano_go_data_colnames)
+      colnames(volcano_go_data) <-  volcano_go_data_colnames
+      
+      
+      pval_cols <- colnames(volcano_go_data %>% dplyr::select(contains("pval") ) )
+      sample_cols <- c(colnames(volcano_go_data %>% dplyr::select(contains("Normalized"))),
+                       colnames(volcano_go_data %>% dplyr::select(contains("Imputed"))) )
+      sample_col_numbers <- list(match(sample_cols, names(volcano_go_data)))
+      sample_col_numbers <- unlist(sample_col_numbers)
+      cv_cols <- colnames(volcano_go_data %>% dplyr::select(contains("CV") ) )
+      mf_cols <- colnames(volcano_go_data %>% dplyr::select(contains("MF") ) )
+      
+      volcano_DT <-  DT::datatable(volcano_go_data,
+                                 rownames = FALSE,
+                                 extensions = c("FixedColumns"), #, "Buttons"),
+                                 options=list(
+                                   #dom = 'Bfrtipl',
+                                   autoWidth = TRUE,
+                                   scrollX = TRUE,
+                                   scrollY=500,
+                                   scrollCollapse=TRUE,
+                                   columnDefs = list(list(targets = c(0), visibile = TRUE, "width"='30', className = 'dt-center'),
+                                                     list(targets = c(2), visible = TRUE, "width"='20', className = 'dt-center'),
+                                                     list(
+                                                       targets = c(1),
+                                                       width = '250',
+                                                       render = JS(
+                                                         "function(data, type, row, meta) {",
+                                                         "return type === 'display' && data.length > 35 ?",
+                                                         "'<span title=\"' + data + '\">' + data.substr(0, 35) + '...</span>' : data;",
+                                                         "}")
+                                                     ),
+                                                     list(
+                                                       targets = c(3),
+                                                       width = '100',
+                                                       render = JS(
+                                                         "function(data, type, row, meta) {",
+                                                         "return type === 'display' && data.length > 20 ?",
+                                                         "'<span title=\"' + data + '\">' + data.substr(0, 20) + '...</span>' : data;",
+                                                         "}")
+                                                     )
+                                   ),
+                                   ordering = TRUE,
+                                   orderClasses= TRUE,
+                                   fixedColumns = list(leftColumns = 1),
+                                   pageLength = 100, lengthMenu = c(10,50,100,200)),
+                                 #buttons=c('copy', 'csv', 'excelHtml5', 'pdf')),
+                                 callback = JS('table.page(3).draw(false);'
+                                 ))
+      
+      volcano_DT <- volcano_DT %>%  formatRound(columns=c(sample_col_numbers), digits=0)
+      
+      output$volcano_data_final <-  DT::renderDataTable({volcano_DT })
+      
+      
       removeModal()
     }
     )  
     
+    #-------------------------------------------------------------------------------------------------------------      
+    #-------------------------------------------------------------------------------------------------------------  
     
+    
+    
+    observeEvent(input$volcano_data_save, { 
+      
+      showModal(modalDialog("Saving Go Volcano Data...", footer = NULL))  
+
+      volcano_data <- create_go_volcano(input, output, session)
+      volcano_go_data <- subset(dpmsr_set$data$stats$final, Accession %in% volcano_data$Accession  )
+      
+      filename <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", input$volcano_data_filename)
+      Simple_Excel_name(volcano_go_data, filename, "data")
+      removeModal()
+      
+    })
     #-------------------------------------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------------------------------------
     observeEvent(input$setup_string, {
@@ -720,7 +817,7 @@ observeEvent(input$data_show, {
       cat(file=stderr(), "go string triggered", "\n")
       showModal(modalDialog("String Analysis...", footer = NULL))  
       
-      string_list <- run_string(input, output)
+      string_list <- run_string(session, input, output)
       
       output$string_plot <- renderImage({
         list(src=string_list$string_file_name,  

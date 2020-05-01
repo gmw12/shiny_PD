@@ -136,7 +136,7 @@ impute_multi <- function(data_in, distribution_in){
     
 
     # if number of missing greater than minimum and measured value is above intensity cuttoff then remove measured value
-    if (dpmsr_set$x$missing_50){
+    if (as.logical(dpmsr_set$x$missing_50)){
       find_rows <- which(df$missings>df$min)
       for (j in find_rows){
         for (k in 1:dpmsr_set$y$sample_groups$Count[i]){
