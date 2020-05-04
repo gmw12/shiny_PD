@@ -31,6 +31,8 @@ library(shinyWidgets)
 library(shinyFiles)
 library(rhandsontable)
 library(shinyjs)
+library(shinyalert)
+library(DT)
 
 library(parallel)
 library(imp4p)

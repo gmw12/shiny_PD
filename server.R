@@ -1,7 +1,18 @@
+cat(file=stderr(), "Server.R line 1", "\n")
+library(shiny)
+library(shinyFiles)
+library(shinyjs)
+library(shinyWidgets)
+library(rhandsontable)
+library(rgl)
+library(DT)
+library(shinyalert)
 
+cat(file=stderr(), "Server.R line 11", "\n")
 options(shiny.maxRequestSize=100*1024^2)
 
 source("Shiny_Startup_v1.R")
+cat(file=stderr(), "Server.R line 15", "\n")
 
 shinyServer(function(input, output, session) {
     cat(file=stderr(), "Shiny Server started ...1", "\n")
