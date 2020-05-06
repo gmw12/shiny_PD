@@ -176,17 +176,35 @@
   })
   
   
-  
   observe({
     if (input$radio_impute==1 | input$radio_impute == 5 |  input$radio_impute == 6){
-      shinyjs::show("checkbox_missing_50")
+      shinyjs::show("checkbox_misaligned")
+      shinyjs::show("misaligned_cutoff")
+      shinyjs::show("intensity_cutoff_mean_sd")
       shinyjs::show("text_i2")
     }else {
-      shinyjs::hide("checkbox_missing_50")
+      shinyjs::hide("checkbox_misaligned")
+      shinyjs::hide("misaligned_cutoff")
+      shinyjs::hide("intensity_cutoff_mean_sd")
       shinyjs::hide("text_i2")
     }
   })
   
+  observe({
+    if (input$radio_impute==1){
+      shinyjs::show("missing_cutoff")
+    }else {
+      shinyjs::hide("missing_cutoff")
+    }
+  }) 
+  
+  observe({
+    if (input$checkbox_misaligned){
+      shinyjs::show("misaligned_cutoff")
+    }else {
+      shinyjs::hide("misaligned_cutoff")
+    }
+  }) 
   
   
   observe({

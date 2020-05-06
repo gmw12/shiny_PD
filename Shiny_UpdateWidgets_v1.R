@@ -33,8 +33,17 @@ update_widget_startup <- function(session, input, output){
   
   updateTextInput(session, "report_accession", value = as.character(dpmsr_set$x$accession_report_list))
   
+  updateTextInput(session, "adh_list", value = as.character(dpmsr_set$x$adh_list ))
+  updateTextInput(session, "bait_list", value = as.character(dpmsr_set$x$bait_list ))
+  updateTextInput(session, "avidin_list", value = as.character(dpmsr_set$x$avidin_list ))
+  updateTextInput(session, "carbox_list", value = as.character(dpmsr_set$x$carbox_list ))
+  updateTextInput(session, "bira_list", value = as.character(dpmsr_set$x$bira_list ))
+  updateTextInput(session, "protein1_list", value = as.character(dpmsr_set$x$protein1_list ))
+  updateTextInput(session, "protein2_list", value = as.character(dpmsr_set$x$protein2_list ))
+  updateTextInput(session, "protein3_list", value = as.character(dpmsr_set$x$protein3_list ))
+  updateTextInput(session, "protein4_list", value = as.character(dpmsr_set$x$protein4_list ))
+  updateTextInput(session, "protein_spike_list", value = as.character(dpmsr_set$x$qc_spike_id))
 }
-
 
 #-Filter--------------------------------------------------------------------- 
 update_widget_filter <- function(session, input, output){
@@ -126,8 +135,13 @@ update_widget_norm <- function(session, input, output){
     
     updateNumericInput(session, "bottom_x", value = as.numeric(dpmsr_set$x$bottom_x))
     
-    if (as.logical(dpmsr_set$x$missing_50)) {missing_50 <- 1}else{missing_50<-0}
-    updateCheckboxInput(session, "checkbox_missing_50", value = as.logical(dpmsr_set$x$missing_50))
+    #if (as.logical(dpmsr_set$x$duke_misaligned)) {misaligned <- 1}else{misaligned<-0}
+    updateCheckboxInput(session, "checkbox_misaligned", value = as.logical(dpmsr_set$x$duke_misaligned))
+    
+    updateNumericInput(session, "missing_cutoff", value = as.numeric(dpmsr_set$x$missing_cutoff))
+    updateNumericInput(session, "misaligned_cutoff", value = as.numeric(dpmsr_set$x$misaligned_cutoff))
+    updateNumericInput(session, "intensity_cutoff_mean_sd", value = as.numeric(dpmsr_set$x$int_cutoff_sd))
+
   }
   
 
@@ -173,16 +187,6 @@ update_widget_post_processing <- function(session, input, output){
   updateCheckboxInput(session, "checkbox_nc11", value = protein_norm)
   
   #----------------------------------------------------------------------
-  updateTextInput(session, "adh_list", value = as.character(dpmsr_set$x$adh_list ))
-  updateTextInput(session, "bait_list", value = as.character(dpmsr_set$x$bait_list ))
-  updateTextInput(session, "avidin_list", value = as.character(dpmsr_set$x$avidin_list ))
-  updateTextInput(session, "carbox_list", value = as.character(dpmsr_set$x$carbox_list ))
-  updateTextInput(session, "bira_list", value = as.character(dpmsr_set$x$bira_list ))
-  updateTextInput(session, "protein1_list", value = as.character(dpmsr_set$x$protein1_list ))
-  updateTextInput(session, "protein2_list", value = as.character(dpmsr_set$x$protein2_list ))
-  updateTextInput(session, "protein3_list", value = as.character(dpmsr_set$x$protein3_list ))
-  updateTextInput(session, "protein4_list", value = as.character(dpmsr_set$x$protein4_list ))
-  
   updateSelectInput(session, "norm_type", choices = names(dpmsr_set$data$final) , selected= "impute")
   updateSelectInput(session, "volcano_select", choices = names(dpmsr_set$data$final), selected = "impute")
   updateSelectInput(session, "protein_select", choices = dpmsr_set$y$protein_list , selected= "ADH")
@@ -266,7 +270,7 @@ update_widget_stats <- function(session, input, output){
   updateNumericInput(session, "foldchange_cutoff", value = as.numeric(dpmsr_set$x$foldchange_cutoff ))
   updateNumericInput(session, "missing_factor", value = as.numeric(dpmsr_set$x$missing_factor ))
   updateSelectInput(session, "select_final_data_stats", selected = dpmsr_set$data$stats$final_comp)
-
+  updateSelectInput(session, "select_organism", selected = dpmsr_set$y$organism)
 }
 
 

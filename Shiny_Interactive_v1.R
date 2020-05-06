@@ -483,7 +483,7 @@ interactive_stats_volcano <- function(session, input, output, i)
 interactive_grouped_barplot <- function(session, input, output, comp_string, df, info_columns, comp_name, peptide_pos_lookup)
 {
 
-  updateTextInput(session, "stats_oneprotein_grouped_barplot_title", value = as.character(input$stats_oneprotein_accession))
+  updateTextInput(session, "stats_oneprotein_grouped_barplot_title", value = str_c(as.character(input$stats_oneprotein_accession), " - Average Peptide Intensity" )  )
   if(input$stats_use_zscore){  updateTextInput(session, "stats_oneprotein_grouped_barplot_y_axis_label", value = "Z_Score") }
   
   cat(file=stderr(), "Interactive group barplot...1" , "\n")

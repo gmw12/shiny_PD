@@ -125,7 +125,19 @@ update_dpmsr_set_from_widgets <- function(session, input){
   })
   
   observe({
-    if (input$checkbox_missing_50){dpmsr_set$x$missing_50 <<-TRUE}else{dpmsr_set$x$missing_50 <<- FALSE}
+    if (input$checkbox_misaligned){dpmsr_set$x$duke_misaligned <<-TRUE}else{dpmsr_set$x$duke_misaligned <<- FALSE}
+  })
+  
+  observe({
+    dpmsr_set$x$missing_cutoff <<- input$missing_cutoff
+  })
+  
+  observe({
+    dpmsr_set$x$misaligned_cutoff <<- input$misaligned_cutoff
+  })
+  
+  observe({
+    dpmsr_set$x$int_cutoff_sd <<- input$intensity_cutoff_mean_sd
   })
   
   #-stats-----------------------------------------------------------------------------------------------------      
@@ -197,8 +209,14 @@ update_dpmsr_set_from_widgets <- function(session, input){
   observe({
     dpmsr_set$x$protein4_list <<-  input$protein4_list
   })
-  
+  observe({
+    dpmsr_set$x$qc_spike_id <<-  input$protein_spike_list
+  })
+  observe({
+    dpmsr_set$y$organism <<-  input$select_organism
+  })
 
+  
 }
 
 

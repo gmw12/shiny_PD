@@ -9,8 +9,10 @@ run_wiki <- function(session, input, output){
 
   if(input$wiki_direction == 'Up') {
     go_df <- subset(data_in, data_in[ , dpmsr_set$y$stats$groups$fc[comp_number]] >= 0 ) 
-  }else{
+  }else if (input$wiki_direction == 'Down') {
     go_df <- subset(data_in, data_in[ , dpmsr_set$y$stats$groups$fc[comp_number]] <= 0 ) 
+  }else{
+    go_df <- data_in
   }
 
   atest <- go_df$Accession
@@ -53,8 +55,10 @@ run_profile <- function(input, output, data_in){
   
   if(input$profile_direction == 'Up') {
     go_df <- subset(data_in, data_in[ , dpmsr_set$y$stats$groups$fc[comp_number]] >= 0 ) 
-  }else{
+  }else if (input$profile_direction == 'Down') {
     go_df <- subset(data_in, data_in[ , dpmsr_set$y$stats$groups$fc[comp_number]] <= 0 ) 
+  }else{
+    go_df <- data_in
   }
   
   atest <- go_df$Accession

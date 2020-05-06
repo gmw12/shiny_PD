@@ -23,6 +23,20 @@ qc_apply <- function(){
   if (as.logical(dpmsr_set$x$adh_spike)) {try(adh_spike(), silent=TRUE)}
 }
 
+#-----------------------------------------------------------------------------------------
+qc_spike_start <- function(){
+  #set up tables for collection of QC Spike Data, and %CV's, and total CV's
+  dpmsr_set$data$qc_spike <<- data.frame(dpmsr_set$design$"QC Spike Level")
+  colnames(dpmsr_set$data$qc_spike)[1] <<- "SpikeLevel"
+  
+  for(df_name in names(dpmsr_set$data$final)){
+    qc_spike(dpmsr_set$data$final[[df_name]], df_name)
+  }
+
+  dpmsr_set$data$qc_spike_final <<- qc_spike_final(dpmsr_set$data$qc_spike)
+  qc_spike_plot()
+}
+
 
 #----------------------------------------------------------------------------------------- 
 #collect CV statistics
@@ -40,6 +54,7 @@ cv_stats <- function(data_out, title){
 
 #qc spike metrics ---------------------------------
 qc_spike <- function(data_in, data_title) {
+  dpmsr_set$x$qc_spike_id <<- gsub(" ", "", dpmsr_set$x$qc_spike_id, fixed = TRUE)
   qc_spike_id <- unlist(strsplit(as.character(dpmsr_set$x$qc_spike_id), split=","))
   spike_protein <-subset(data_in, Accession %in% qc_spike_id)  
   spike_protein <- spike_protein[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)]
@@ -94,6 +109,7 @@ adh_spike <- function(){
   ADH_data <- ADH_data[1:15,]
   file_name <- str_c(dpmsr_set$file$qc_dir, "ADH_barplot.png")
   barplot_adh(ADH_data$cv[1:12], ADH_data$Sequence[1:12],"ADH Peptide CV's", file_name)
+  box_plot_adh(ADH_data)
 }
 
 #-----------------------------------------------------------------------------------------
@@ -162,6 +178,29 @@ barplot_adh <- function(data_cv, data_names, plot_title, file_name) {
 }
 
 
+
+#Box plot-------------------------------------------------
+box_plot_adh <- function(ADH_data)  {
+  file_name <- str_c(dpmsr_set$file$qc_dir, "ADH_boxplot.png")
+  df <- data.frame(t(ADH_data[3:(2+dpmsr_set$y$sample_number)]), stringsAsFactors = FALSE)
+  colnames(df) <- ADH_data$Sequence
+  df3 <- log2(df) %>% gather(Sample, Intensity, colnames(df))
+  plot_title <- "ADH Peptides"
+  df3$Sample <- factor(df3$Sample, levels = colnames(df))
+  
+  ggplot(data=df3, aes(x=Sample, y=Intensity)) +
+    geom_boxplot(notch = TRUE, outlier.colour="red", outlier.shape=1,
+                 outlier.size=1, fill=ADH_data$color) + theme_classic() + 
+    coord_flip()+
+    ggtitle(plot_title)+
+    theme(plot.title = element_text(hjust = 0.5), 
+          axis.text.x = element_text(size=6, angle = 90,  color="black"),
+          axis.text.y = element_text(size=6,  color="black"),
+    ) 
+  
+  ggsave(file_name, width=8, height=4)
+  return("done")
+}
 
 #-----------------------------------------------------------------------------------------
 

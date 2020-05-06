@@ -93,7 +93,7 @@ inputnorm_render <- function(session, input, output){
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
 
-qc_render <- function(session, input, output){
+qc_spike_render <- function(session, input, output){
   
   output$data_CV <- renderRHandsontable({
     cv_table <- dpmsr_set$data$summary_cv
@@ -106,6 +106,27 @@ qc_render <- function(session, input, output){
     rhandsontable(dpmsr_set$data$qc_spike_final, readOnly = TRUE, rowHeaders = NULL, digits = 0)
   })
   
+  output$protein_qc_spike_levels <- renderRHandsontable({
+    rhandsontable(dpmsr_set$design,  rowHeaders = NULL, digits = 0) %>%
+      hot_col(col = "Set", halign = "htCenter", format="0", digits =0, readOnly = TRUE) %>%
+      hot_col(col = "PD_Order", halign = "htCenter", format="0", digits =0, readOnly = TRUE) %>%
+      hot_col(col = "Replicate", halign = "htCenter", format="0", digits =0, readOnly = TRUE) %>%
+      hot_col(col = "QC Spike Level", halign = "htCenter", format="0", digits =0, readOnly = FALSE) %>%
+      hot_col(col = "Header1", halign = "htLeft", width=200, readOnly = TRUE) %>%
+      hot_col(col = "Header2", halign = "htLeft", width=250, readOnly = TRUE) %>%
+      hot_col(col = "Header3", halign = "htLeft", width=250, readOnly = TRUE) 
+  })
+  
+  
+}
+
+  #----------------------------------------------------------------------------------
+  #----------------------------------------------------------------------------------
+  
+  qc_render <- function(session, input, output){
+    
+  qc_spike_render(session, input, output)
+    
   output$cv_plot <- renderImage({
     list(src=str_c(dpmsr_set$file$qc_dir, "CV_barplot.png"),  
          contentType = 'image/png', width=800, height=400, alt="this is alt text")
@@ -121,6 +142,11 @@ qc_render <- function(session, input, output){
          contentType = 'image/png', width=800, height=400, alt="this is alt text")
   }, deleteFile = FALSE)
   
+  
+  output$adh_boxplot <- renderImage({
+    list(src=str_c(dpmsr_set$file$qc_dir, "ADH_boxplot.png"),  
+         contentType = 'image/png', width=800, height=400, alt="this is alt text")
+  }, deleteFile = FALSE)
   
   output$impute_plot <- renderImage({
     list(src=str_c(dpmsr_set$file$output_dir, "impute//impute_", input$plot_select, ".png"),  

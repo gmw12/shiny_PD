@@ -273,7 +273,16 @@ histogram_plot <- function()
   
   x_mean <- mean(testthis1, na.rm=TRUE)
   x_stdev <- sd(testthis1, na.rm=TRUE)
-  new_cutoff <- x_mean - (0.5*x_stdev)
+  
+  if(dpmsr_set$x$int_cutoff_sd < 0) {
+    new_cutoff <- x_mean - (dpmsr_set$x$int_cutoff_sd * x_stdev)
+  }else{
+    new_cutoff <- x_mean + (dpmsr_set$x$int_cutoff_sd * x_stdev)
+  }
+  
+  
+  dpmsr_set$y$intensity_mean <<- x_mean
+  dpmsr_set$y$intensity_sd <<- x_stdev
   
   if (new_cutoff < intensity_cutoff){intensity_cutoff<-new_cutoff}
   if (intensity_cutoff < log2(100000)){intensity_cutoff<-log2(100000)}
@@ -284,17 +293,18 @@ histogram_plot <- function()
   testgather$value <- log2(testgather$value)
   dpmsr_set$x$int_cutoff <<- trunc(2^intensity_cutoff)
   my_legend1 <- grid.text("Default Minimum Intensity: 5e+06", x=.80, y=.95, gp=gpar(col="green4", fontsize=8))
-  my_legend2 <- grid.text(str_c("Calc Minimum Intensity: ", dpmsr_set$x$int_cutoff), x=.80, y=.90, gp=gpar(col="red", fontsize=8))
-  my_legend3 <- grid.text(str_c("Mean +/- Stdev: ", (trunc((2^x_mean),0))," +/- ",  (trunc((2^x_stdev),0))  ), x=.80, y=.85, gp=gpar(col="black", fontsize=8))
-  my_legend4 <- grid.text(str_c("Bottom5=", trunc((2^bottom5_max),0)), x=.80, y=.80, gp=gpar(col="coral", fontsize=8))
-  my_legend5 <- grid.text(str_c("Bottom2=", trunc((2^bottom2_max),0)), x=.80, y=.75, gp=gpar(col="coral", fontsize=8))
-  my_legend6 <- grid.text(str_c("Bottom1=", trunc((2^bottom1_max),0)), x=.80, y=.70, gp=gpar(col="coral", fontsize=8))
+  my_legend2 <- grid.text(str_c("Mean: ", (trunc((2^x_mean),0))), x=.80, y=.90, gp=gpar(col="black", fontsize=8))
+  my_legend3 <- grid.text(str_c("Mean + Stdev: ",  (trunc((2^(x_mean + x_stdev) ),0))  ), x=.80, y=.85, gp=gpar(col="black", fontsize=8))
+  my_legend4 <- grid.text(str_c("Mean - Stdev: ",  (trunc((2^(x_mean - x_stdev) ),0))  ), x=.80, y=.80, gp=gpar(col="black", fontsize=8))
+  my_legend5 <- grid.text(str_c("Bottom5: ", trunc((2^bottom5_max),0)), x=.80, y=.75, gp=gpar(col="coral", fontsize=8))
+  my_legend6 <- grid.text(str_c("Bottom2: ", trunc((2^bottom2_max),0)), x=.80, y=.70, gp=gpar(col="coral", fontsize=8))
+  my_legend7 <- grid.text(str_c("Bottom1: ", trunc((2^bottom1_max),0)), x=.80, y=.65, gp=gpar(col="coral", fontsize=8))
   
   ggplot(testgather, aes(value))+
    theme(plot.title = element_text(hjust = 0.5),
          legend.position = "top")+ 
     geom_histogram(bins=100, fill="blue") +
-    geom_vline(aes(xintercept = intensity_cutoff), color='red'   ) +
+    #geom_vline(aes(xintercept = intensity_cutoff), color='red'   ) +
     geom_vline(aes(xintercept = log2(5000000)), color='green4') +
     geom_vline(aes(xintercept = x_mean)) +
     geom_vline(aes(xintercept = (x_mean + x_stdev))) +
@@ -308,8 +318,9 @@ histogram_plot <- function()
     annotation_custom(my_legend3)+
     annotation_custom(my_legend4)+
     annotation_custom(my_legend5)+
-    annotation_custom(my_legend6)
-  ggsave(str_c(dpmsr_set$file$qc_dir,"Intensity_Histogram.png"), width=5, height=4)
+    annotation_custom(my_legend6)+
+    annotation_custom(my_legend7)
+  ggsave(str_c(dpmsr_set$file$qc_dir,"Intensity_Histogram.png"), width=8, height=6)
   #ggsave(file_name, width=5, height=4)
 }
 

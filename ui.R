@@ -7,6 +7,8 @@ library(rgl)
 library(DT)
 library(shinyalert)
 
+source("Shiny_Startup_v1.R")
+
 shinyUI(fluidPage(
   useShinyjs(),
   useShinyalert(),
@@ -203,13 +205,21 @@ shinyUI(fluidPage(
                                                   "KNN"= 5, "LocalLeastSquares" = 6, "MLE" = 7, "BottomX" = 8
                                    ),
                                    selected = 1),
-                      numericInput("bottom_x", label="Bottom X%", value = "5"),
-                      hr(),
-                      checkboxInput("checkbox_impute_ptm", label = "Impute with Data from Specific Modification Only"),
-                      hr(),
-                      numericInput("impute_floor", label="Impute Floor Intensity", value = "Enter value here"),
-                      checkboxInput("checkbox_missing_50", label = "If >50% values missing from a group then apply intensity cutoff"),
-                      textOutput("text_i2"),
+                      dropdownButton(
+                        numericInput("bottom_x", label="Bottom X%", value = "5"),
+                        numericInput("impute_floor", label="Impute Floor Intensity", value = "Enter value here"),
+                        numericInput("missing_cutoff", label="%minimum  measured values in group to allow missing values to be imputed in measured range", value = 50, width = '100%'),
+                        checkboxInput("checkbox_misaligned", label = "Misaligned Filter"),
+                        numericInput("misaligned_cutoff", label="%missing values to be considered for misalignment if average > intensity cutoff", value = 50, width='100%'),
+                        numericInput("intensity_cutoff_mean_sd", label="#standard deviations (+/-) from mean for intensity cuttof", value = -0.5, width = '100%'),
+                        textOutput("text_i2"),
+                        br(),
+                        actionButton("adjust_intensity_cutoff", label = "Calc Intensity Cutoff", width = 300,
+                                     style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                        checkboxInput("checkbox_impute_ptm", label = "Impute with Data from Specific Modification Only"),
+                        circle = TRUE, status = "info", icon = icon("gear"), width = "500px", size = "sm",
+                        tooltip = tooltipOptions(title = "More Imputation Options")
+                        ),
                       hr(),
                       actionButton("impute1", label = "Apply Imputation", width = 300,
                                    style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
@@ -267,9 +277,23 @@ shinyUI(fluidPage(
                                  imageOutput("cv_plot")
                         ),  
                         tabPanel("ADH",
-                                 imageOutput("adh_plot")),
+                                 imageOutput("adh_plot"),
+                                 br(),
+                                 imageOutput("adh_boxplot")
+                                 ),
                         tabPanel("Protein Spike",
-                                 rHandsontableOutput("data_proteinQC"),
+                                 fluidRow(
+                                   column(width=6, offset =0,
+                                    rHandsontableOutput("data_proteinQC")
+                                   ),
+                                   column(width=3, offset =0,
+                                    textInput("protein_spike_list", label="Protein Spike Accession(s)")  
+                                   ),
+                                   column(width=3, offset =0,
+                                          actionButton("calc_protein_spike", label = "Recalculate Protein Spike", width = 200,
+                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")  
+                                   )
+                                 ),
                                  hr(),
                                  fluidRow(
                                    column(width=2, offset =0,
@@ -278,7 +302,15 @@ shinyUI(fluidPage(
                                                       selected = 1)),
                                    column(width=10, offset =0,
                                           imageOutput("qc_spike_plot"))
-                                 )),
+                                 ),
+                                 hr(),
+                                 fluidRow(
+                                   rHandsontableOutput("protein_qc_spike_levels"),
+                                   hr(),
+                                   actionButton("update_qc_spike_levels", label = "Save Table", width = 100,
+                                                style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                                 )
+                                 ),
                         tabPanel("Norm Comparison",
                                  fluidRow(
                                    column(width=2, offset =0,
@@ -334,15 +366,15 @@ shinyUI(fluidPage(
                                                                          "Protein1", "Protein2", "Protein3", "Protein4"), 
                                                           selected = "ADH"),
                                               
-                                              textInput("adh_list", label="ADH Accession", value = "Enter value here"),
-                                              textInput("bait_list", label="Bait Accession", value = "Enter value here"),
-                                              textInput("avidin_list", label="Avidin Accession", value = "Enter value here"),
-                                              textInput("carbox_list", label="Carbox Accession", value = "Enter value here"),
-                                              textInput("bira_list", label="BirA Accession", value = "Enter value here"),
-                                              textInput("protein1_list", label="Protein1 Accession", value = "Enter value here"),
-                                              textInput("protein2_list", label="Protein2 Accession", value = "Enter value here"),
-                                              textInput("protein3_list", label="Protein3 Accession", value = "Enter value here"),
-                                              textInput("protein4_list", label="Protein4 Accession", value = "Enter value here"),
+                                              textInput("adh_list", label="ADH Accession"),
+                                              textInput("bait_list", label="Bait Accession"),
+                                              textInput("avidin_list", label="Avidin Accession"),
+                                              textInput("carbox_list", label="Carbox Accession",),
+                                              textInput("bira_list", label="BirA Accession"),
+                                              textInput("protein1_list", label="Protein1 Accession"),
+                                              textInput("protein2_list", label="Protein2 Accession"),
+                                              textInput("protein3_list", label="Protein3 Accession"),
+                                              textInput("protein4_list", label="Protein4 Accession"),
                                           ),
                                           actionButton("protein_select_plots", label = "Create/Display Plots", width = 300,
                                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
@@ -676,7 +708,7 @@ shinyUI(fluidPage(
                                    column(width=6, offset =0,
                                           dropdownButton(
                                             textInput("stats_barplot_y_axis_label", label="y axis label", value = "Intensity", width = 200),
-                                            textInput("stats_barplot_title", label="plot title", value = "Barplot", width = 200),
+                                            textInput("stats_barplot_title", label="plot title", value = "Total Summed Intensity", width = 200),
                                             sliderInput("stats_barplot_label_size", label = h5("Label Size"), min = 1, 
                                                         max = 50, value = 11),
                                             sliderInput("stats_barplot_title_size", label = h5("Title Size"), min = 10, 
@@ -694,7 +726,7 @@ shinyUI(fluidPage(
                                    column(width=6, offset =0,
                                           dropdownButton(
                                             textInput("stats_boxplot_y_axis_label", label="y axis label", value = "Intensity", width = 200),
-                                            textInput("stats_boxplot_title", label="plot title", value = "Boxplot", width = 200),
+                                            textInput("stats_boxplot_title", label="plot title", value = "Total Summed Intensity", width = 200),
                                             sliderInput("stats_boxplot_label_size", label = h5("Label Size"), min = 1, 
                                                         max = 50, value = 11),
                                             sliderInput("stats_boxplot_title_size", label = h5("Title Size"), min = 10, 
@@ -1197,7 +1229,7 @@ shinyUI(fluidPage(
                                    column(width=12, offset =0,
                                           dropdownButton(
                                             textInput("stats_oneprotein_barplot_y_axis_label", label="y axis label", value = "Intensity", width = 200),
-                                            textInput("stats_oneprotein_barplot_title", label="plot title", value = "Barplot", width = 200),
+                                            textInput("stats_oneprotein_barplot_title", label="plot title", value = "Total Summed Intensity", width = 200),
                                             sliderInput("stats_oneprotein_barplot_label_size", label = h5("Label Size"), min = 1, 
                                                         max = 50, value = 11),
                                             sliderInput("stats_oneprotein_barplot_title_size", label = h5("Title Size"), min = 10, 
@@ -1217,7 +1249,7 @@ shinyUI(fluidPage(
                                           dropdownButton(
                                             textInput("stats_oneprotein_grouped_barplot_y_axis_label", label="y axis label", value = "Intensity", width = 200),
                                             textInput("stats_oneprotein_grouped_barplot_x_axis_label", label="x axis label", value = "Sequence", width = 200),
-                                            textInput("stats_oneprotein_grouped_barplot_title", label="plot title", value = "Grouped Barplot", width = 200),
+                                            textInput("stats_oneprotein_grouped_barplot_title", label="plot title", value = "Total Summed Intensity", width = 200),
                                             sliderInput("stats_oneprotein_grouped_barplot_label_size", label = h5("Label Size"), min = 1, 
                                                         max = 50, value = 11),
                                             sliderInput("stats_oneprotein_grouped_barplot_title_size", label = h5("Title Size"), min = 10, 
@@ -1271,7 +1303,7 @@ shinyUI(fluidPage(
                                       selected = 1)
                    ),
                    column(width=3, offset =0,  
-                          radioButtons("wiki_direction", label="Fold Change Direction", choices = list("Up", "Down"),  selected = "Up", width = 200)
+                          radioButtons("wiki_direction", label="Fold Change Direction", choices = list("Up", "Down", "UpDown"),  selected = "Up", width = 200)
                    ),
                    column(width=1, offset =1,
                           actionButton("wiki_show", label = "Find WikiPathway", width = 150,
@@ -1298,7 +1330,7 @@ shinyUI(fluidPage(
                                       selected = 1)
                    ),
                    column(width=3, offset =0,  
-                          radioButtons("profile_direction", label="Fold Change Direction", choices = list("Up", "Down"),  selected = "Up", width = 200)
+                          radioButtons("profile_direction", label="Fold Change Direction", choices = list("Up", "Down", "UpDown"),  selected = "Up", width = 200)
                    ),
                    column(width=2, offset =0,
                           selectInput("select_ont_profile", label = "ontology", 
@@ -1339,7 +1371,7 @@ shinyUI(fluidPage(
                                       selected = 1)
                    ),
                    column(width=3, offset =0,  
-                          radioButtons("go_direction", label="Fold Change Direction", choices = list("Up", "Down"),  selected = "Up", width = 200)
+                          radioButtons("go_direction", label="Fold Change Direction", choices = list("Up", "Down", "UpDown"),  selected = "Up", width = 200)
                    ),
                    column(width=1, offset =0,
                           selectInput("select_ont_go", label = "ontology", 
@@ -1432,7 +1464,7 @@ shinyUI(fluidPage(
                                       selected = 1)
                    ),
                    column(width=3, offset =0,  
-                          radioButtons("string_direction", label="Fold Change Direction", choices = list("Up", "Down"),  selected = "Up", width = 200)
+                          radioButtons("string_direction", label="Fold Change Direction", choices = list("Up", "Down", "UpDown"),  selected = "Up", width = 200)
                    ),
                    column(width=1, offset =0,
                           selectInput("protein_number", label = "Max #Proteins", 
@@ -1465,7 +1497,7 @@ shinyUI(fluidPage(
                                       selected = 1)
                    ),
                    column(width=3, offset =0,  
-                          radioButtons("string_enrich_direction", label="Fold Change Direction", choices = list("Up", "Down"),  selected = "Up", width = 200)
+                          radioButtons("string_enrich_direction", label="Fold Change Direction", choices = list("Up", "Down", "UpDown"),  selected = "Up", width = 200)
                    ),
                    column(width=1, offset =0,
                           selectInput("select_string_enrich", label = "Enrichment", 

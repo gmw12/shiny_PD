@@ -1,4 +1,9 @@
+options(shiny.maxRequestSize=100*1024^2)
+
+source("Shiny_Startup_v1.R")
+
 cat(file=stderr(), "Server.R line 1", "\n")
+
 library(shiny)
 library(shinyFiles)
 library(shinyjs)
@@ -9,9 +14,8 @@ library(DT)
 library(shinyalert)
 
 cat(file=stderr(), "Server.R line 11", "\n")
-options(shiny.maxRequestSize=100*1024^2)
 
-source("Shiny_Startup_v1.R")
+
 cat(file=stderr(), "Server.R line 15", "\n")
 
 shinyServer(function(input, output, session) {
@@ -146,6 +150,9 @@ shinyServer(function(input, output, session) {
     removeModal()
     updateTabsetPanel(session, "nlp1", selected = "tp5")
     
+    #check info columns for rerun of filter (impute column could be added
+    dpmsr_set$y$info_columns <<- ncol(dpmsr_set$data$data_peptide) - dpmsr_set$y$sample_number
+    
     bar_plot(dpmsr_set$data$data_peptide[(dpmsr_set$y$info_columns+1):ncol(dpmsr_set$data$data_peptide)],"Raw", dpmsr_set$file$qc_dir)
     box_plot(dpmsr_set$data$data_peptide[(dpmsr_set$y$info_columns+1):ncol(dpmsr_set$data$data_peptide)],"Raw", dpmsr_set$file$qc_dir)
 
@@ -197,7 +204,7 @@ shinyServer(function(input, output, session) {
   observeEvent(input$impute1, {
     cat(file=stderr(), "impute triggered", "\n")
     showModal(modalDialog("Imputing Missing Data...", footer = NULL))  
-    apply_impute()
+    apply_impute(session, input, output)
     removeModal()
     # cat(file=stderr(), "Set comp groups...", "\n")
     # showModal(modalDialog("Setting groups...", footer = NULL))  
@@ -216,10 +223,49 @@ shinyServer(function(input, output, session) {
     create_qc_plots()
     qc_render(session, input, output)
     update_widget_post_processing(session, input, output)
+    save_final_nostats()
     removeModal()
     updateTabsetPanel(session, "nlp1", selected = "tp_qc")
   })
+ 
+    
+    
+    #------------------------------------------------------------------------------------------------------   
+    #------------------------------------------------------------------------------------------------------  
+    observeEvent(input$adjust_intensity_cutoff, {
+      cat(file=stderr(), "Calclulate new intensity cutoff", "\n")
+      showModal(modalDialog("Calclulate new intensity cutoff...", footer = NULL))  
+      
+      if(dpmsr_set$x$int_cutoff_sd < 0) {
+        dpmsr_set$x$int_cutoff <<- dpmsr_set$y$intensity_mean + (dpmsr_set$x$int_cutoff_sd * dpmsr_set$y$intensity_sd )
+        cat(file=stderr(), str_c("std < 0    ",  dpmsr_set$x$int_cutoff ), "\n")
+      }else{
+        dpmsr_set$x$int_cutoff <<- dpmsr_set$y$intensity_mean + (dpmsr_set$x$int_cutoff_sd * dpmsr_set$y$intensity_sd )
+        cat(file=stderr(), str_c("std > 0    ",  dpmsr_set$x$int_cutoff ), "\n")
+      }
+      dpmsr_set$x$int_cutoff <<- trunc(2^dpmsr_set$x$int_cutoff,0)
+      output$text_i2 <- renderText(str_c("Intensity cutoff:  ", as.character(dpmsr_set$x$int_cutoff)))
+      removeModal()     
+    
+    })
+    
+    #------------------------------------------------------------------------------------------------------   
+    #------------------------------------------------------------------------------------------------------   
+    observeEvent(input$calc_protein_spike, {
+      cat(file=stderr(), "Calculating protein spike...", "\n")
+      showModal(modalDialog("Calculating protein spike...", footer = NULL)) 
+      qc_spike_start()
+      qc_spike_render(session, input, output)
+      removeModal()
+    })
   
+    
+    #------------------------------------------------------------------------------------------------------   
+    #------------------------------------------------------------------------------------------------------   
+    observeEvent(input$update_qc_spike_levels, {
+      dpmsr_set$design <- hot_to_r( input$protein_qc_spike_levels )
+    })
+    
 #------------------------------------------------------------------------------------------------------   
 #------------------------------------------------------------------------------------------------------  
     observeEvent(input$tmt_irs_go, {
@@ -345,8 +391,13 @@ observeEvent(input$data_show, {
     observeEvent(input$check_stats, {
       showModal(modalDialog("Setting Stat groups...", footer = NULL))  
       cat(file=stderr(), "Setting Stat groups...", "\n")
-      set_stat_groups(session, input, output)
+      try(set_stat_groups(session, input, output), silent = TRUE)
+      if(is.null(input$comp_spqc)){
+        shinyalert("Oops!", "Please choose and SPQC group!", type = "error")
+      }
       removeModal()
+      
+
     }
     )  
     
@@ -641,7 +692,7 @@ observeEvent(input$data_show, {
             hot_col(col = "geneID", halign = "htCenter", colWidths = 400)
         })
       }else{
-        shinyalert("Oops!", "Wiki Pathway enrichment failed...", type = "error")
+        shinyalert("Oops!", "Wiki Pathway enrichment failed due to insufficient gene IDs mapping to pathways", type = "error")
       }
       
       removeModal()
@@ -876,7 +927,7 @@ observeEvent(input$data_show, {
     observeEvent(input$action_load_dpmsr_set, { 
       cat(file=stderr(), "load dpmsr_set triggered", "\n")
       showModal(modalDialog("Working...", footer = NULL))  
-      dpmsr_file <<- parseFilePaths(volumes, input$dpmsr_set_file)
+      dpmsr_file <- parseFilePaths(volumes, input$dpmsr_set_file)
       load(file = dpmsr_file$datapath, envir = .GlobalEnv)
       #reset file locations
       dpmsr_set$file$data_dir <<- dirname(dpmsr_file$datapath)

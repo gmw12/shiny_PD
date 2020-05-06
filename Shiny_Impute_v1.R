@@ -1,6 +1,7 @@
 
-apply_impute <- function(){
+apply_impute <- function(session, input, output){
   cat(file=stderr(), "apply_impute function...", "\n")
+  
   ncores <- detectCores()
   if (is.na(ncores)) {ncores <- 1}
   norm_list <- dpmsr_set$y$norm_list
@@ -98,7 +99,9 @@ impute_multi <- function(data_in, distribution_in){
     df <- data.frame(data_in[c(dpmsr_set$y$sample_groups$start[i]:dpmsr_set$y$sample_groups$end[i])])
     df$sum <- rowSums(df, na.rm = TRUE)
     df$rep <- dpmsr_set$y$sample_groups$Count[i]
-    df$min <- dpmsr_set$y$sample_groups$Count[i]/2
+    #df$min <- dpmsr_set$y$sample_groups$Count[i]/2
+    df$max_missing <- dpmsr_set$y$sample_groups$Count[i]*((100-dpmsr_set$x$missing_cutoff)/100)
+    df$max_misaligned <- dpmsr_set$y$sample_groups$Count[i]*(dpmsr_set$x$misaligned_cutoff/100)
     df$missings <- rowSums(is.na(df[1:dpmsr_set$y$sample_groups$Count[i]]))
     df$average <- apply(df[1:dpmsr_set$y$sample_groups$Count[i]], 1, FUN = function(x) {mean(x, na.rm=TRUE)})
     
@@ -122,27 +125,27 @@ impute_multi <- function(data_in, distribution_in){
     
     # if the number of missing values <= minimum then will impute based on normal dist of measured values
     if (dpmsr_set$x$impute_method == "Duke"){  
-      find_rows <- which(df$missings >0 & df$missings<=df$min)
+      find_rows <- which(df$missings > 0 & df$missings <= df$max_missing)
         for (j in find_rows){
           findsd <- sd_info %>% filter(df$average[j] >= min2, df$average[j]<= max)
           for (k in 1:dpmsr_set$y$sample_groups$Count[i]){
             if (is.na(df[j,k])) {
-              nf <-  rnorm(1, 0, 1)
+              #nf <-  rnorm(1, 0, 1)
+              nf <- mean(runif(4, min=-1, max=1))
               df[j,k] = df$average[j] + (nf*findsd$sd[1])
             }
           }
         }
       }
     
-
+    
     # if number of missing greater than minimum and measured value is above intensity cuttoff then remove measured value
-    if (as.logical(dpmsr_set$x$missing_50)){
-      find_rows <- which(df$missings>df$min)
+    df$missings <- rowSums(is.na(df[1:dpmsr_set$y$sample_groups$Count[i]]))  #recalc if Duke filled, filters may overlap
+    if (as.logical(dpmsr_set$x$duke_misaligned)){
+      find_rows <- which(df$missings > df$max_misaligned  & df$average >= log(dpmsr_set$x$int_cutoff,2) )
       for (j in find_rows){
         for (k in 1:dpmsr_set$y$sample_groups$Count[i]){
-            if (!is.na(df[j,k]) && df[j,k] > log(dpmsr_set$x$int_cutoff,2)) {
               df[j,k] <- NA
-            }
          }
         }
       }
@@ -194,7 +197,7 @@ impute_bottomx <- function(data_in, distribution_data){
   
   for(n in names(test)){
     for(l in (test[[n]]))
-      data_in[[n]][l] <- runif(1, bottomx_min, bottomx_max)
+      data_in[[n]][l] <- mean(runif(4, bottomx_min, bottomx_max))
   }
   
   data_in <- data.frame(2^data_in)

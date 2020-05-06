@@ -37,27 +37,25 @@ setup_string <- function(input, output, data_in){
   
 run_string <- function(session, input, output){
   
-  if(input$string_direction == "Up"){
-    input_fc <- input$foldchange_cutoff
-  }else{
-    input_fc <- 1/input$foldchange_cutoff
-  }
+  input_fc_up <- log(input$foldchange_cutoff, 2)
+  input_fc_down <- log(1/input$foldchange_cutoff, 2)
   
-  input_fc <- log(input_fc, 2)
   input_pval <- input$pvalue_cutoff
   input_comp <- input$select_data_comp_string
   
   df <- dpmsr_set$string[[input_comp]]
   df <- subset(df, pvalue < input_pval)
-  xdf1<<-df
-  xinput_fc <<- input_fc
+  
   if (input$string_direction == "Up"){
-    df <- subset(df, logFC >= input_fc)
-  }else{
-    df <- subset(df, logFC <= input_fc)
+    df <- subset(df, logFC >= input_fc_up)
+  }else if (input$string_direction == "Down"){
+    df <- subset(df, logFC <= input_fc_down)
+  }else {
+    df <- subset(df, logFC >= input_fc_up | logFC <= input_fc_down )
   }
+  
   df <- df[order(-df$logFC),]
-  xdf2<<-df
+
   if (nrow(df) > input$protein_number){
     hits <- df$STRING_id[1:input$protein_number]
   }else{
@@ -80,13 +78,9 @@ run_string <- function(session, input, output){
 
 run_string_enrich <- function(input, output, data_in){
   
-  if(input$string_enrich_direction == "Up"){
-    input_fc <- input$foldchange_cutoff
-  }else{
-    input_fc <- 1/input$foldchange_cutoff
-  }
+  input_fc_up <- log(input$foldchange_cutoff, 2)
+  input_fc_down <- log(1/input$foldchange_cutoff, 2)
   
-  input_fc <- log(input_fc, 2)
   input_pval <- input$pvalue_cutoff
   
   input_comp <- input$select_data_comp_string_enrich
@@ -95,9 +89,11 @@ run_string_enrich <- function(input, output, data_in){
   df <- subset(df, pvalue < input_pval)
   
   if (input$string_enrich_direction == "Up"){
-    df <- subset(df, logFC >= input_fc)
-  }else{
-    df <- subset(df, logFC <= input_fc)
+    df <- subset(df, logFC >= input_fc_up)
+  }else if (input$string_enrich_direction == "Down"){
+    df <- subset(df, logFC <= input_fc_down)
+  }else {
+    df <- subset(df, logFC >= input_fc_up | logFC <= input_fc_down )
   }
 
   df <- df[order(-df$logFC),]

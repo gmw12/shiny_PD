@@ -9,13 +9,6 @@ stat_prep <- function(){
   #check that the parallel processing went through, if not do it again one at a time
   check_stats_prep_parallel(data_list)
   
-  #save to excel final without stats
-  for (name in names(dpmsr_set$data$final)){
-    cat(file=stderr(), str_c("Saving final excel w/o stats....", name), "\n")
-    filename <- str_c(dpmsr_set$file$output_dir, name, "//Final_", name, "_noStats.xlsx")
-    Simple_Excel_name(dpmsr_set$data$final[[name]], filename, name)
-  }
-  
   if (dpmsr_set$y$state=="Peptide" && dpmsr_set$x$final_data_output == "Protein"){
     dpmsr_set$data$finalraw <<- collapse_peptide(dpmsr_set$data$normalized$impute)
     Simple_Excel(dpmsr_set$data$finalraw, str_c(dpmsr_set$file$extra_prefix, "_final_raw_protein.xlsx", collapse = " "))
@@ -24,6 +17,17 @@ stat_prep <- function(){
     Simple_Excel(dpmsr_set$data$finalraw, str_c(dpmsr_set$file$extra_prefix, "_final_raw_peptide.xlsx", collapse = " "))
   }
 }
+
+#--------------------------------------------------------------------------------------
+save_final_nostats <- function(){
+  #save to excel final without stats
+  for (name in names(dpmsr_set$data$final)){
+    cat(file=stderr(), str_c("Saving final excel w/o stats....", name), "\n")
+    filename <- str_c(dpmsr_set$file$output_dir, name, "//Final_", name, "_noStats.xlsx")
+    Simple_Excel_name(dpmsr_set$data$final[[name]], filename, name)
+  }
+}
+
 #--------------------------------------------------------------------------------------
 stat_prep_parallel <- function(data_list){
   stat_prep_collapse(data_list)

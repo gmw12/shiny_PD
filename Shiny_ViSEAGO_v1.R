@@ -9,8 +9,10 @@ run_go_analysis <- function(input, output, data_in){
   
   if(input$go_direction == 'Up') {
     go_df <- subset(data_in, data_in[ , dpmsr_set$y$stats$groups$fc[comp_number]] >= 0 ) 
-  }else{
+  }else if (input$go_direction == 'Down') {
     go_df <- subset(data_in, data_in[ , dpmsr_set$y$stats$groups$fc[comp_number]] <= 0 ) 
+  }else{
+    go_df <- data_in
   }
   
   atest <- go_df$Accession
