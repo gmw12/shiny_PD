@@ -225,4 +225,19 @@ project_overview <- function(){
     ggsave(file_name, width=5, height=3)
     
   
+    dpmsr_set$data$data_raw_msms <<- NULL
+    dpmsr_set$data$data_raw_psm <<- NULL
+    dpmsr_set$data$data_raw_decoypsm <<- NULL
+    dpmsr_set$data$data_features <<- NULL
 }
+
+
+
+
+
+
+
+
+
+
+

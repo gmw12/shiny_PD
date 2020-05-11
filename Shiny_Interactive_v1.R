@@ -480,9 +480,9 @@ interactive_stats_volcano <- function(session, input, output, i)
 #------------------------------------------------------------------------------------------------------------------------
 #match(namesdf, names(df))
 
-interactive_grouped_barplot <- function(session, input, output, comp_string, df, info_columns, comp_name, peptide_pos_lookup)
+interactive_grouped_barplot <- function(session, input, output, comp_string, df, info_columns, comp_name, peptide_pos_lookup, color_list)
 {
-
+ xcolor_list <<- color_list
   updateTextInput(session, "stats_oneprotein_grouped_barplot_title", value = str_c(as.character(input$stats_oneprotein_accession), " - Average Peptide Intensity" )  )
   if(input$stats_use_zscore){  updateTextInput(session, "stats_oneprotein_grouped_barplot_y_axis_label", value = "Z_Score") }
   
@@ -495,6 +495,7 @@ interactive_grouped_barplot <- function(session, input, output, comp_string, df,
   df <- cbind(df$Sequence, df[(info_columns+1):ncol(df)])
   testname2 <- list(match(testname, names(df)))
   df_test <- gather(df, test, z_score, unlist(testname2))
+
   colnames(df_test) <- c("Sequence", "Name", "y")
   
   cat(file=stderr(), "Interactive group barplot...3" , "\n")
@@ -530,7 +531,7 @@ interactive_grouped_barplot <- function(session, input, output, comp_string, df,
     }
   }
   
-  xstats_data_all <<- stats_data_all
+
   cat(file=stderr(), "Interactive group barplot...4" , "\n")
   
   
@@ -564,10 +565,12 @@ interactive_grouped_barplot <- function(session, input, output, comp_string, df,
   new_df2$Position <- factor(new_df2$Position, levels = new_df2_sort)
   
   cat(file=stderr(), "Interactive group barplot...6" , "\n")
-  xnew_df2 <<- new_df2
+  
+  color_list <- rep(color_list, nrow(new_df2)/length(color_list))
+  xcolor_list <- color_list
   # Grouped
   create_stats_barplot <- reactive({
-      ggplot(new_df2, aes(fill=Comp, y=y_mean, x=Position)) + 
+      ggplot(new_df2, aes(fill=Comp, y=y_mean, x=Position   )) + 
         geom_col(color="black", width = 0.5,
                  position=position_dodge(0.5))+
           theme_classic() + 
@@ -580,6 +583,7 @@ interactive_grouped_barplot <- function(session, input, output, comp_string, df,
                 axis.text.x = element_text(size=input$stats_oneprotein_grouped_barplot_label_size, angle = 90,  color="black"),
                 axis.text.y = element_text(size=input$stats_oneprotein_grouped_barplot_label_size,  color="black"),
           ) +
+        scale_fill_manual(values = color_list)+
         geom_errorbar(aes(ymin=y_mean -sd, ymax=y_mean+sd), width=.25,
                     position=position_dodge(0.5)) +
         geom_hline(yintercept = 0, linetype="dotted", color = "black")+

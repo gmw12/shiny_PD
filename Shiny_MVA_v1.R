@@ -26,6 +26,12 @@ save_final_nostats <- function(){
     filename <- str_c(dpmsr_set$file$output_dir, name, "//Final_", name, "_noStats.xlsx")
     Simple_Excel_name(dpmsr_set$data$final[[name]], filename, name)
   }
+  
+  for (name in names(dpmsr_set$data$impute)){
+    cat(file=stderr(), str_c("Saving imputed peptide excel w/o stats....", name), "\n")
+    filename <- str_c(dpmsr_set$file$output_dir, name, "//Imputed_Peptide_", name, ".xlsx")
+    Simple_Excel_name(dpmsr_set$data$impute[[name]], filename, name)
+  }
 }
 
 #--------------------------------------------------------------------------------------
@@ -147,6 +153,8 @@ set_stat_groups <- function(session, input, output){
 }
 
 
+
+
 #--------------------------------------------------------------------------------------------------------------------------------
 #Fold change, pvalue, export volcano, return organized table for output-------------------------------------------------
 stat_calc <- function(session, input, output) {
@@ -181,7 +189,7 @@ stat_calc <- function(session, input, output) {
     stat_df[ ,dpmsr_set$y$stats$groups$mf[i]] <- missing_factor_gw(comp_N_imputed, comp_D_imputed)
   } 
   
-  # Create tables for excel--------------------------------------------------
+  # Create final tables--------------------------------------------------
   if(input$select_final_data_stats == "impute"){
     colnames(data_in) <- dpmsr_set$design$Header3
   }else{
@@ -189,6 +197,8 @@ stat_calc <- function(session, input, output) {
   }
   data_table <- cbind(annotate_in, data_in, stat_df[2:ncol(stat_df)])
   dpmsr_set$data$stats$final <<- data_table
+  
+  #single shot observers
   dpmsr_set$data$stats$final_comp <<- input$select_final_data_stats
   dpmsr_set$y$stats$pvalue_cutoff <<- input$stats_pvalue_cutoff
   dpmsr_set$y$stats$foldchange_cutoff <<- input$stats_foldchange_cutoff
@@ -198,6 +208,13 @@ stat_calc <- function(session, input, output) {
   dpmsr_set$y$stats$stats_comp_cv_filter_factor <<- input$stats_spqc_cv_filter_factor
   return()
 }
+
+
+
+
+
+
+
 
 #----------------------------------------------------------------------------------------
 # create final excel documents
@@ -385,6 +402,8 @@ oneprotein_data <- function(session, input, output) {
     df_peptide <- dpmsr_set$data$impute[[dpmsr_set$data$stats$final_comp]]
     df_peptide <- subset(df_peptide, Accession %in% as.character(input$stats_oneprotein_accession)  )
     peptide_info_columns <- ncol(df_peptide) - dpmsr_set$y$sample_number
+    colnames(df_peptide)[(peptide_info_columns+1):ncol(df_peptide)] <- dpmsr_set$design$Header1
+    testcn <<- colnames(df_peptide)
     #df_peptide <- df_peptide[(peptide_info_columns+1):ncol(df_peptide)]
     df_peptide <- df_peptide[,(c(1:peptide_info_columns,(comp_rows+peptide_info_columns))) ]
     #sort peptides by intensity, keep highest abundant peptide
@@ -394,6 +413,7 @@ oneprotein_data <- function(session, input, output) {
     df_peptide <- df_peptide[!duplicated(df_peptide$Sequence),]
     
     if(input$stats_use_zscore){df_peptide <- peptide_zscore(df_peptide, peptide_info_columns)}
+
 
     return(list("df"=df, "df_peptide"=df_peptide, "namex"=namex, "color_list"=color_list, "comp_string"=comp_string, "peptide_info_columns"=peptide_info_columns))
 }

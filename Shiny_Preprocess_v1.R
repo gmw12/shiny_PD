@@ -62,20 +62,25 @@ filter_data <- function(df){
   df <- subset(df, df$na_count > 1)
   df <- df[1:dpmsr_set$y$total_columns]
   Simple_Excel(df, str_c(dpmsr_set$file$extra_prefix, "_raw_filter.xlsx", collapse = " "))
-  if(as.logical(dpmsr_set$x$require_2)){
+  
+  if(as.logical(dpmsr_set$x$require_x)){
     for(i in 1:dpmsr_set$y$group_number) 
     {
       df$na_count <- apply(df[c((dpmsr_set$y$sample_groups$start[i]+dpmsr_set$y$info_columns):
                                   (dpmsr_set$y$sample_groups$end[i]+dpmsr_set$y$info_columns))], 1, function(x) sum(!is.na(x)))
+      df$na_count <- df$na_count / dpmsr_set$y$sample_groups$Count[i]
       colnames(df)[colnames(df)=="na_count"] <- dpmsr_set$y$sample_groups$Group[i]
     }
     df$max <- apply(df[c(dpmsr_set$y$total_columns+1):(ncol(df))], 1, function(x) max(x))
-    df <- subset(df, df$max > 1)
+    df <- subset(df, df$max > (dpmsr_set$x$require_x_cutoff/100) )
     df <- df[1:dpmsr_set$y$total_columns]
     Simple_Excel(df, str_c(dpmsr_set$file$extra_prefix, "_raw_filter_require2.xlsx", collapse = " "))
   }
+  
+  
   #optional filter by cv of specific sample group
   if(as.logical(dpmsr_set$x$filter_cv)){df<-filter_by_cv(df)}
+  
   return(df)
 }
 

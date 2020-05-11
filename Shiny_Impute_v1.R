@@ -2,7 +2,7 @@
 apply_impute <- function(session, input, output){
   cat(file=stderr(), "apply_impute function...", "\n")
   
-  ncores <- detectCores()
+  ncores <- (detectCores()/2)
   if (is.na(ncores)) {ncores <- 1}
   norm_list <- dpmsr_set$y$norm_list
   dpmsr_set$data$impute <<- mclapply(norm_list, impute_parallel, mc.cores = ncores)
@@ -13,17 +13,14 @@ apply_impute <- function(session, input, output){
   
   norm_list2 <- dpmsr_set$y$norm_list2
   if (2 %in% dpmsr_set$y$norm_list2)
-  {dpmsr_set$data$impute$tmm <<- tmm_normalize(dpmsr_set$data$impute$impute, dpmsr_set$data$impute$impute, "TMM_Norm")
-    Simple_Excel(dpmsr_set$data$impute$tmm, str_c(dpmsr_set$file$extra_prefix, "_TMM_", dpmsr_set$x$impute_method, "_impute.xlsx", collapse = " "))
+    {dpmsr_set$data$impute$tmm <<- tmm_normalize(dpmsr_set$data$impute$impute, dpmsr_set$data$impute$impute, "TMM_Norm")
     }
   if (3 %in% dpmsr_set$y$norm_list2)
-  {dpmsr_set$data$impute$sltmm <<- tmm_normalize(dpmsr_set$data$impute$sl,dpmsr_set$data$impute$sl, "SLTMM_Norm")
-    Simple_Excel(dpmsr_set$data$impute$sltmm, str_c(dpmsr_set$file$extra_prefix, "_SLTMM_", dpmsr_set$x$impute_method, "_impute.xlsx", collapse = " "))
+    {dpmsr_set$data$impute$sltmm <<- tmm_normalize(dpmsr_set$data$impute$sl,dpmsr_set$data$impute$sl, "SLTMM_Norm")
   }
   if (11 %in% dpmsr_set$y$norm_list2)
-  {dpmsr_set$data$impute$protein <<- protein_normalize(dpmsr_set$data$impute$impute, "Protein_Norm")
-    Simple_Excel(dpmsr_set$data$impute$protein, str_c(dpmsr_set$file$extra_prefix, "_Protein_", dpmsr_set$x$impute_method, "_impute.xlsx", collapse = " "))
-    }
+    {dpmsr_set$data$impute$protein <<- protein_normalize(dpmsr_set$data$impute$impute, "Protein_Norm")
+  }
 }
 
 
@@ -60,7 +57,7 @@ impute_only <-  function(data_out, norm_name){
     data_out <- impute_multi(data_out, distribution_data)
   } else if (dpmsr_set$x$impute_method== "Floor") {
     data_out[is.na(data_out)] <- dpmsr_set$x$area_floor
-  } else if (dpmsr_set$x$impute_method == "Average") {
+  } else if (dpmsr_set$x$impute_method == "Average/Group") {
     data_out <- impute_average(data_out)
   } else if (dpmsr_set$x$impute_method == "Minimium") {
     data_out <- impute_minimum(data_out)
@@ -68,11 +65,12 @@ impute_only <-  function(data_out, norm_name){
     data_out <- impute_mle(data_out)  
   } else if (dpmsr_set$x$impute_method == "BottomX") {
     data_out <- impute_bottomx(data_out, distribution_data)  
+  } else if (dpmsr_set$x$impute_method == "Average/Global") {
+    data_out <- impute_average_global(data_out)  
   } else {
     data_out[is.na(data_out)] <- 0.0}
   data_out<-data.frame(lapply(data_out, as.numeric))
   data_out<-cbind(annotation_data, data_out)
-  Simple_Excel(data_out, str_c(dpmsr_set$file$extra_prefix, "_", norm_name, "_", dpmsr_set$x$impute_method, "_impute.xlsx", collapse = " "))
   return(data_out)
 }
 
@@ -141,7 +139,8 @@ impute_multi <- function(data_in, distribution_in){
     
     # if number of missing greater than minimum and measured value is above intensity cuttoff then remove measured value
     df$missings <- rowSums(is.na(df[1:dpmsr_set$y$sample_groups$Count[i]]))  #recalc if Duke filled, filters may overlap
-    if (as.logical(dpmsr_set$x$duke_misaligned)){
+   
+     if (as.logical(dpmsr_set$x$duke_misaligned)){
       find_rows <- which(df$missings > df$max_misaligned  & df$average >= log(dpmsr_set$x$int_cutoff,2) )
       for (j in find_rows){
         for (k in 1:dpmsr_set$y$sample_groups$Count[i]){
@@ -282,3 +281,46 @@ impute_mle <- function(df){
   df_mle <- data.frame(df_mle)
   return(df_mle)
 }
+
+
+# data_in <- dpmsr_set$data$normalized$sl[(dpmsr_set$y$info_columns+1):ncol(dpmsr_set$data$normalized$sl)]
+# distribution_in <- data_in
+#--------------------------------------------------------------------------------
+# imputation of missing data
+impute_average_global <- function(data_in){
+  #Use all data for distribution or only ptm
+  df <- log(data_in,2)
+  df2 <- df
+  df$average <- apply(df, 1, FUN = function(x) {mean(x, na.rm=TRUE)})
+  df$missings <- rowSums(is.na(df))
+
+  df2$average <- apply(df2, 1, FUN = function(x) {mean(x, na.rm=TRUE)})
+  df2$sd <- apply(df2, 1, FUN = function(x) {sd(x, na.rm=TRUE)})
+  df2$bin <- ntile(df2$average, 20)  
+  sd_info <- subset(df2, !is.na(sd)) %>% group_by(bin) %>% summarize(min = min(average), max = max(average), sd = mean(sd))
+  for (x in 1:19){sd_info$max[x] <- sd_info$min[x+1]}
+  sd_info$max[nrow(sd_info)] <- 100
+  sd_info$min2 <- sd_info$min
+  sd_info$min2[1] <- 0
+  sd_info <- sd_info[-21,]
+  
+  # if the number of missing values <= minimum then will impute based on normal dist of measured values
+
+    find_rows <- which(df$missings > 0)
+    for (j in find_rows){
+      findsd <- sd_info %>% filter(df$average[j] >= min2, df$average[j]<= max)
+      for (k in 1:ncol(df)){
+        if (is.na(df[j,k])) {
+          #nf <-  rnorm(1, 0, 1)
+          nf <- mean(runif(4, min=-1, max=1))
+          df[j,k] = df$average[j] + (nf*findsd$sd[1])
+        }
+      }
+    }
+  
+  data_out <- df[1:ncol(data_in)]
+  data_out <- data.frame(2^data_out)
+    
+  return(data_out)
+}
+

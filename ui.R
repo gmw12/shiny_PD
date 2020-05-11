@@ -9,6 +9,7 @@ library(shinyalert)
 
 source("Shiny_Startup_v1.R")
 
+
 shinyUI(fluidPage(
   useShinyjs(),
   useShinyalert(),
@@ -23,7 +24,7 @@ shinyUI(fluidPage(
              br(),
              br(),
              br(),
-             tags$h1("Loading app..."),  
+             tags$h1("Loading app...") 
     ),
     tabPanel("Load Design", value = "tp1", align="center",
                         hr(),
@@ -70,7 +71,7 @@ shinyUI(fluidPage(
                          checkboxInput("checkbox_tmt", label = "SPQC Normalized TMT sets"),
                          selectInput("razor", label = h5("Peptides to Use"), 
                                      choices = list("Razor", "Unique", "Shared"), 
-                                     selected = "Razor"),
+                                     selected = "Razor")
                     )),
                      column(width=5, offset =0,
                             radioButtons("radio_output", label = h3("Select Output Data Type"),
@@ -134,14 +135,15 @@ shinyUI(fluidPage(
                           textOutput("text3"),
                           tags$head(tags$style("#text3{color: blue; font-size: 16px; font-style: bold;}")),
                           textOutput("text4"),
-                          tags$head(tags$style("#text4{color: blue; font-size: 16px; font-style: bold;}")),
+                          tags$head(tags$style("#text4{color: blue; font-size: 16px; font-style: bold;}"))
                            )
                         ),
                   column(width=5, offset = 1,
                     fluidRow(align = "left",
                           "Fixed:  entry must have at least 2 data points",
                           hr(),
-                          checkboxInput("checkbox_require2", label = "Require two data points in one group"),
+                          checkboxInput("checkbox_require_x", label = "Require X% measured values in at least one group"),
+                          numericInput("require_x_cutoff", label="Enter X% measured values", value = "Enter value here"),
                           hr(),
                           checkboxInput("checkbox_filtercv", label = "Filter on Specific Group CV"),
                           selectInput("text_filtercvgroup", label="Enter group for CV filter", 
@@ -201,8 +203,8 @@ shinyUI(fluidPage(
                       tags$head(tags$style("#text_i1{color: blue; font-size: 20px; font-style: bold;}")),
                       br(),
                       radioButtons("radio_impute", label=NULL,
-                                   choices = list("Duke/BottomX" = 1, "Floor" = 2, "Minimum" = 3,"Average" = 4,
-                                                  "KNN"= 5, "LocalLeastSquares" = 6, "MLE" = 7, "BottomX" = 8
+                                   choices = list("Duke/BottomX" = 1, "Floor" = 2, "Minimum" = 3, "Average/Group" = 4,
+                                                  "Average/Global" = 9, "KNN"= 5, "LocalLeastSquares" = 6, "MLE" = 7, "BottomX" = 8
                                    ),
                                    selected = 1),
                       dropdownButton(
@@ -354,7 +356,7 @@ shinyUI(fluidPage(
                                           imageOutput("ti_plot"),
                                           br(),
                                           imageOutput("protein_plot")
-                                   ),
+                                   )
                                  )),
                         
                           tabPanel("Selected Proteins",
@@ -369,12 +371,12 @@ shinyUI(fluidPage(
                                               textInput("adh_list", label="ADH Accession"),
                                               textInput("bait_list", label="Bait Accession"),
                                               textInput("avidin_list", label="Avidin Accession"),
-                                              textInput("carbox_list", label="Carbox Accession",),
+                                              textInput("carbox_list", label="Carbox Accession"),
                                               textInput("bira_list", label="BirA Accession"),
                                               textInput("protein1_list", label="Protein1 Accession"),
                                               textInput("protein2_list", label="Protein2 Accession"),
                                               textInput("protein3_list", label="Protein3 Accession"),
-                                              textInput("protein4_list", label="Protein4 Accession"),
+                                              textInput("protein4_list", label="Protein4 Accession")
                                           ),
                                           actionButton("protein_select_plots", label = "Create/Display Plots", width = 300,
                                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
@@ -405,7 +407,7 @@ shinyUI(fluidPage(
                                           imageOutput("ti_plot_select"),
                                           br(),
                                           imageOutput("protein_plot_select")
-                                   ),
+                                   )
                                  )),
                         
                         tabPanel("One Protein",
@@ -426,10 +428,10 @@ shinyUI(fluidPage(
                                  fluidRow(
                                    hr(),
                                    column(width=4, offset =1,
-                                          imageOutput("oneprotein_plot_select"),
+                                          imageOutput("oneprotein_plot_select")
                                    ), 
                                    column(width=4, offset =1,
-                                          rHandsontableOutput("oneprotein_stats"),
+                                          rHandsontableOutput("oneprotein_stats")
                                    )
                                  )),
                         
@@ -451,10 +453,10 @@ shinyUI(fluidPage(
                                  fluidRow(
                                    hr(),
                                    column(width=4, offset =1,
-                                          imageOutput("onepeptide_plot_select"),
+                                          imageOutput("onepeptide_plot_select")
                                    ), 
                                    column(width=4, offset =1,
-                                          rHandsontableOutput("onepeptide_stats"),
+                                          rHandsontableOutput("onepeptide_stats")
                                    )
                                  )),
                         
@@ -525,7 +527,9 @@ shinyUI(fluidPage(
                                         ),
                                    column(width=1, offset =0,
                                      dropdownButton(
-                                            checkboxInput("stats_spqc_cv_filter", label = "Filter by SPQC CV"),
+                                           checkboxInput("peptide_missing_filter", label = "Refilter peptides by requireing X% measured values in one group?"),
+                                           numericInput("peptide_missing_factor", label="Peptide X% measured cutoff (decimal)", value = 0.8),
+                                           checkboxInput("stats_spqc_cv_filter", label = "Filter by SPQC CV"),
                                             numericInput("stats_spqc_cv_filter_factor", label="SPQC %CV Cutoff", value = 50),
                                             checkboxInput("stats_comp_cv_filter", label = "Require one group CV below cuttoff"),
                                             numericInput("stats_comp_cv_filter_factor", label="Comp %CV Cutoff", value = 50),
@@ -701,8 +705,8 @@ shinyUI(fluidPage(
                                    ),
                                    column(width=4, offset =0,
                                           actionButton("create_stats_plots", label = "Create Plots", width = 100,
-                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
-                                   ),
+                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                                   )
                                  ),
                                  fluidRow(
                                    column(width=6, offset =0,
@@ -739,7 +743,7 @@ shinyUI(fluidPage(
                                             plotOutput("stats_boxplot", width = 600, height = 400)
                                           ),
                                           downloadButton('download_stats_boxplot')
-                                   ),  
+                                   )  
                                  ),
                                  hr(),
                                  fluidRow(
@@ -785,7 +789,7 @@ shinyUI(fluidPage(
                                             rglwidgetOutput("stats_pca3d", width = 600, height = 400)
                                           ),
                                           downloadButton('download_stats_pca3d')
-                                   ),  
+                                   )  
                                  ),
                                  hr(),
                                  fluidRow(
@@ -819,7 +823,7 @@ shinyUI(fluidPage(
                                             plotOutput("stats_heatmap", width = 600, height = 400)
                                           ),
                                           downloadButton('download_stats_heatmap')
-                                   ),  
+                                   )  
                                  )  
                         ),   # end graphs
                         
@@ -827,7 +831,7 @@ shinyUI(fluidPage(
                                  fluidRow(
                                    column(width=1, offset =0,
                                           actionButton("create_stats_volcano", label = "Create Volcano Plots", width = 300,
-                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4"), 
+                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
                                    )
                                  ), 
                                  fluidRow(
@@ -1165,11 +1169,11 @@ shinyUI(fluidPage(
                                    column(width=3, offset =0,
                                           selectInput("stats_select_data_comp", label = "comparison", 
                                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
-                                                      selected = 1),
+                                                      selected = 1)
                                    ),
                                    column(width=2, offset =0,
                                           checkboxInput("stats_include_all", label="View all samples?", value = 0),
-                                          checkboxInput("stats_add_filters", label="Apply stat filters (from setup)?", value = 0),
+                                          checkboxInput("stats_add_filters", label="Apply stat filters (from setup)?", value = 0)
                                    ),
                                    column(width=1, offset =0,
                                           actionButton("stats_data_show", label = "Filter Data", width = 100,
@@ -1215,7 +1219,7 @@ shinyUI(fluidPage(
                                    ),
                                    column(width=1, offset =0,
                                           actionButton("create_stats_oneprotein_plots", label = "Create Plots", width = 100,
-                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
                                    ),
                                    column(width=2, offset =1,
                                           textInput("stats_oneprotein_data_filename", label="File Name", value = "my_protein_data.xlsx", width = 250)
@@ -1268,12 +1272,24 @@ shinyUI(fluidPage(
                                    ),
                                  
                                  fluidRow(
-                                  br(),
-                                  hr(),
-                                  rHandsontableOutput("oneprotein_peptide_table")
+                                   column(width=12, offset =0,
+                                          hr(),
+                                          tags$head(tags$style("#oneprotein_peptide_table{color: blue;
+                                                           font-size: 12px;
+                                                           }"
+                                          )
+                                          ),
+                                          DT::dataTableOutput("oneprotein_peptide_table", width='100%')
+                                   )
                                  )
-                                  )
-                                 
+                                 # 
+                                 # 
+                                 # fluidRow(
+                                 #  br(),
+                                 #  hr(),
+                                 #  rHandsontableOutput("oneprotein_peptide_table")
+                                 # )
+              ) #end tab panel
              ) # end of navbar panel
     ),  #end of tab panel
     
@@ -1584,7 +1600,7 @@ shinyUI(fluidPage(
                         )           
                         
              )
-    ), # end of tab panel Extra   
+    ), # end of tab panel Phos  
    
    
     
@@ -1593,6 +1609,7 @@ shinyUI(fluidPage(
                tags$h1("Save dpmsr_set file..."),
                hr(),
                br(),
+               textInput("dpmsr_set_name", label="File Name", value ="dpmsr_set_filename", width = 250),
                br(),
                actionButton("save_dpmsr_set", label = "Save dpmsr_set", width = 300,
                     style="color: #fff; background-color: #337ab7; border-color: #2e6da4")

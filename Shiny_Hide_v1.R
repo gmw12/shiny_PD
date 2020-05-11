@@ -75,7 +75,14 @@
     }
   })   
   
-  
+ 
+  observe({
+    if (!input$checkbox_require_x) {
+      shinyjs::hide("require_x_cutoff")
+    } else {
+      shinyjs::show("require_x_cutoff")
+    }
+  })   
   
   observe({
     if (!input$checkbox_filtercv) {
@@ -187,6 +194,7 @@
       shinyjs::hide("misaligned_cutoff")
       shinyjs::hide("intensity_cutoff_mean_sd")
       shinyjs::hide("text_i2")
+      updateCheckboxInput(session, "checkbox_misaligned", value = FALSE) 
     }
   })
   
@@ -201,11 +209,22 @@
   observe({
     if (input$checkbox_misaligned){
       shinyjs::show("misaligned_cutoff")
+      shinyjs::show("intensity_cutoff_mean_sd")
+      shinyjs::show("adjust_intensity_cutoff")
     }else {
       shinyjs::hide("misaligned_cutoff")
+      shinyjs::hide("intensity_cutoff_mean_sd")
+      shinyjs::hide("adjust_intensity_cutoff")
     }
   }) 
   
+  observe({
+    if (!input$peptide_missing_filter){
+      shinyjs::hide("peptide_missing_factor")
+    }else {
+      shinyjs::show("peptide_missing_factor")
+    }
+  })
   
   observe({
     if (!input$checkbox_tmt_filter){

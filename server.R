@@ -15,7 +15,6 @@ library(shinyalert)
 
 cat(file=stderr(), "Server.R line 11", "\n")
 
-
 cat(file=stderr(), "Server.R line 15", "\n")
 
 shinyServer(function(input, output, session) {
@@ -584,7 +583,9 @@ observeEvent(input$data_show, {
         interactive_barplot(session, input, output, df, namex, color_list, "stats_oneprotein_barplot", input$stats_oneprotein_plot_comp)
         peptide_pos_lookup <-  peptide_position_lookup(session, input, output)
         
-        interactive_grouped_barplot(session, input, output, comp_string, df_peptide, peptide_info_columns, input$stats_oneprotein_plot_comp, peptide_pos_lookup)
+        grouped_color <- unique(color_list)
+        interactive_grouped_barplot(session, input, output, comp_string, df_peptide, peptide_info_columns, 
+                                    input$stats_oneprotein_plot_comp, peptide_pos_lookup, grouped_color)
         
         df_peptide <- merge(df_peptide, peptide_pos_lookup, by=(c("Accession", "Sequence"))    )
         df_peptide$Start <- as.numeric(df_peptide$Start)
@@ -593,24 +594,90 @@ observeEvent(input$data_show, {
         df_peptide <- df_peptide %>% dplyr::select(Start, everything())
         df_peptide <- df_peptide[order(df_peptide$Start, df_peptide$Stop), ]
         
-        output$oneprotein_peptide_table<- renderRHandsontable({
-          rhandsontable(df_peptide, rowHeaders = NULL, columnHeaderwidth = 200, width = 1200, height = 500) %>%
-            hot_cols(fixedColumnsLeft = 2, colWidths = 80, halign = "htCenter" ) %>%
-            #hot_col(col = "Peptides", format="0") %>%
-            #hot_col(col = dpmsr_set$y$info_columns_final:(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number), format="0", digits =0) %>%
-            #hot_col(col = (dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number+1):(ncol(dpmsr_set$data$final$impute)), format="0.00") %>%
-            hot_col(col = "Description", halign = "htLeft", colWidths = 350) %>%
-            hot_col(col = "Sequence", halign = "htLeft", colWidths = 200) %>%
-            hot_col(col = "Start", halign = "htCenter", format="0") %>%
-            hot_col(col = "Stop", halign = "htCenter", format="0") %>%
-            hot_rows(rowHeights = 10)
-      })
+        sample_col_numbers <- seq(from=14, to = ncol(df_peptide) )
+        
+        oneprotein_peptide_DT <-  DT::datatable(df_peptide,
+                                   rownames = FALSE,
+                                   extensions = c("FixedColumns"), #, "Buttons"),
+                                   options=list(
+                                     #dom = 'Bfrtipl',
+                                     autoWidth = TRUE,
+                                     scrollX = TRUE,
+                                     scrollY=500,
+                                     scrollCollapse=TRUE,
+                                     columnDefs = list(list(targets = c(0,1), visibile = TRUE, "width"='30', className = 'dt-center'),
+                                                       list(targets = c(2), visible = TRUE, "width"='20', className = 'dt-center'),
+                                                       list(
+                                                         targets = c(5),
+                                                         width = '250',
+                                                         render = JS(
+                                                           "function(data, type, row, meta) {",
+                                                           "return type === 'display' && data.length > 35 ?",
+                                                           "'<span title=\"' + data + '\">' + data.substr(0, 35) + '...</span>' : data;",
+                                                           "}")
+                                                       ),
+                                                       list(
+                                                         targets = c(6),
+                                                         width = '150',
+                                                         render = JS(
+                                                           "function(data, type, row, meta) {",
+                                                           "return type === 'display' && data.length > 35 ?",
+                                                           "'<span title=\"' + data + '\">' + data.substr(0, 35) + '...</span>' : data;",
+                                                           "}")
+                                                       ),
+                                                       list(
+                                                         targets = c(12),
+                                                         width = '100',
+                                                         render = JS(
+                                                           "function(data, type, row, meta) {",
+                                                           "return type === 'display' && data.length > 20 ?",
+                                                           "'<span title=\"' + data + '\">' + data.substr(0, 20) + '...</span>' : data;",
+                                                           "}")
+                                                       )
+                                     ),
+                                     ordering = TRUE,
+                                     orderClasses= TRUE,
+                                     fixedColumns = list(leftColumns = 2),
+                                     pageLength = 100, lengthMenu = c(10,50,100,200)),
+                                   #buttons=c('copy', 'csv', 'excelHtml5', 'pdf')),
+                                   callback = JS('table.page(3).draw(false);'
+                                   ))
+        
+        oneprotein_peptide_DT <- oneprotein_peptide_DT %>%  formatRound(columns=c(sample_col_numbers), digits=2)
+        
+        output$oneprotein_peptide_table<-  DT::renderDataTable({oneprotein_peptide_DT })
+        
+        
+        
+      #   output$oneprotein_peptide_table<- renderRHandsontable({
+      #     rhandsontable(df_peptide, rowHeaders = NULL, columnHeaderwidth = 200, width = 1200, height = 500) %>%
+      #       hot_cols(fixedColumnsLeft = 2, colWidths = 80, halign = "htCenter" ) %>%
+      #       #hot_col(col = "Peptides", format="0") %>%
+      #       #hot_col(col = dpmsr_set$y$info_columns_final:(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number), format="0", digits =0) %>%
+      #       #hot_col(col = (dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number+1):(ncol(dpmsr_set$data$final$impute)), format="0.00") %>%
+      #       hot_col(col = "Description", halign = "htLeft", colWidths = 350) %>%
+      #       hot_col(col = "Sequence", halign = "htLeft", colWidths = 200) %>%
+      #       hot_col(col = "Start", halign = "htCenter", format="0") %>%
+      #       hot_col(col = "Stop", halign = "htCenter", format="0") %>%
+      #       hot_rows(rowHeights = 10)
+      # })
       
+        
+        
+        
+        
       }else{
         shinyalert("Oops!", "No Accession...", type = "error")
       }
       removeModal()
        
+      
+      # ui htmlOutput("testme"),
+      # server output$testme <- renderText(  '<h1>Choose and <span style="color:blue">Load </span> the study design file...</h1>' )
+      
+      
+      
+      
     })
     
     #-------------------------------------------------------------------------------------------------------------      
@@ -887,7 +954,7 @@ observeEvent(input$data_show, {
       }, deleteFile = FALSE)
       
       output$string_link <- renderText({string_list$linkthis})
-      
+
       removeModal()
     }
     ) 
@@ -918,7 +985,7 @@ observeEvent(input$data_show, {
     #-------------------------------------------------------------------------------------------------------------      
     #-------------------------------------------------------------------------------------------------------------   
     observeEvent(input$save_dpmsr_set, { 
-      save(dpmsr_set, file=str_c(dpmsr_set$file$output_dir, dpmsr_set$x$file_prefix, ".dpmsr_set"))
+      save(dpmsr_set, file=str_c(dpmsr_set$file$output_dir, input$dpmsr_set_name, ".dpmsr_set"))
     })  
     
     

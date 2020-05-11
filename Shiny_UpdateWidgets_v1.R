@@ -48,8 +48,10 @@ update_widget_startup <- function(session, input, output){
 #-Filter--------------------------------------------------------------------- 
 update_widget_filter <- function(session, input, output){
   
-  if (as.logical(dpmsr_set$x$require_2)) {require2 <- 1}else{require2<-0}
-  updateCheckboxInput(session, "checkbox_require2", value = require2)
+  if (as.logical(dpmsr_set$x$require_x)) {requirex <- 1}else{requirex<-0}
+  updateCheckboxInput(session, "checkbox_require_x", value = requirex)
+  
+  updateNumericInput(session, "require_x_cutoff", value = as.numeric(dpmsr_set$x$require_x_cutoff))
 
   if (as.logical(dpmsr_set$x$filter_cv)) {require_cv <- 1}else{require_cv<-0}
   updateCheckboxInput(session, "checkbox_filtercv", value = require_cv)
@@ -121,11 +123,12 @@ update_widget_norm <- function(session, input, output){
     if(dpmsr_set$x$impute_method == "Duke"){impute_method <- 1}
       else if(dpmsr_set$x$impute_method == "Floor"){impute_method <- 2}
       else if(dpmsr_set$x$impute_method == "Minimum"){impute_method <- 3}
-      else if(dpmsr_set$x$impute_method == "Aerage"){impute_method <- 4}
+      else if(dpmsr_set$x$impute_method == "Aerage/Group"){impute_method <- 4}
       else if(dpmsr_set$x$impute_method == "KNN"){impute_method <- 5}
       else if(dpmsr_set$x$impute_method == "LocalLeastSquares"){impute_method <- 6}
       else if(dpmsr_set$x$impute_method == "MLE"){impute_method <- 7}
       else if(dpmsr_set$x$impute_method == "BottomX"){impute_method <- 8}
+      else if(dpmsr_set$x$impute_method == "Average/Global"){impute_method <- 9}
     updateRadioButtons(session, "radio_impute", selected = impute_method )
     
     if (as.logical(dpmsr_set$x$peptide_ptm_impute) ) {ptmreport <- 1}else{ptmreport<-0}
@@ -271,6 +274,9 @@ update_widget_stats <- function(session, input, output){
   updateNumericInput(session, "missing_factor", value = as.numeric(dpmsr_set$x$missing_factor ))
   updateSelectInput(session, "select_final_data_stats", selected = dpmsr_set$data$stats$final_comp)
   updateSelectInput(session, "select_organism", selected = dpmsr_set$y$organism)
+  
+  updateCheckboxInput(session, "peptide_missing_filter", value = as.logical(dpmsr_set$y$peptide_missing_filter))
+  updateNumericInput(session, "peptide_missing_factor", value = as.numeric(dpmsr_set$y$peptide_missing_factor  ))
 }
 
 

@@ -35,7 +35,11 @@ update_dpmsr_set_from_widgets <- function(session, input){
   
   #-Filters-----------------------------------------------------------------------------------------------------    
   observe({
-    if (input$checkbox_require2){dpmsr_set$x$require_2 <<-TRUE}else{dpmsr_set$x$require_2 <<-FALSE}
+    if (input$checkbox_require_x){dpmsr_set$x$require_x <<-TRUE}else{dpmsr_set$x$require_2 <<-FALSE}
+  })
+  
+  observe({
+    dpmsr_set$x$require_x_cutoff <<-  input$require_x_cutoff
   })
   
   observe({
@@ -104,11 +108,12 @@ update_dpmsr_set_from_widgets <- function(session, input){
     if (input$radio_impute ==1){dpmsr_set$x$impute_method <<-"Duke"}
     else if (input$radio_impute ==2){dpmsr_set$x$impute_method <<-"Floor"}
     else if (input$radio_impute ==3){dpmsr_set$x$impute_method <<-"Minimum"}
-    else if (input$radio_impute ==4){dpmsr_set$x$impute_method <<-"Average"}
+    else if (input$radio_impute ==4){dpmsr_set$x$impute_method <<-"Average/Group"}
     else if (input$radio_impute ==5){dpmsr_set$x$impute_method <<-"KNN"}
     else if (input$radio_impute ==6){dpmsr_set$x$impute_method <<-"LocalLeastSquares"}
     else if (input$radio_impute ==7){dpmsr_set$x$impute_method <<-"MLE"}    
     else if (input$radio_impute ==8){dpmsr_set$x$impute_method <<-"BottomX"}   
+    else if (input$radio_impute ==9){dpmsr_set$x$impute_method <<-"Average/Global"}  
   })
   
   observe({
@@ -160,6 +165,14 @@ update_dpmsr_set_from_widgets <- function(session, input){
   
   observe({
     dpmsr_set$x$missing_factor <<- input$missing_factor
+  })
+  
+  observe({
+    dpmsr_set$y$peptide_missing_filter <<- input$peptide_missing_filter
+  })
+  
+  observe({
+    dpmsr_set$y$peptide_missing_factor <<- input$peptide_missing_factor
   })
   
   observe({
