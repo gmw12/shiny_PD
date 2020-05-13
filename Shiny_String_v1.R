@@ -1,4 +1,4 @@
-setup_string <- function(input, output, data_in){
+setup_string <- function(session, input, output){
   
   dpmsr_set$string$string_db <<- NULL
   tax_choice <- input$select_organism
@@ -17,6 +17,7 @@ setup_string <- function(input, output, data_in){
   
   for (i in 1:dpmsr_set$x$comp_number){
     comp_name <- dpmsr_set$y$stats$groups$comp_name[i]
+    data_in <- dpmsr_set$data$stats[[comp_name]]
     pval_col <- dpmsr_set$y$stats$groups$pval[i]
     fc2_col <- dpmsr_set$y$stats$groups$fc2[i]
     df <- data.frame(cbind(data_in[pval_col], data_in[fc2_col], data_in$Accession), stringsAsFactors = FALSE)

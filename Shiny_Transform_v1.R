@@ -102,7 +102,20 @@ collapse_peptide <- function(peptide_data){
   return(test2)
 } 
 
-
+#--- collapse peptide to protein-------------------------------------------------------------
+collapse_peptide_stats <- function(peptide_data){
+  peptide_annotate <- peptide_data[1:(dpmsr_set$y$info_columns)]
+  peptide_data <- peptide_data[(dpmsr_set$y$info_columns+1):ncol(peptide_data)]
+  peptide_data[is.na(peptide_data)] <- 0
+  peptide_annotate <- peptide_annotate[, c("Accession", "Description")]
+  peptide_annotate$Peptides <- 1
+  peptide_annotate$Peptides <- as.numeric(peptide_annotate$Peptides)
+  test1 <- cbind(peptide_annotate, peptide_data)
+  #test2 <- test1 %>% group_by(Accession, Description) %>% summarise_all(funs(sum))
+  test2 <- test1 %>% group_by(Accession, Description) %>% summarise_all(list(sum))
+  test2 <- data.frame(ungroup(test2))
+  return(test2)
+} 
 
 #----------------------------------------------------------------------------------------
 

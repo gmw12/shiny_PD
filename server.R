@@ -405,7 +405,7 @@ observeEvent(input$data_show, {
     observeEvent(input$start_stats, {
       showModal(modalDialog("Calculating stats...", footer = NULL))  
       cat(file=stderr(), "Calculating stats...", "\n")
-      stat_calc(session, input, output)
+      stat_calc2(session, input, output)
       removeModal()
     }
     )    
@@ -426,7 +426,8 @@ observeEvent(input$data_show, {
     observeEvent(input$create_stats_plots, {
       showModal(modalDialog("Working...", footer = NULL))  
       
-      df <- dpmsr_set$data$stats$final[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)]
+      df <- dpmsr_set$data$final[[input$select_final_data_stats ]][(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)]
+      
       comp_string <- input$stats_plot_comp
       cat(file=stderr(), "Create stats plots" , "\n")
       for (i in 1:length(comp_string)){
@@ -771,9 +772,7 @@ observeEvent(input$data_show, {
     observeEvent(input$profile_show, {
       showModal(modalDialog("Creating Go Profile...", footer = NULL))  
       
-      profile_df <- dpmsr_set$data$stats$final
-      
-      profile_data <- try(run_profile(input, output, profile_df), silent=TRUE)
+      profile_data <- try(run_profile(session, input, output), silent=TRUE)
       
       if ( class(profile_data) != "try-error"){
       
@@ -807,13 +806,11 @@ observeEvent(input$data_show, {
     observeEvent(input$go_show, {
       showModal(modalDialog("Go Enrichment Analysis...", footer = NULL))  
       
-      go_df <- dpmsr_set$data$stats$final
-      #go_data <<- try(run_go_analysis(input, output, go_df), silent = FALSE)
-      go_data <- try(run_go_analysis(input, output, go_df), silent=TRUE)
+      go_data <- try(run_go_analysis(session, input, output), silent=TRUE)
       #go_data <- goresult
       
       if ( class(go_data) != "try-error"){
-        setup_go_volcano(input, output, go_df)
+        setup_go_volcano(session, input, output)
         #go_data <- try(go_data[order(go_data$pvalue),], silent = TRUE)
         
         output$go_table <- renderRHandsontable({
@@ -844,8 +841,12 @@ observeEvent(input$data_show, {
     observeEvent(input$go_volcano, {
       showModal(modalDialog("Preparing Go Volcano...", footer = NULL))  
       
+      comp_string <- input$select_data_comp_go
+      comp_number <- which(grepl(comp_string, dpmsr_set$y$stats$groups$comp_name))
+      data_in <- dpmsr_set$data$stats[[comp_string]]
+      
       volcano_data <- interactive_go_volcano(session, input, output)
-      volcano_go_data <- subset(dpmsr_set$data$stats$final, Accession %in% volcano_data$Accession  )
+      volcano_go_data <- subset(data_in, Accession %in% volcano_data$Accession  )
       
       volcano_go_data_colnames <- colnames(volcano_go_data )
       volcano_go_data_colnames <- gsub("_v_", " v ", volcano_go_data_colnames)
@@ -921,7 +922,7 @@ observeEvent(input$data_show, {
       
       showModal(modalDialog("Saving Go Volcano Data...", footer = NULL))  
 
-      volcano_data <- create_go_volcano(input, output, session)
+      volcano_data <- create_go_volcano(session, input, output)
       volcano_go_data <- subset(dpmsr_set$data$stats$final, Accession %in% volcano_data$Accession  )
       
       filename <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", input$volcano_data_filename)
@@ -934,7 +935,7 @@ observeEvent(input$data_show, {
     observeEvent(input$setup_string, {
       cat(file=stderr(), "string_setup triggered", "\n")
       showModal(modalDialog("String setup...", footer = NULL))  
-      setup_string(input, output, dpmsr_set$data$stats$final)
+      setup_string(session, input, output)
       removeModal()
     }
     ) 

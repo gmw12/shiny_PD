@@ -176,6 +176,14 @@ update_dpmsr_set_from_widgets <- function(session, input){
   })
   
   observe({
+    dpmsr_set$y$peptide_cv_filter <<- input$peptide_cv_filter
+  })
+  
+  observe({
+    dpmsr_set$y$peptide_cv_factor <<- input$peptide_cv_factor
+  })
+  
+  observe({
     if (input$checkbox_out_ptm){dpmsr_set$x$peptide_ptm_norm<<-TRUE
     }else{dpmsr_set$x$peptide_ptm_norm<<-FALSE}
   })

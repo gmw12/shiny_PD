@@ -240,7 +240,7 @@ update_widget_post_processing <- function(session, input, output){
       updateSelectInput(session, "select_final_data_stats", selected = dpmsr_set$data$stats$final_comp)
       updatePickerInput(session, "comp_spqc", selected= dpmsr_set$y$stats$comp_spqc)
       updatePickerInput(session, "stats_plot_comp", choices = dpmsr_set$y$stats$groups$comp_name)
-      updatePickerInput(session, "stats_oneprotein_plot_comp", choices = dpmsr_set$y$stats$groups$comp_name, selected = dpmsr_set$y$stats$groups$comp_name[1])
+      updateSelectInput(session, "stats_oneprotein_plot_comp", choices = dpmsr_set$y$stats$groups$comp_name, selected = dpmsr_set$y$stats$groups$comp_name[1])
       updatePickerInput(session, "stats_select_data_comp", choices = dpmsr_set$y$stats$groups$comp_name)
       updatePickerInput(session, "stats_select_data_comp", choices = dpmsr_set$y$stats$groups$comp_name)
       updateSelectInput(session, "select_data_comp_motif", choices = dpmsr_set$y$stats$groups$comp_name)
@@ -277,6 +277,9 @@ update_widget_stats <- function(session, input, output){
   
   updateCheckboxInput(session, "peptide_missing_filter", value = as.logical(dpmsr_set$y$peptide_missing_filter))
   updateNumericInput(session, "peptide_missing_factor", value = as.numeric(dpmsr_set$y$peptide_missing_factor  ))
+  
+  updateCheckboxInput(session, "peptide_cv_filter", value = as.logical(dpmsr_set$y$peptide_cv_filter))
+  updateNumericInput(session, "peptide_cv_factor", value = as.numeric(dpmsr_set$y$peptide_cv_factor  ))
 }
 
 

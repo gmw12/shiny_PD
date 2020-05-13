@@ -1,6 +1,6 @@
 interactive_go_volcano <- function(session, input, output)
 {
-    volcano_data <- create_go_volcano(input, output, session)
+    volcano_data <- create_go_volcano(session, input, output)
     
     # testdf <- data.frame(cbind(dpmsr_set$data$stats$final$Accession, dpmsr_set$data$stats$final$Description))
     # colnames(testdf) <- c("Accession", "Description")
@@ -392,7 +392,7 @@ interactive_heatmap <- function(session, input, output, df, namex, groupx)
 
 interactive_stats_volcano <- function(session, input, output, i)
 {
-  df <- dpmsr_set$data$stats$final
+  df <- dpmsr_set$data$stats[[dpmsr_set$y$stats$groups$comp_name[i]]]
   df <- subset(df, df[ , dpmsr_set$y$stats$groups$mf[i]] >= input$missing_factor )
   df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[i]))
   df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[i]))
@@ -482,9 +482,19 @@ interactive_stats_volcano <- function(session, input, output, i)
 
 interactive_grouped_barplot <- function(session, input, output, comp_string, df, info_columns, comp_name, peptide_pos_lookup, color_list)
 {
- xcolor_list <<- color_list
-  updateTextInput(session, "stats_oneprotein_grouped_barplot_title", value = str_c(as.character(input$stats_oneprotein_accession), " - Average Peptide Intensity" )  )
-  if(input$stats_use_zscore){  updateTextInput(session, "stats_oneprotein_grouped_barplot_y_axis_label", value = "Z_Score") }
+  comp_string <<- comp_string 
+  df <<- df
+  info_columns <<- info_columns 
+  comp_name  <<- comp_name
+  peptide_pos_lookup <<- peptide_pos_lookup
+  color_list <<- color_list
+  
+
+  if(input$stats_use_zscore){  
+    updateTextInput(session, "stats_oneprotein_grouped_barplot_title", value = str_c(as.character(input$stats_oneprotein_accession), " - Average Peptide Zscore" )  )
+  }else{
+    updateTextInput(session, "stats_oneprotein_grouped_barplot_title", value = str_c(as.character(input$stats_oneprotein_accession), " - Average Peptide Intensity" )  )
+  }
   
   cat(file=stderr(), "Interactive group barplot...1" , "\n")
   cat(file=stderr(), comp_string , "\n")
@@ -499,46 +509,38 @@ interactive_grouped_barplot <- function(session, input, output, comp_string, df,
   colnames(df_test) <- c("Sequence", "Name", "y")
   
   cat(file=stderr(), "Interactive group barplot...3" , "\n")
+  cat(file=stderr(), str_c("comp_string = ", comp_string) , "\n")
+    
+  comp_number <- which(dpmsr_set$y$stats$groups$comp_name == comp_string)
+    
+  cat(file=stderr(), str_c("comp_number = ", comp_number) , "\n")
+    
+  stats_data_N <- df_test
+  stats_data_D <- df_test
+    
+  groupN <- unlist(str_split(dpmsr_set$y$stats$groups$comp_N[comp_number], "_"))
+  groupD <- unlist(str_split(dpmsr_set$y$stats$groups$comp_D[comp_number], "_"))
+    
+  cat(file=stderr(), str_c("groupN = ", groupN) , "\n")
+  cat(file=stderr(), str_c("groupD = ", groupD) , "\n")
+    
+  for(stats_group in groupN){stats_data_N <- stats_data_N %>% filter(str_detect(Name, stats_group))   }
+  for(stats_group in groupD){stats_data_D <- stats_data_D %>% filter(str_detect(Name, stats_group))   }
+    
+  stats_data_N$Comp <- dpmsr_set$y$stats$groups$comp_N[comp_number]
+  stats_data_D$Comp <- dpmsr_set$y$stats$groups$comp_D[comp_number]
+  stats_data_N$Order <- "1"
+  stats_data_D$Order <- "2"
   
-
-  for (i in 1:length(comp_string)){
-    
-    cat(file=stderr(), str_c("comp_string = ", comp_string) , "\n")
-    
-    comp_number <- which(dpmsr_set$y$stats$groups$comp_name == comp_string[i])
-    
-    cat(file=stderr(), str_c("comp_number = ", comp_number) , "\n")
-    
-    stats_data_N <- df_test
-    stats_data_D <- df_test
-    
-    groupN <- unlist(str_split(dpmsr_set$y$stats$groups$comp_N[comp_number], "_"))
-    groupD <- unlist(str_split(dpmsr_set$y$stats$groups$comp_D[comp_number], "_"))
-    
-    cat(file=stderr(), str_c("groupN = ", groupN) , "\n")
-    cat(file=stderr(), str_c("groupD = ", groupD) , "\n")
-    
-    for(stats_group in groupN){stats_data_N <- stats_data_N %>% filter(str_detect(Name, stats_group))   }
-    for(stats_group in groupD){stats_data_D <- stats_data_D %>% filter(str_detect(Name, stats_group))   }
-    
-    stats_data_N$Comp <- dpmsr_set$y$stats$groups$comp_N[comp_number]
-    stats_data_D$Comp <- dpmsr_set$y$stats$groups$comp_D[comp_number]
-    
-    if (i==1){
-      stats_data_all <- rbind(stats_data_N, stats_data_D)
-    }else{
-      stats_data_all <- rbind(stats_data_all, stats_data_N, stats_data_D)
-    }
-  }
-  
+  stats_data_all <- rbind(stats_data_N, stats_data_D)
 
   cat(file=stderr(), "Interactive group barplot...4" , "\n")
-  
   
   #add spqc to plots
   if(input$stats_oneprotein_plot_spqc){
     stats_data_spqc <- df_test %>% filter(str_detect(Name, dpmsr_set$y$stats$comp_spqc)) 
     stats_data_spqc$Comp <- dpmsr_set$y$stats$comp_spqc
+    stats_data_spqc$Order <- "3"
     stats_data_all <- rbind(stats_data_all, stats_data_spqc)
     }
   
@@ -553,21 +555,26 @@ interactive_grouped_barplot <- function(session, input, output, comp_string, df,
   new_df$Position <- as.character(new_df$Position )
   new_df$Sequence <- as.character(new_df$Sequence)
   
-  new_df2 <- new_df %>% group_by(Comp, Sequence, Position, Start, Stop) %>% summarise(y_mean=mean(y), sd=sd(y))
+  new_df2 <- new_df %>% group_by(Order, Comp, Sequence, Position, Start, Stop) %>% summarise(y_mean=mean(y), sd=sd(y))
 
   new_df2 <- data.frame(ungroup(new_df2))
   new_df2$Start<- as.numeric(new_df2$Start)
   new_df2$Stop<- as.numeric(new_df2$Stop)
-  new_df2 <- new_df2[order(new_df2$Comp,new_df2$Start, new_df2$Stop), ]
+  new_df2 <- new_df2[order(new_df2$Order,new_df2$Start, new_df2$Stop), ]
 
   new_df2$Position <- as.character(new_df2$Position)
   new_df2_sort <- unique(new_df2$Position)
   new_df2$Position <- factor(new_df2$Position, levels = new_df2_sort)
   
+  new_df2$Comp <- as.character(new_df2$Comp)
+  new_df2_sort2 <- unique(new_df2$Comp)
+  new_df2$Comp <- factor(new_df2$Comp, levels = new_df2_sort2)
+  
   cat(file=stderr(), "Interactive group barplot...6" , "\n")
   
   color_list <- rep(color_list, nrow(new_df2)/length(color_list))
   xcolor_list <- color_list
+  
   # Grouped
   create_stats_barplot <- reactive({
       ggplot(new_df2, aes(fill=Comp, y=y_mean, x=Position   )) + 

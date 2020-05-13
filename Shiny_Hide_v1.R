@@ -227,6 +227,14 @@
   })
   
   observe({
+    if (!input$peptide_cv_filter){
+      shinyjs::hide("peptide_cv_factor")
+    }else {
+      shinyjs::show("peptide_cv_factor")
+    }
+  })
+  
+  observe({
     if (!input$checkbox_tmt_filter){
       shinyjs::hide("tmt_filter_sd")
     }else {

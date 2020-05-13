@@ -527,8 +527,10 @@ shinyUI(fluidPage(
                                         ),
                                    column(width=1, offset =0,
                                      dropdownButton(
-                                           checkboxInput("peptide_missing_filter", label = "Refilter peptides by requireing X% measured values in one group?"),
+                                           checkboxInput("peptide_missing_filter", label = "Refilter peptides by requiring X% measured values in one group?"),
                                            numericInput("peptide_missing_factor", label="Peptide X% measured cutoff (decimal)", value = 0.8),
+                                           checkboxInput("peptide_cv_filter", label = "Refilter peptides by requiring X %CV one group?"),
+                                           numericInput("peptide_cv_factor", label="Peptide X CV% cutoff", value = 100),
                                            checkboxInput("stats_spqc_cv_filter", label = "Filter by SPQC CV"),
                                             numericInput("stats_spqc_cv_filter_factor", label="SPQC %CV Cutoff", value = 50),
                                             checkboxInput("stats_comp_cv_filter", label = "Require one group CV below cuttoff"),
@@ -1172,7 +1174,6 @@ shinyUI(fluidPage(
                                                       selected = 1)
                                    ),
                                    column(width=2, offset =0,
-                                          checkboxInput("stats_include_all", label="View all samples?", value = 0),
                                           checkboxInput("stats_add_filters", label="Apply stat filters (from setup)?", value = 0)
                                    ),
                                    column(width=1, offset =0,
@@ -1207,10 +1208,11 @@ shinyUI(fluidPage(
                                           textInput("stats_oneprotein_accession", label="Accession", value = "0", width = 100)
                                    ),
                                    column(width=3, offset =0,
-                                          pickerInput(inputId = "stats_oneprotein_plot_comp", label = "Comparison(s) to plot",  choices = "None", 
-                                                      options = list(`actions-box` = TRUE, size = 100,
-                                                                     `selected-text-format` = "count > 5"),  multiple = TRUE)
+                                          selectInput("stats_oneprotein_plot_comp", label = "comparison", 
+                                                      choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
+                                                      selected = 1)
                                    ),
+                                   
                                    column(width=1, offset =0,
                                           checkboxInput("stats_oneprotein_plot_spqc", label = "Add SPQC?")
                                    ),
