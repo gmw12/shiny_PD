@@ -93,11 +93,12 @@ qc_spike_final <- function(data_in) {
 #save dataframe with ADH peptides for QC meteric
 adh_spike <- function(){
   ADH_data <-subset(dpmsr_set$data$impute$impute, Accession %in% dpmsr_set$x$adh_list)
-  ADH_data$missings <- rowSums(ADH_data[(dpmsr_set$y$info_columns+1):ncol(ADH_data)] ==0)
+  info_columns <- ncol(ADH_data) - dpmsr_set$y$sample_number
+  ADH_data$missings <- rowSums(ADH_data[(info_columns+1):ncol(ADH_data)] ==0)
   ADH_data <- subset(ADH_data, missings==0)
   ADH_data <- ADH_data[ , -ncol(ADH_data)]
   ADH_annotate <- ADH_data[, c("Accession", "Sequence")]
-  ADH_data <- ADH_data[(dpmsr_set$y$info_columns+1):ncol(ADH_data)]
+  ADH_data <- ADH_data[(info_columns+1):ncol(ADH_data)]
   ADH_data <- cbind(ADH_annotate, ADH_data)
   ADH_data <- ADH_data  %>% group_by(Accession, Sequence) %>% summarise_all(funs(sum))
   ADH_data$cv <- percentCV_gw(ADH_data[(dpmsr_set$y$info_columns+1):ncol(ADH_data)])
@@ -106,7 +107,7 @@ adh_spike <- function(){
   ADH_data$id <- seq(1, nrow(ADH_data), by=1)
   ADH_data$color <- distinctColorPalette(nrow(ADH_data))
   ADH_data <- ADH_data[order(-ADH_data$av),]
-  ADH_data <- ADH_data[1:15,]
+  ADH_data <- ADH_data[1:12,]
   file_name <- str_c(dpmsr_set$file$qc_dir, "ADH_barplot.png")
   barplot_adh(ADH_data$cv[1:12], ADH_data$Sequence[1:12],"ADH Peptide CV's", file_name)
   box_plot_adh(ADH_data)

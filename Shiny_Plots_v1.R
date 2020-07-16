@@ -252,12 +252,11 @@ Cluster_plot <- function(x,y, plot_dir) {
 }
 
 #Histogram for total intensity-------------------------------------------------
-histogram_plot <- function()
+histogram_plot <- function(df, plottitle)
 {
   cat(file=stderr(), "histogram plot function called", "\n")
-  x<-dpmsr_set$data$data_to_norm[(dpmsr_set$y$info_columns+1):ncol(dpmsr_set$data$data_to_norm)]
+  x<-df[(dpmsr_set$y$info_columns+1):ncol(df)]
   title<-as.character(dpmsr_set$x$file_prefix)
-  plottitle<-"Total Intensity Histogram"
   testthis1 <- as.matrix(log2(x))
   intensity_cutoff <- as.numeric(dpmsr_set$x$int_cutoff)
   
@@ -275,9 +274,9 @@ histogram_plot <- function()
   x_stdev <- sd(testthis1, na.rm=TRUE)
   
   if(dpmsr_set$x$int_cutoff_sd < 0) {
-    new_cutoff <- x_mean - (dpmsr_set$x$int_cutoff_sd * x_stdev)
+    new_cutoff <- x_mean - (as.numeric(dpmsr_set$x$int_cutoff_sd) * x_stdev)
   }else{
-    new_cutoff <- x_mean + (dpmsr_set$x$int_cutoff_sd * x_stdev)
+    new_cutoff <- x_mean + (as.numeric(dpmsr_set$x$int_cutoff_sd) * x_stdev)
   }
   
   
@@ -320,7 +319,7 @@ histogram_plot <- function()
     annotation_custom(my_legend5)+
     annotation_custom(my_legend6)+
     annotation_custom(my_legend7)
-  ggsave(str_c(dpmsr_set$file$qc_dir,"Intensity_Histogram.png"), width=8, height=6)
+  ggsave(str_c(dpmsr_set$file$qc_dir, plottitle, ".png"), width=8, height=6)
   #ggsave(file_name, width=5, height=4)
 }
 

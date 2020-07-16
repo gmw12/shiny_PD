@@ -23,8 +23,21 @@
   #   }
   # })   
   
+   
+   observe({
+     if (input$radio_output==2){
+       hideTab(inputId = "nbp_stats", target = "tp_stats_oneprotein")
+       showTab(inputId = "nbp_stats", target = "tp_stats_onepeptide")
+       hideTab(inputId = "nlp1", target = "pathway")
+     }else{
+       showTab(inputId = "nbp_stats", target = "tp_stats_oneprotein")
+       hideTab(inputId = "nbp_stats", target = "tp_stats_onepeptide")
+       showTab(inputId = "nlp1", target = "pathway")
+     }
+   })
+   
   observe({
-    if ((input$radio_input==1 || input$radio_input==3) && input$radio_output==1 ){
+    if (input$radio_input==1 && input$radio_output==1 ){
       shinyjs::show("razor")
     } else {
       shinyjs::hide("razor")
@@ -49,33 +62,95 @@
   })
   
   observe({
-    if (input$radio_input==1 || input$radio_input==2 || input$radio_output==1) {
+    if (input$radio_input==1 || input$radio_input==2) {
       shinyjs::hide("checkbox_isoform")
     } else {
       shinyjs::show("checkbox_isoform")
     }
   })   
   
+  observe({
+    if (as.numeric(input$radio_output)==1) {
+      shinyjs::hide("checkbox_isoform")
+      shinyjs::show("stats_gear1")
+      shinyjs::show("stats_gear2")
+      shinyjs::show("peptide_missing_filter")
+      shinyjs::show("peptide_cv_filter")
+      shinyjs::show("stats_peptide_minimum")
+    }else{
+      shinyjs::show("checkbox_isoform")
+      shinyjs::hide("stats_gear1")
+      shinyjs::hide("stats_gear2")
+      shinyjs::hide("peptide_missing_filter")
+      shinyjs::hide("peptide_cv_filter")
+      shinyjs::hide("stats_peptide_minimum")
+    } 
+  })   
+ 
+   observe({
+    if (!as.logical(input$stats_peptide_minimum)){
+      shinyjs::hide("stats_peptide_minimum_factor")
+    }else {
+      shinyjs::show("stats_peptide_minimum_factor")
+    }
+  })
   
+
+  observe({
+    if (!as.logical(input$peptide_missing_filter)){
+      shinyjs::hide("peptide_missing_factor")
+    }else {
+      shinyjs::show("peptide_missing_factor")
+    }
+  })
+  
+  observe({
+    if (!as.logical(input$peptide_cv_filter)){
+      shinyjs::hide("peptide_cv_factor")
+    }else {
+      shinyjs::show("peptide_cv_factor")
+    }
+  })
   
   observe({
     if (input$radio_output==1) {
       shinyjs::hide("checkbox_norm_ptm")
-      shinyjs::hide("checkbox_norm_impute")
-      shinyjs::hide("filter_grep")
-      shinyjs::hide("checkbox_out_ptm")
-      shinyjs::hide("report_grep")
-      updateCheckboxInput(session, "checkbox_isoform", value=FALSE)
+      shinyjs::hide("checkbox_impute_ptm")
+      shinyjs::hide("checkbox_report_ptm")
+      shinyjs::hide("peptide_norm_grep")
+      shinyjs::hide("peptide_impute_grep")
+      shinyjs::hide("peptide_report_grep")
     } else {
       shinyjs::show("checkbox_norm_ptm")
-      shinyjs::show("checkbox_norm_impute")
-      shinyjs::show("filter_grep")
-      shinyjs::show("checkbox_out_ptm")
-      shinyjs::show("report_grep")
+      shinyjs::show("checkbox_impute_ptm")
+      shinyjs::show("checkbox_report_ptm")
+      shinyjs::show("peptide_norm_grep")   
+      shinyjs::show("peptide_impute_grep") 
+      shinyjs::show("peptide_report_grep")
     }
   })   
   
- 
+  
+  observe({
+    if (input$checkbox_norm_ptm) {
+      shinyjs::show("peptide_norm_grep")
+    }else{
+      shinyjs::hide("peptide_norm_grep")
+    }
+    })
+  
+  
+  observe({
+    if (input$checkbox_impute_ptm) {
+      shinyjs::show("text_impute_ptm")
+      shinyjs::show("peptide_impute_grep")
+    }else{
+      shinyjs::hide("text_impute_ptm")
+      shinyjs::hide("peptide_impute_grep")
+    }
+  })
+
+
   observe({
     if (!input$checkbox_require_x) {
       shinyjs::hide("require_x_cutoff")
@@ -144,7 +219,7 @@
   
   
   observe({
-    if (!input$checkbox_out_ptm){
+    if (!input$checkbox_norm_ptm){
       hideTab(inputId = "nlp1", target = "tp_phos")
     }else{
       showTab(inputId = "nlp1", target = "tp_phos")
@@ -211,28 +286,18 @@
       shinyjs::show("misaligned_cutoff")
       shinyjs::show("intensity_cutoff_mean_sd")
       shinyjs::show("adjust_intensity_cutoff")
+      shinyjs::show("text_i2")
     }else {
       shinyjs::hide("misaligned_cutoff")
       shinyjs::hide("intensity_cutoff_mean_sd")
       shinyjs::hide("adjust_intensity_cutoff")
+      shinyjs::hide("text_i2")
     }
   }) 
   
-  observe({
-    if (!input$peptide_missing_filter){
-      shinyjs::hide("peptide_missing_factor")
-    }else {
-      shinyjs::show("peptide_missing_factor")
-    }
-  })
   
-  observe({
-    if (!input$peptide_cv_filter){
-      shinyjs::hide("peptide_cv_factor")
-    }else {
-      shinyjs::show("peptide_cv_factor")
-    }
-  })
+  
+
   
   observe({
     if (!input$checkbox_tmt_filter){
@@ -418,15 +483,6 @@
       shinyjs::show("comp_2D")
     }  
   })
-  
-  
-  observe({
-    if(!input$checkbox_out_ptm){
-     shinyjs::hide("report_grep") 
-    }else{
-     shinyjs::show("report_grep")
-    }
-    })
     
   observe({
     if(!input$checkbox_report_accession){
@@ -452,17 +508,17 @@
     }
   })
   
-  observe({
-    if(input$start_stats==0){
-      shinyjs::disable("create_stats_plots") 
-      shinyjs::disable("create_stats_volcano") 
-      #shinyjs::disable("stats_data_show")
-    }else{
-      shinyjs::enable("create_stats_plots") 
-      shinyjs::enable("create_stats_volcano") 
-      #shinyjs::enable("stats_data_show")
-    }
-  })
+  # observe({
+  #   if(input$start_stats==0){
+  #     shinyjs::disable("create_stats_plots") 
+  #     shinyjs::disable("create_stats_volcano") 
+  #     #shinyjs::disable("stats_data_show")
+  #   }else{
+  #     shinyjs::enable("create_stats_plots") 
+  #     shinyjs::enable("create_stats_volcano") 
+  #     #shinyjs::enable("stats_data_show")
+  #   }
+  # })
   
   
   observe({
@@ -481,6 +537,46 @@
     }
   })
   
+  observe({
+    if(input$stats_peptide_minimum){
+      shinyjs::show("stats_peptide_minimum_factor") 
+    }else{
+      shinyjs::hide("stats_peptide_minimum_factor") 
+    }
+  })
+  
+   observe({
+     if(input$stats_volcano_fixed_axis){
+       shinyjs::show("stats_volcano_y_axis") 
+       shinyjs::show("stats_volcano_x_axis") 
+    }else{
+      shinyjs::hide("stats_volcano_y_axis") 
+       shinyjs::hide("stats_volcano_x_axis") 
+     }
+  })
+  
+  
+   observe({
+     if(input$checkbox_adjpval){
+       shinyjs::show("padjust_options") 
+     }else{
+       shinyjs::hide("padjust_options") 
+     }
+   })
+   
+   observe({
+     if(input$checkbox_cohensd){
+       shinyjs::show("checkbox_cohensd_hedges") 
+     }else{
+       shinyjs::hide("checkbox_cohensd_hedges") 
+     }
+   })
+   
+   
+   
+   
+   
+   
 }
 
 

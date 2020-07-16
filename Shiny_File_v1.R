@@ -37,7 +37,7 @@ Final_Excel <- function() {
     }else{
         df_raw <- dpmsr_set$data$finalraw
          #if PTM out need to reduce raw data frame for excel
-        if (as.logical(dpmsr_set$x$peptide_ptm_out)){
+        if (as.logical(dpmsr_set$x$peptide_report_ptm)){
           df_raw <- df_raw[grep(dpmsr_set$x$peptide_report_grep, df_raw$Modifications),]
         }
     }
@@ -168,21 +168,16 @@ file_set <- function(){
   dpmsr_set$file$qc_dir <<- create_dir(str_c(dpmsr_set$file$data_dir,"/QC"))
   dpmsr_set$file$extra_prefix <<- str_c(dpmsr_set$file$extra_dir,dpmsr_set$x$file_prefix) 
   dpmsr_set$file$string <<- create_dir(str_c(dpmsr_set$file$data_dir,"/String"))
-  #dpmsr_set$file$file_prefix1 <<- str_c(dpmsr_set$file$output_dir, dpmsr_set$x$file_prefix)
+  dpmsr_set$file$app_dir <<- create_dir(str_c(dpmsr_set$file$data_dir,"/Backup/App"))
+  
+  r_files <- list.files()
+  for (i in 1:length(r_files)){
+    if(grepl(".R$", r_files[i])){
+      file.copy(r_files[i], str_c(dpmsr_set$file$app_dir, r_files[i]))
+    }
+  }
+  
 
-  #dpmsr_set$file$file_prefix3 <<- str_c(dpmsr_set$file$output_dir3, dpmsr_set$x$file_prefix)
-
-  #if (psm_peptide_fdr == FALSE){file.copy(input_data, str_c(output_dir2, basename(input_data)))}
-  #file.copy(study_design, str_c(output_dir2, basename(study_design)))
-  #file.copy("Quant Setup_v8.R", str_c(output_dir2, "Quant Setup_v8.R"))
-  #file.copy("Quant Main_v8.R", str_c(output_dir2, "Quant Main_v8.R"))
-  #file.copy("Quant Functions Misc v8.R", str_c(output_dir2, "Quant Functions Misc v8.R"))
-  #file.copy("Quant Functions Impute v8.R", str_c(output_dir2, "Quant Functions Impute v8.R"))
-  #file.copy("Quant Functions Stats v8.R", str_c(output_dir2, "Quant Functions Stats v8.R"))
-  #file.copy("Quant Functions Plots v8.R", str_c(output_dir2, "Quant Functions Plots v8.R"))
-  #file.copy("Quant Functions Norm v8.R", str_c(output_dir2, "Quant Functions Norm v8.R"))
-  #app_dir <- create_dir(str_c(data_dir,"//Backup//Quant"))
-  #file.copy("Quant//app.R", str_c(app_dir, "app.R"))
 }
 
 

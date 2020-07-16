@@ -18,7 +18,9 @@ cat(file=stderr(), "Server.R line 11", "\n")
 cat(file=stderr(), "Server.R line 15", "\n")
 
 shinyServer(function(input, output, session) {
+  
     cat(file=stderr(), "Shiny Server started ...1", "\n")
+
     useShinyjs()
     dpmsr_present <- reactiveValues()
     dpmsr_present$test <- exists("dpmsr_set")
@@ -33,6 +35,7 @@ shinyServer(function(input, output, session) {
     
     output$text_n1 <- renderText("Check all Normalization Strategies")
     output$text_i1 <- renderText("Select Imputation Method")
+    output$text_impute_ptm <- renderText("Impute Distributions using Impute PTM grep (Load Data)")
     
     cat(file=stderr(), "Shiny Server started ...4", "\n")
     
@@ -57,6 +60,12 @@ shinyServer(function(input, output, session) {
     shinyFileChoose(input,'motif_fasta', roots=volumes, session=session, 
                      filetypes=c('','txt'), defaultPath='', defaultRoot='wd')
     
+    shinyFileChoose(input,'test', roots=volumes, session=session, 
+                    filetypes=c('' , 'xlsx', 'jpg', 'png'), defaultPath='', defaultRoot='wd')
+    
+    # shinyDirChoose(input,'new_save_directory', roots=volumes, session=session, 
+    #                 defaultPath='', defaultRoot='wd')
+    
     cat(file=stderr(), "Shiny Server started ...6", "\n")
     
     # test to see if dpmsr_set exisits - if so will update widgets with defaults
@@ -69,13 +78,14 @@ shinyServer(function(input, output, session) {
         inputnorm_render(session, input, output)
         qc_render(session, input, output)
         inputproteinselect_render(session, input, output)
-        update_dpmsr_set_from_widgets(session, input)
+        update_dpmsr_set_from_widgets(session, input, output)
         cat(file=stderr(), "dpmsr_set loaded...", "\n")
       }else{
         cat(file=stderr(), "dpmsr_set doest not exist...", "\n")
       }
       
     })
+    
     
     # function home to shinyjs hide/enable observers
     hide_enable(session, input)
@@ -103,8 +113,6 @@ shinyServer(function(input, output, session) {
     shinyFileChoose(input,'motif_fasta', roots=dpmsr_set$x$volumes, session=session, 
                     filetypes=c('','txt'), defaultPath='', defaultRoot='wd')
     set_sample_groups()
-    #file_set()
-    #save_design(session, input)
     updateTabsetPanel(session, "nlp1", selected = "tp_load_data")
     dpmsr_present$test <- exists("dpmsr_set")
     update_widget_startup(session, input, output)
@@ -136,6 +144,9 @@ shinyServer(function(input, output, session) {
     updateTabsetPanel(session, "nlp1", selected = "tp_overview")
     cat(file=stderr(), "order data", "\n")
     preprocess_order()
+    
+
+    
     removeModal()
   })
 
@@ -143,27 +154,46 @@ shinyServer(function(input, output, session) {
 #------------------------------------------------------------------------------------------------------  
   observeEvent(input$filter_apply, {
     cat(file=stderr(), "filter apply triggered", "\n")
-    showModal(modalDialog("Applying Filters...", footer = NULL))
-    cat(file=stderr(), "preprocess filter", "\n")
-    preprocess_filter()
-    removeModal()
-    updateTabsetPanel(session, "nlp1", selected = "tp5")
-    
-    #check info columns for rerun of filter (impute column could be added
-    dpmsr_set$y$info_columns <<- ncol(dpmsr_set$data$data_peptide) - dpmsr_set$y$sample_number
-    
-    bar_plot(dpmsr_set$data$data_peptide[(dpmsr_set$y$info_columns+1):ncol(dpmsr_set$data$data_peptide)],"Raw", dpmsr_set$file$qc_dir)
-    box_plot(dpmsr_set$data$data_peptide[(dpmsr_set$y$info_columns+1):ncol(dpmsr_set$data$data_peptide)],"Raw", dpmsr_set$file$qc_dir)
 
-    showModal(modalDialog("Preparing Data for Norm...", footer = NULL))
-    cat(file=stderr(), "prepare data for normalization", "\n")
-    norm_prep()
-    removeModal()
-    showModal(modalDialog("Preparing Data for Histogram Plot...", footer = NULL))
-    histogram_plot()
-    removeModal()
+    if(input$checkbox_require_x & (input$require_x_cutoff < 0 | input$require_x_cutoff >= 1))
+    {
+      shinyalert("Oops!", "Check Require X filters", type = "error")  
+      }else{
+          showModal(modalDialog("Applying Filters...", footer = NULL))
+          cat(file=stderr(), "preprocess filter", "\n")
+          preprocess_filter(session, input, output)
+          removeModal()
+          updateTabsetPanel(session, "nlp1", selected = "tp5")
+
+          showModal(modalDialog("Preparing Data for Norm...", footer = NULL))
+          cat(file=stderr(), "prepare data for normalization", "\n")
+          norm_prep()
+          
+          #check info columns for rerun of filter (impute column could be added
+          dpmsr_set$y$info_columns <<- ncol(dpmsr_set$data$data_peptide) - dpmsr_set$y$sample_number
+          
+          bar_plot(dpmsr_set$data$data_peptide[(dpmsr_set$y$info_columns+1):ncol(dpmsr_set$data$data_peptide)],"Raw", dpmsr_set$file$qc_dir)
+          box_plot(dpmsr_set$data$data_peptide[(dpmsr_set$y$info_columns+1):ncol(dpmsr_set$data$data_peptide)],"Raw", dpmsr_set$file$qc_dir)
+          
+          if(as.logical(dpmsr_set$x$peptide_ptm_norm) ){
+            info_columns <- ncol(dpmsr_set$data$norm_data) - dpmsr_set$y$sample_number
+            bar_plot(dpmsr_set$data$norm_data[(info_columns+1):ncol(dpmsr_set$data$norm_data)],"Raw_PTM_Only", dpmsr_set$file$qc_dir)
+            box_plot(dpmsr_set$data$norm_data[(info_columns+1):ncol(dpmsr_set$data$norm_data)],"Raw_PTM_Only", dpmsr_set$file$qc_dir)         
+          }
+          removeModal()
+          
+          showModal(modalDialog("Preparing Data for Histogram Plot...", footer = NULL))
+          histogram_plot(dpmsr_set$data$data_peptide, "Intensity_Histogram")
+          if(as.logical(dpmsr_set$x$peptide_ptm_norm) ){
+             histogram_plot(dpmsr_set$data$norm_data[, -which(names(dpmsr_set$data$norm_data)=='PD_Detected_Peptides')], "PTM_Only_Intensity_Histogram")
+          }
+          
+          adjust_intensity_cutoff(session, input, output)
+          
+          removeModal()
+          inputfilterapply_render(session, input, output)
+      }
     
-    inputfilterapply_render(session, input, output)
   })
   
 #------------------------------------------------------------------------------------------------------  
@@ -232,18 +262,9 @@ shinyServer(function(input, output, session) {
     #------------------------------------------------------------------------------------------------------   
     #------------------------------------------------------------------------------------------------------  
     observeEvent(input$adjust_intensity_cutoff, {
-      cat(file=stderr(), "Calclulate new intensity cutoff", "\n")
+
       showModal(modalDialog("Calclulate new intensity cutoff...", footer = NULL))  
-      
-      if(dpmsr_set$x$int_cutoff_sd < 0) {
-        dpmsr_set$x$int_cutoff <<- dpmsr_set$y$intensity_mean + (dpmsr_set$x$int_cutoff_sd * dpmsr_set$y$intensity_sd )
-        cat(file=stderr(), str_c("std < 0    ",  dpmsr_set$x$int_cutoff ), "\n")
-      }else{
-        dpmsr_set$x$int_cutoff <<- dpmsr_set$y$intensity_mean + (dpmsr_set$x$int_cutoff_sd * dpmsr_set$y$intensity_sd )
-        cat(file=stderr(), str_c("std > 0    ",  dpmsr_set$x$int_cutoff ), "\n")
-      }
-      dpmsr_set$x$int_cutoff <<- trunc(2^dpmsr_set$x$int_cutoff,0)
-      output$text_i2 <- renderText(str_c("Intensity cutoff:  ", as.character(dpmsr_set$x$int_cutoff)))
+      adjust_intensity_cutoff(session, input, output) 
       removeModal()     
     
     })
@@ -395,10 +416,20 @@ observeEvent(input$data_show, {
         shinyalert("Oops!", "Please choose and SPQC group!", type = "error")
       }
       removeModal()
-      
+    })  
+    
+    observe({
+      if (input$radio_output==1){
+        output$stats_gear1 <- renderText({"Peptide Filters"})
+        output$stats_gear2 <- renderText({"Protein Filters"})
+      }
+      else if (input$radio_output==2){
+        output$stats_gear1 <- renderText({"Peptide Filters"})
+        output$stats_gear2 <- renderText({"Protein Filters"})
+      }
+    }) 
+    
 
-    }
-    )  
     
     #-------------------------------------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------------------------------------
@@ -424,37 +455,43 @@ observeEvent(input$data_show, {
     
     
     observeEvent(input$create_stats_plots, {
-      showModal(modalDialog("Working...", footer = NULL))  
+      showModal(modalDialog("Creating Plots...", footer = NULL))  
       
-      df <- dpmsr_set$data$final[[input$select_final_data_stats ]][(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)]
+      if( !is.null(dpmsr_set$data$final[[input$select_final_data_stats ]] )) {
       
-      comp_string <- input$stats_plot_comp
-      cat(file=stderr(), "Create stats plots" , "\n")
-      for (i in 1:length(comp_string)){
-        comp_number <- which(dpmsr_set$y$stats$groups$comp_name == comp_string[i])
-        if (i==1){
-          comp_rows <- c(dpmsr_set$y$stats$groups$sample_numbers_N[comp_number],dpmsr_set$y$stats$groups$sample_numbers_D[comp_number] )
-        }else{
-          comp_rows <- c(comp_rows, dpmsr_set$y$stats$groups$sample_numbers_N[comp_number],dpmsr_set$y$stats$groups$sample_numbers_D[comp_number] )
+        df <- dpmsr_set$data$final[[input$select_final_data_stats ]][(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)]
+        
+        comp_string <- input$stats_plot_comp
+        cat(file=stderr(), "Create stats plots" , "\n")
+        for (i in 1:length(comp_string)){
+          comp_number <- which(dpmsr_set$y$stats$groups$comp_name == comp_string[i])
+          if (i==1){
+            comp_rows <- c(dpmsr_set$y$stats$groups$sample_numbers_N[comp_number],dpmsr_set$y$stats$groups$sample_numbers_D[comp_number] )
+          }else{
+            comp_rows <- c(comp_rows, dpmsr_set$y$stats$groups$sample_numbers_N[comp_number],dpmsr_set$y$stats$groups$sample_numbers_D[comp_number] )
+          }
         }
-      }
-      #add spqc to plots
-      if(input$stats_plot_spqc){
-          comp_rows <- c(comp_rows, dpmsr_set$y$stats$comp_spqc_sample_numbers)
+        #add spqc to plots
+        if(input$stats_plot_spqc){
+            comp_rows <- c(comp_rows, dpmsr_set$y$stats$comp_spqc_sample_numbers)
+        }
+        
+        comp_rows <- sort(unique(unlist(comp_rows)), decreasing = FALSE)
+        df <- df[,comp_rows]
+        namex <- dpmsr_set$design$Label[comp_rows]
+        color_list <- dpmsr_set$design$colorlist[comp_rows]
+        groupx <- dpmsr_set$design$Group[comp_rows]
+        
+        interactive_barplot(session, input, output, df, namex, color_list, "stats_barplot", input$stats_plot_comp)
+        interactive_boxplot(session, input, output, df, namex, color_list)
+        interactive_pca2d(session, input, output, df, namex, color_list, groupx)
+        interactive_pca3d(session, input, output, df, namex, color_list, groupx)
+        interactive_cluster(session, input, output, df, namex)
+        interactive_heatmap(session, input, output, df, namex, groupx)
+      }else{
+        shinyalert("Oops!", "Data does not exist yet.  Did you impute?", type = "error")
       }
       
-      comp_rows <- sort(unique(unlist(comp_rows)), decreasing = FALSE)
-      df <- df[,comp_rows]
-      namex <- dpmsr_set$design$Label[comp_rows]
-      color_list <- dpmsr_set$design$colorlist[comp_rows]
-      groupx <- dpmsr_set$design$Group[comp_rows]
-      
-      interactive_barplot(session, input, output, df, namex, color_list, "stats_barplot", input$stats_plot_comp)
-      interactive_boxplot(session, input, output, df, namex, color_list)
-      interactive_pca2d(session, input, output, df, namex, color_list, groupx)
-      interactive_pca3d(session, input, output, df, namex, color_list, groupx)
-      interactive_cluster(session, input, output, df, namex)
-      interactive_heatmap(session, input, output, df, namex, groupx)
       removeModal()
     }
     ) 
@@ -469,10 +506,15 @@ observeEvent(input$data_show, {
       # for(i in 1:input$comp_number){
       #   do.call(str_c("interactive_stats_volcano",i), list(session, input, output) )
       # }
-      for(i in 1:input$comp_number){
-        do.call("interactive_stats_volcano", list(session, input, output, i) )
-      }
       
+      if( !is.null(dpmsr_set$data$stats[[dpmsr_set$y$stats$groups$comp_name[1]]] )) {
+      
+        for(i in 1:input$comp_number){
+          do.call("interactive_stats_volcano", list(session, input, output, i) )
+        }
+      }else{
+        shinyalert("Oops!", "Data does not exist yet.  Did you run stats?", type = "error")
+      }
       removeModal()
     }
     )  
@@ -484,79 +526,104 @@ observeEvent(input$data_show, {
     
     
     observeEvent(input$stats_data_show, { 
-      showModal(modalDialog("Working...", footer = NULL))  
+      showModal(modalDialog("Getting data...", footer = NULL))  
       cat(file=stderr(), "stats data show triggered..." , "\n")
       
-      filter_df <- stats_data_table_filter(session, input, output)
+      if( !is.null(dpmsr_set$data$stats[[dpmsr_set$y$stats$groups$comp_name[1]]] )  &  input$stats_select_data_comp != "Choice 1"   ) {
       
-      filter_df_colnames <- colnames(filter_df)
-      filter_df_colnames <- gsub("_v_", " v ", filter_df_colnames)
-      filter_df_colnames <- gsub("_FC", " FC", filter_df_colnames)
-      filter_df_colnames <- gsub("_CV", " CV", filter_df_colnames)
-      filter_df_colnames <- gsub("_MF", " MF", filter_df_colnames)
-      filter_df_colnames <- gsub("_pval", " pval", filter_df_colnames)
-      filter_df_colnames <- gsub("_", ".", filter_df_colnames)
-      colnames(filter_df) <-  filter_df_colnames
+        filter_df <- stats_data_table_filter(session, input, output)
         
-      
-      pval_cols <- colnames(filter_df %>% dplyr::select(contains("pval") ) )
-      sample_cols <- c(colnames(filter_df %>% dplyr::select(contains("Normalized"))),
-                           colnames(filter_df %>% dplyr::select(contains("Imputed"))) )
-      sample_col_numbers <- list(match(sample_cols, names(filter_df)))
-      sample_col_numbers <- unlist(sample_col_numbers)
-      cv_cols <- colnames(filter_df %>% dplyr::select(contains("CV") ) )
-      mf_cols <- colnames(filter_df %>% dplyr::select(contains("MF") ) )
-      
-      stats_DT <-  DT::datatable(filter_df,
-                      rownames = FALSE,
-                      extensions = c("FixedColumns"), #, "Buttons"),
-                      options=list(
-                          #dom = 'Bfrtipl',
-                          autoWidth = TRUE,
-                          scrollX = TRUE,
-                          scrollY=500,
-                          scrollCollapse=TRUE,
-                          columnDefs = list(list(targets = c(0), visibile = TRUE, "width"='30', className = 'dt-center'),
-                                            list(targets = c(2), visible = TRUE, "width"='20', className = 'dt-center'),
-                                            list(
-                                              targets = c(1),
-                                              width = '250',
-                                              render = JS(
-                                                "function(data, type, row, meta) {",
-                                                "return type === 'display' && data.length > 35 ?",
-                                                "'<span title=\"' + data + '\">' + data.substr(0, 35) + '...</span>' : data;",
-                                                "}")
-                                            ),
-                                            list(
-                                              targets = c(3),
-                                              width = '100',
-                                              render = JS(
-                                                "function(data, type, row, meta) {",
-                                                "return type === 'display' && data.length > 20 ?",
-                                                "'<span title=\"' + data + '\">' + data.substr(0, 20) + '...</span>' : data;",
-                                                "}")
-                                            )
-                                            ),
-                          ordering = TRUE,
-                          orderClasses= TRUE,
-                          fixedColumns = list(leftColumns = 1),
-                          pageLength = 100, lengthMenu = c(10,50,100,200)),
-                          #buttons=c('copy', 'csv', 'excelHtml5', 'pdf')),
-                        callback = JS('table.page(3).draw(false);'
-                        ))
-     
-      stats_DT <- stats_DT %>%  formatRound(columns=c(sample_col_numbers), digits=0)
-      
-      output$stats_data_final <-  DT::renderDataTable({stats_DT })
+        filter_df_colnames <- colnames(filter_df)
+        filter_df_colnames <- gsub("_v_", " v ", filter_df_colnames)
+        filter_df_colnames <- gsub("_FC", " FC", filter_df_colnames)
+        filter_df_colnames <- gsub("_CV", " CV", filter_df_colnames)
+        filter_df_colnames <- gsub("_MF", " MF", filter_df_colnames)
+        filter_df_colnames <- gsub("_pval", " pval", filter_df_colnames)
+        filter_df_colnames <- gsub("_limmapval", " Limma pval", filter_df_colnames)
+        filter_df_colnames <- gsub("_cohensd", " CohensD", filter_df_colnames)
+        filter_df_colnames <- gsub("_adjpval", " adjpval", filter_df_colnames)
+        filter_df_colnames <- gsub("_", ".", filter_df_colnames)
+        colnames(filter_df) <-  filter_df_colnames
+
+        if(dpmsr_set$x$final_data_output == "Protein"){
+          stats_DT <- protein_table(session, input, output, filter_df)
+        }else{
+          stats_DT <- peptide_table(session, input, output, filter_df)
+        }
+  
+        output$stats_data_final <-  DT::renderDataTable(stats_DT, selection = 'single' )
+        
+        # get selections from data table for protein or peptide formats
+        if(dpmsr_set$x$final_data_output == "Protein"){
+            output$stats_data_final_protein <- renderPrint(stats_DT$x$data$Accession[as.numeric(unlist(input$stats_data_final_rows_selected)[1])] )
+            observe({
+              updateTextInput(session, "stats_oneprotein_accession", 
+                              value = stats_DT$x$data$Accession[as.numeric(unlist(input$stats_data_final_rows_selected)[1])]  )
+              updateSelectInput(session, "stats_oneprotein_plot_comp", selected= input$stats_select_data_comp)
+              dpmsr_set$y$stats$accession_stat <<- stats_DT$x$data$Accession[as.numeric(unlist(input$stats_data_final_rows_selected)[1])] 
+            })
+        }else{
+          output$stats_data_final_protein <- renderPrint(str_c(
+            stats_DT$x$data$Accession[as.numeric(unlist(input$stats_data_final_rows_selected)[1])], "  ", 
+            stats_DT$x$data$Sequence[as.numeric(unlist(input$stats_data_final_rows_selected)[1])], "  ", 
+            stats_DT$x$data$Modification[as.numeric(unlist(input$stats_data_final_rows_selected)[1])] 
+            ))
+          observe({
+            updateTextInput(session, "stats_onepeptide_accession", 
+                            value = stats_DT$x$data$Accession[as.numeric(unlist(input$stats_data_final_rows_selected)[1])]  )
+            updateTextInput(session, "stats_onepeptide_sequence", 
+                            value = stats_DT$x$data$Sequence[as.numeric(unlist(input$stats_data_final_rows_selected)[1])] ) 
+            updateTextInput(session, "stats_onepeptide_modification", 
+                            value = stats_DT$x$data$Modification[as.numeric(unlist(input$stats_data_final_rows_selected)[1])] ) 
+            updateSelectInput(session, "stats_onepeptide_plot_comp", selected= input$stats_select_data_comp)
+            dpmsr_set$y$stats$accession_stat <<- stats_DT$x$data$Accession[as.numeric(unlist(input$stats_data_final_rows_selected)[1])] 
+            dpmsr_set$y$stats$sequence_stat <<- stats_DT$x$data$Sequence[as.numeric(unlist(input$stats_data_final_rows_selected)[1])] 
+            dpmsr_set$y$stats$modification_stat <<- stats_DT$x$data$Modifications[as.numeric(unlist(input$stats_data_final_rows_selected)[1])] 
+          })
+        }  
+      }else{
+        shinyalert("Oops!", "Data does not exist yet.  Did you run stats?", type = "error")
+      }  
         
     removeModal()
     })  
     
+
+    
     #-------------------------------------------------------------------------------------------------------------      
     #-------------------------------------------------------------------------------------------------------------  
     
+    observeEvent(input$stats_data_update, {
+      
+      if (length(dpmsr_set$y$stats$accession_stat)!=0){  
+      
+        if(dpmsr_set$x$final_data_output == "Protein"){  
+          cat(file=stderr(), str_c("accesion to mark as not stat signifigant...   ", dpmsr_set$y$stats$accession_stat) , "\n") 
+          row_number <- which(dpmsr_set$data$stats[[input$stats_select_data_comp]]$Accession == dpmsr_set$y$stats$accession_stat)
+          cat(file=stderr(), str_c("row to mark as not stat signifigant...   ", row_number) , "\n") 
+          dpmsr_set$data$stats[[input$stats_select_data_comp]]$Stats[row_number] <<- ""
+        }else{
+          cat(file=stderr(), str_c("peptide to mark as not stat signifigant...   ", dpmsr_set$y$stats$sequence_stat) , "\n") 
+          row_number <- which(dpmsr_set$data$stats[[input$stats_select_data_comp]]$Sequence   == dpmsr_set$y$stats$sequence_stat &
+                                dpmsr_set$data$stats[[input$stats_select_data_comp]]$Modifications   == dpmsr_set$y$stats$modification_stat)
+          cat(file=stderr(), str_c("row to mark as not stat signifigant...   ", row_number) , "\n") 
+          dpmsr_set$data$stats[[input$stats_select_data_comp]]$Stats[row_number] <<- ""
+        }
+      }else{
+        
+        shinyalert("Oops!", "Cannot update stat", type = "error")
+        
+      }
+      
+    })
+    
+
+
     
     
+    
+    #-------------------------------------------------------------------------------------------------------------      
+    #-------------------------------------------------------------------------------------------------------------  
     observeEvent(input$stats_data_save, { 
 
         showModal(modalDialog("Saving Data...", footer = NULL))  
@@ -574,15 +641,17 @@ observeEvent(input$data_show, {
     #-------------------------------------------------------------------------------------------------------------      
     #-------------------------------------------------------------------------------------------------------------  
     
-    
     observeEvent(input$create_stats_oneprotein_plots, { 
- 
-      if(!input$stats_oneprotein_accession==0) {
+      
+      
+      comp_number <- try(which(dpmsr_set$data$stats[[input$stats_oneprotein_plot_comp]] == input$stats_oneprotein_accession), silent =TRUE)
+        
+      if (length(comp_number)!=0){  
         df_list <- oneprotein_data(session, input, output)
         for(j in names(df_list)){assign(j, df_list[[j]]) }
         
         interactive_barplot(session, input, output, df, namex, color_list, "stats_oneprotein_barplot", input$stats_oneprotein_plot_comp)
-        peptide_pos_lookup <-  peptide_position_lookup(session, input, output)
+        peptide_pos_lookup <-  peptide_position_lookup(session, input, output, as.character(input$stats_oneprotein_accession))
         
         grouped_color <- unique(color_list)
         interactive_grouped_barplot(session, input, output, comp_string, df_peptide, peptide_info_columns, 
@@ -647,43 +716,121 @@ observeEvent(input$data_show, {
         oneprotein_peptide_DT <- oneprotein_peptide_DT %>%  formatRound(columns=c(sample_col_numbers), digits=2)
         
         output$oneprotein_peptide_table<-  DT::renderDataTable({oneprotein_peptide_DT })
-        
-        
-        
-      #   output$oneprotein_peptide_table<- renderRHandsontable({
-      #     rhandsontable(df_peptide, rowHeaders = NULL, columnHeaderwidth = 200, width = 1200, height = 500) %>%
-      #       hot_cols(fixedColumnsLeft = 2, colWidths = 80, halign = "htCenter" ) %>%
-      #       #hot_col(col = "Peptides", format="0") %>%
-      #       #hot_col(col = dpmsr_set$y$info_columns_final:(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number), format="0", digits =0) %>%
-      #       #hot_col(col = (dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number+1):(ncol(dpmsr_set$data$final$impute)), format="0.00") %>%
-      #       hot_col(col = "Description", halign = "htLeft", colWidths = 350) %>%
-      #       hot_col(col = "Sequence", halign = "htLeft", colWidths = 200) %>%
-      #       hot_col(col = "Start", halign = "htCenter", format="0") %>%
-      #       hot_col(col = "Stop", halign = "htCenter", format="0") %>%
-      #       hot_rows(rowHeights = 10)
-      # })
-      
-        
-        
-        
+
         
       }else{
         shinyalert("Oops!", "No Accession...", type = "error")
       }
       removeModal()
-       
-      
-      # ui htmlOutput("testme"),
-      # server output$testme <- renderText(  '<h1>Choose and <span style="color:blue">Load </span> the study design file...</h1>' )
-      
-      
-      
-      
+
     })
     
     #-------------------------------------------------------------------------------------------------------------      
     #-------------------------------------------------------------------------------------------------------------  
     
+    #-------------------------------------------------------------------------------------------------------------      
+    #-------------------------------------------------------------------------------------------------------------  
+    
+    observeEvent(input$create_stats_onepeptide_plots, { 
+      
+      
+      comp_test <- try(which(dpmsr_set$data$stats[[input$stats_onepeptide_plot_comp]] == input$stats_onepeptide_accession), silent =TRUE)
+      comp_string <- input$stats_onepeptide_plot_comp
+      comp_number <- which(dpmsr_set$y$stats$groups$comp_name == comp_string)
+      
+      cat(file=stderr(), str_c("comp_number = ", comp_number, " -v- ",  length(dpmsr_set$y$stats$groups$comp_name)  ) , "\n")
+      check_qc <- TRUE
+      
+      #test for all.samples v qc and adding qc
+      if(input$stats_onepeptide_plot_spqc & comp_number==length(dpmsr_set$y$stats$groups$comp_name)) {
+        cat(file=stderr(), "Reset SPQC", "\n")
+        updateCheckboxInput(session, "stats_onepeptide_plot_spqc",  value = FALSE)
+        check_qc <- FALSE
+      }
+      
+      
+      if (length(comp_test)!=0 & check_qc){  
+        
+        df_list <- onepeptide_data(session, input, output)
+        for(j in names(df_list)){assign(j, df_list[[j]]) }
+        
+        interactive_barplot(session, input, output, df, namex, color_list, "stats_onepeptide_barplot", comp_string)
+        
+        peptide_pos_lookup <-  peptide_position_lookup(session, input, output, as.character(input$stats_onepeptide_accession))
+        grouped_color <- unique(color_list)
+        interactive_grouped_peptide_barplot(session, input, output, comp_string, df_peptide, info_columns, comp_name, peptide_pos_lookup, grouped_color)
+        
+        sample_col_numbers <- seq(from=12, to = ncol(df_peptide) )
+        df_peptide <- cbind(df_peptide, df_peptide_stats)
+        
+        df_peptide <- merge(df_peptide, peptide_pos_lookup, by=(c("Accession", "Sequence"))    )
+        df_peptide$Start <- as.numeric(df_peptide$Start)
+        df_peptide$Stop <- as.numeric(df_peptide$Stop)
+        df_peptide<- df_peptide %>% dplyr::select(Stop, everything())
+        df_peptide <- df_peptide %>% dplyr::select(Start, everything())
+        df_peptide <- df_peptide[order(df_peptide$Start, df_peptide$Stop), ]
+        
+        onepeptide_peptide_DT <-  DT::datatable(df_peptide,
+                                                rownames = FALSE,
+                                                extensions = c("FixedColumns"), #, "Buttons"),
+                                                options=list(
+                                                  #dom = 'Bfrtipl',
+                                                  autoWidth = TRUE,
+                                                  scrollX = TRUE,
+                                                  scrollY=500,
+                                                  scrollCollapse=TRUE,
+                                                  columnDefs = list(list(targets = c(0,1), visibile = TRUE, "width"='30', className = 'dt-center'),
+                                                                    list(targets = c(2), visible = TRUE, "width"='20', className = 'dt-center'),
+                                                                    list(
+                                                                      targets = c(5),
+                                                                      width = '250',
+                                                                      render = JS(
+                                                                        "function(data, type, row, meta) {",
+                                                                        "return type === 'display' && data.length > 35 ?",
+                                                                        "'<span title=\"' + data + '\">' + data.substr(0, 35) + '...</span>' : data;",
+                                                                        "}")
+                                                                    ),
+                                                                    list(
+                                                                      targets = c(6),
+                                                                      width = '150',
+                                                                      render = JS(
+                                                                        "function(data, type, row, meta) {",
+                                                                        "return type === 'display' && data.length > 35 ?",
+                                                                        "'<span title=\"' + data + '\">' + data.substr(0, 35) + '...</span>' : data;",
+                                                                        "}")
+                                                                    ),
+                                                                    list(
+                                                                      targets = c(10),
+                                                                      width = '100',
+                                                                      render = JS(
+                                                                        "function(data, type, row, meta) {",
+                                                                        "return type === 'display' && data.length > 20 ?",
+                                                                        "'<span title=\"' + data + '\">' + data.substr(0, 20) + '...</span>' : data;",
+                                                                        "}")
+                                                                    )
+                                                  ),
+                                                  ordering = TRUE,
+                                                  orderClasses= TRUE,
+                                                  fixedColumns = list(leftColumns = 2),
+                                                  pageLength = 100, lengthMenu = c(10,50,100,200)),
+                                                #buttons=c('copy', 'csv', 'excelHtml5', 'pdf')),
+                                                callback = JS('table.page(3).draw(false);'
+                                                ))
+        
+        onepeptide_peptide_DT <- onepeptide_peptide_DT %>%  formatRound(columns=c(sample_col_numbers), digits=2)
+        
+        output$onepeptide_peptide_table<-  DT::renderDataTable({onepeptide_peptide_DT })
+        
+        
+      }else{
+        shinyalert("Oops!", "No Accession or SPQC add error", type = "error")
+      }
+      removeModal()
+      
+    })
+    
+    #-------------------------------------------------------------------------------------------------------------      
+    #-------------------------------------------------------------------------------------------------------------  
     
     
     observeEvent(input$stats_oneprotein_data_save, { 
@@ -699,12 +846,17 @@ observeEvent(input$data_show, {
       removeModal()
       
     })
+    
+    
     #-------------------------------------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------------------------------------
     observeEvent(input$motif_show, {
       showModal(modalDialog("Working...", footer = NULL))  
-
-      filter_df <- dpmsr_set$data$final[[input$select_final_data_motif]]
+      
+      comp_string <- input$select_data_comp_motif
+      comp_number <- which(dpmsr_set$y$stats$groups$comp_name == comp_string)
+      
+      filter_df <- dpmsr_set$data$stats[[comp_string]]
       motif_data <- run_motifx(input, output, filter_df)
       
       output$motif_table<- renderRHandsontable({
@@ -732,6 +884,8 @@ observeEvent(input$data_show, {
         #unlist(input$motif_fasta$files[[as.character(0)]][2])
       }
     })
+    
+    
     #-------------------------------------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------------------------------------
     observeEvent(input$set_pathway, {
@@ -741,6 +895,9 @@ observeEvent(input$data_show, {
       updateTabsetPanel(session, "nlp1", selected = "wiki")
     }
     )
+    
+    
+    
     #-------------------------------------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------------------------------------
     observeEvent(input$wiki_show, {
@@ -1020,7 +1177,30 @@ observeEvent(input$data_show, {
     })  
     
     
-       
+
+    # design_list <- c("General", "QC", "Fill_Norm", "Filters", "Protein", "TMT_PTM", "Report")
+    # design_data <- parseFilePaths(volumes, input$design_file)
+    # new_path <- str_extract(design_data$datapath, "^/.*/")
+    # #new_path <- substr(new_path, 1, nchar(new_path)-1)
+    # #new_path <- str_c(".", new_path)
+    # volumes["wd"] <- new_path
+    # design<-read_excel(design_data$datapath, sheet="SampleList")
+    # 
+    # 
+    # output$downloadData <- downloadHandler(
+    #   filename <- function() {
+    #     paste("output", "zip", sep=".")
+    #     copy_data <- parseFilePaths(volumes, input$test)
+    #   },
+    #   
+    #   content <- function(file) {
+    #     file.copy("out.zip", file)
+    #   },
+    #   contentType = "application/zip"
+    # )   
+    # 
+    
+    cat(file=stderr(), "Shiny Server started ...end", "\n")  
 }
 )
 

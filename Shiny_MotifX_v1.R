@@ -1,11 +1,12 @@
   
 run_motifx <- function(input, output, data_in){
+  cat(file=stderr(), "start motifx..." , "\n") 
   require(stringr)
   require(stringi)
   require(PTMphinder)
   require(rmotifx)
 
-  plot_dir <- str_c(dpmsr_set$file$output_dir, input$select_final_data_motif, "//")
+  plot_dir <- str_c(dpmsr_set$file$output_dir, input$select_final_data_stats, "//")
   motif_path <- parseFilePaths(dpmsr_set$x$volumes, input$motif_fasta)
   fasta_txt_file <- motif_path$datapath
   #fasta_txt_file <- input$motif_fasta
@@ -17,54 +18,45 @@ run_motifx <- function(input, output, data_in){
   w <- 15
   pval_motif <- input$pval_motif * 1e-5
   
-  if(input$pval_filter != 0 & input$fc_filter != 0) {
-    filter_df <- subset(data_in, data_in[ ,str_c(as.character(input$select_data_comp_motif),"_Pval")] <= as.numeric(input$pval_filter) &
-                          (data_in[ ,str_c(as.character(input$select_data_comp_motif),"_FC")] >= as.numeric(input$fc_filter) ))
+  
+  parsed_refx <<- parsed_ref
+  sx <<- s
+  wx <<- w
+  pval_motifx <<- pval_motif
+  data_inx <<- data_in
+
+  cat(file=stderr(), "motifx up..." , "\n") 
+    filter_df <- subset(data_in, data_in$Stats == "Up" ) 
     FC <- "Up"
     ptm_data <- create_motifx_input(filter_df, parsed_ref)
-    motifx_S <- motifx_calc(s, "S", w, "Up", ptm_data, parsed_ref, pval_motif, input$pval_filter, input$fc_filter)
-    motifx_T <- motifx_calc(s, "T", w, "Up", ptm_data, parsed_ref, pval_motif, input$pval_filter, input$fc_filter)
-    motifx_all <- rbind(motifx_S, motifx_T)
+    motifx_S <- motifx_calc(s, "S", w, "Up", ptm_data, parsed_ref, pval_motif, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+    motifx_T <- motifx_calc(s, "T", w, "Up", ptm_data, parsed_ref, pval_motif, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+    motifx_Y <- motifx_calc(s, "Y", w, "Up", ptm_data, parsed_ref, pval_motif, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+     motifx_up <- rbind(motifx_S, motifx_T, motifx_Y)
     
-    filter_df <- subset(data_in, data_in[ ,str_c(as.character(input$select_data_comp_motif),"_Pval")] <= as.numeric(input$pval_filter) &
-                          (data_in[ ,str_c(as.character(input$select_data_comp_motif),"_FC")] <= -as.numeric(input$fc_filter)))
+  cat(file=stderr(), "motifx down..." , "\n")     
+    filter_df <- subset(data_in, data_in$Stats == "Down" )
     FC <- "Down"
     ptm_data <- create_motifx_input(filter_df, parsed_ref)
-    motifx_S <- motifx_calc(s, "S", w, "Down", ptm_data, parsed_ref, pval_motif, input$pval_filter, input$fc_filter)
-    motifx_T <- motifx_calc(s, "T", w, "Down", ptm_data, parsed_ref, pval_motif, input$pval_filter, input$fc_filter)
-    motifx_all <- rbind(motifx_all, motifx_S, motifx_T)
+    motifx_S <- motifx_calc(s, "S", w, "Down", ptm_data, parsed_ref, pval_motif, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+    motifx_T <- motifx_calc(s, "T", w, "Down", ptm_data, parsed_ref, pval_motif, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+    motifx_Y <- motifx_calc(s, "Y", w, "Down", ptm_data, parsed_ref, pval_motif, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+    motifx_down <- rbind(motifx_S, motifx_T, motifx_Y)
     
-    Simple_Excel(motifx_all, str_c(plot_dir, "MotifX_", input$select_data_comp_motif, ".xlsx"))
-    }
-  
-  #---------
-  
-  if(input$pval_filter == 0 & input$fc_filter == 0) {
-    df_protein <- subset(data_in, Accession %in% input$protein_filter)
-      
-      
-    filter_df <- subset(df_protein, df_protein[ ,str_c(as.character(input$select_data_comp_motif),"_FC")] >= 0)
-    
-    FC <- "Up"
+  cat(file=stderr(), "motifx updown..." , "\n")  
+    filter_df<- subset(data_in, data_in$Stats == "Up" | data_in$Stats == "Down") 
+    FC <- "UpDown"
     ptm_data <- create_motifx_input(filter_df, parsed_ref)
-    motifx_S <- motifx_calc(s, "S", w, "Up", ptm_data, parsed_ref, pval_motif, input$pval_filter, input$fc_filter)
-    motifx_T <- motifx_calc(s, "T", w, "Up", ptm_data, parsed_ref, pval_motif, input$pval_filter, input$fc_filter)
-    motifx_all <- rbind(motifx_S, motifx_T)
+    motifx_S <- motifx_calc(s, "S", w, "UpDown", ptm_data, parsed_ref, pval_motif, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+    motifx_T <- motifx_calc(s, "T", w, "UpDown", ptm_data, parsed_ref, pval_motif, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+    motifx_Y <- motifx_calc(s, "Y", w, "UpDown", ptm_data, parsed_ref, pval_motif, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+    motifx_updown <- rbind(motifx_S, motifx_T, motifx_Y)
     
-    filter_df <- subset(df_protein, df_protein[ ,str_c(as.character(input$select_data_comp_motif),"_FC")] <= 0)
+    motifx_all <- rbind(motifx_up, motifx_down, motifx_updown)
     
-    FC <- "Down"
-    ptm_data <- create_motifx_input(filter_df, parsed_ref)
-    motifx_S <- motifx_calc(s, "S", w, "Down", ptm_data, parsed_ref, pval_motif, input$pval_filter, input$fc_filter)
-    motifx_T <- motifx_calc(s, "T", w, "Down", ptm_data, parsed_ref, pval_motif, input$pval_filter, input$fc_filter)
-    motifx_all <- rbind(motifx_all, motifx_S, motifx_T)
-    
+    cat(file=stderr(), "write motifx excel..." , "\n")  
     Simple_Excel(motifx_all, str_c(plot_dir, "MotifX_", input$select_data_comp_motif, ".xlsx"))
-  }
-  
-  
-  
-  
+
   
   return(motifx_all)
 }
@@ -75,8 +67,8 @@ run_motifx <- function(input, output, data_in){
 
 #--------------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------------
-
-motifx_calc <- function(s, c, w, FC, ptm_data, parsed_ref, pval_motif, pval_filter, fc_filter){
+#motifx_S <- motifx_calc(s, "S", w, "Up", ptm_data, parsed_ref, pval_motif, input$pvalue_cutoff, input$foldchange_cutoff)
+motifx_calc <- function(s, c, w, FC, ptm_data, parsed_ref, pval_motif, pval_filter, fc_filter, comparison, pvalcutoff){
 
   extractBack_Example <- extractBackground(s, c, w)
   
@@ -88,14 +80,14 @@ motifx_calc <- function(s, c, w, FC, ptm_data, parsed_ref, pval_motif, pval_filt
   foreground_Seqs_Filtered <- foreground_Seqs[which(lapply(foreground_Seqs, nchar)==15)]
   
   # Run motif-x using foreground and background sequences from PTMphinder functions above
-  motifx_data <- motifx(foreground_Seqs_Filtered, extractBack_Example, central.res = c, min.seqs = 20, pval.cutoff = 1e-5)
+  motifx_data <- motifx(foreground_Seqs_Filtered, extractBack_Example, central.res = c, min.seqs = 20, pval.cutoff = pval_motif)
   
   if (!is.null(motifx_data)){
     motifx_data <- add_column(motifx_data, FC, .before = 1)
     motifx_data <- add_column(motifx_data, pval_filter, .before = 1)
     motifx_data <- add_column(motifx_data, fc_filter, .before = 1)
     motifx_data <- add_column(motifx_data, c, .before = 1)
-    motifx_data <- add_column(motifx_data, dpmsr_set$y$comp_groups$comp_name[1], .before = 1)
+    motifx_data <- add_column(motifx_data, comparison, .before = 1)
     names(motifx_data)[1:5] <- c("comparison", "central.res", "foldchange", "pval", "direction")
   }
   
@@ -145,7 +137,7 @@ create_motifx_input <- function(filter_df, parsed_ref){
                          MotifPhos$Total_Sites, MotifPhos$PTM_Loc, MotifPhos$PTM_Score))
   colnames(df) <- c("Identifier", "Protein_ID", "Peptide_Seq", "Total_Sites", "PTM_Loc", "PTM_Score")
   
-  #---------Create background data ----------------------------------------
+  #--------- Subset to insure proteins are in database ----------------------------------------
   ptm_data <- df
   ptm_data$Protein_ID <- gsub( " .*$", "", ptm_data$Protein_ID)
   ptm_data <-subset(ptm_data, Protein_ID %in% parsed_ref$V1)
@@ -159,7 +151,8 @@ create_motifx_input <- function(filter_df, parsed_ref){
 #--------------------------------------------------------------------------------------------
 
 create_phos_database <- function(){
-  raw_fasta <- read.csv2("4402_AFF293_051717.fasta", header=FALSE)
+  require(stringr)
+  raw_fasta <- read.csv2("/Users/gregwaitt/Documents/Data/Mmusculus_110419.fasta", header=FALSE)
   colnames(raw_fasta) <- "fasta"
   raw_fasta$fasta <- as.character(raw_fasta$fasta)
   test_s <- ""
@@ -192,9 +185,7 @@ create_phos_database <- function(){
   new_fasta$Accession <- as.character(new_fasta$Accession)
   new_fasta$Description <- as.character(new_fasta$Description)
   new_fasta$Sequence <- as.character(new_fasta$Sequence)
-  Simple_Excel(new_fasta, "4402_AFF293_051717.xlsx")
-  
-
+  Simple_Excel(new_fasta, "Mmusculus_110419.xlsx")
 }
 
 

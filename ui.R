@@ -10,7 +10,9 @@ library(shinyalert)
 source("Shiny_Startup_v1.R")
 
 
-shinyUI(fluidPage(
+shinyUI(
+  tagList(
+  fluidPage(
   useShinyjs(),
   useShinyalert(),
   setBackgroundColor("DarkGray", shinydashboard = TRUE),
@@ -61,30 +63,38 @@ shinyUI(fluidPage(
              hr(),
              fluidRow(align = "left",
                        column(width=4, offset =2,
-                        fluidRow(
                          radioButtons("radio_input", label = h3("Select Input Data Type"),
                                       choices = list("Protein_Peptide" = 1, "Protein" = 2, "Peptide" = 3),
-                                      selected = 1),
-                         br(),
-                         hr(),
-                         checkboxInput("checkbox_isoform", label = "Use Peptide Isoform?"),
-                         checkboxInput("checkbox_tmt", label = "SPQC Normalized TMT sets"),
+                                      selected = 3)
+                         ),
+                        column(width=5, offset =0,
+                             radioButtons("radio_output", label = h3("Select Output Data Type"),
+                                          choices = list("Protein" = 1, "Peptide" = 2),
+                                          selected = 2)
+                        )
+                 ),
+             hr(),
+             fluidRow(align="left",
+               column(width=3, offset =1,
+                      checkboxInput("checkbox_tmt", label = "SPQC Normalized TMT sets"),
+                      checkboxInput("checkbox_isoform", label = "Use Peptide Isoform?"),
+               ),
+               column(width=3, offset =1,   
+                      checkboxInput("checkbox_norm_ptm", label = "Normalize on PTM?"),
+                      textInput("peptide_norm_grep", label="Normalize PTM grep", value = "Enter value here")
+               ),
+              column(width=3, offset = 1,       
+                      checkboxInput("checkbox_impute_ptm", label = "Impute Distribution based on PTM?"),
+                      textInput("peptide_impute_grep", label="Impute PTM grep", value = "Enter value here")
+               )
+             ),
+             fluidRow(        
                          selectInput("razor", label = h5("Peptides to Use"), 
                                      choices = list("Razor", "Unique", "Shared"), 
                                      selected = "Razor")
-                    )),
-                     column(width=5, offset =0,
-                            radioButtons("radio_output", label = h3("Select Output Data Type"),
-                                         choices = list("Protein" = 1, "Peptide" = 2),
-                                         selected = 1),
-                            br(),
-                            br(),
-                            hr()
-                           )
-                       ),
-
+                    ),
+              hr(),
             fluidRow(
-                     hr(),
                       textInput("fileprefix", label="Enter file prefix for data output", value = "Enter value here"),
  
                       shinyFilesButton('raw_files', label='Select PD Text Export Files', title='Please select raw data files', multiple=TRUE,
@@ -126,7 +136,7 @@ shinyUI(fluidPage(
                tags$h1("Apply Filters"),
                hr(),
                fluidRow(
-                 column(width=5, offset = 1,
+                 column(width=3, offset = 1,
                         fluidRow(align = "left",
                           textOutput("text1"),
                           tags$head(tags$style("#text1{color: blue; font-size: 16px; font-style: bold;}")),
@@ -138,12 +148,12 @@ shinyUI(fluidPage(
                           tags$head(tags$style("#text4{color: blue; font-size: 16px; font-style: bold;}"))
                            )
                         ),
-                  column(width=5, offset = 1,
+                  column(width=6, offset = 1,
                     fluidRow(align = "left",
-                          "Fixed:  entry must have at least 2 data points",
+                          numericInput("minimum_measured_all", label="Enter minimum # measured values (all samples)", value = 2),
                           hr(),
                           checkboxInput("checkbox_require_x", label = "Require X% measured values in at least one group"),
-                          numericInput("require_x_cutoff", label="Enter X% measured values", value = "Enter value here"),
+                          numericInput("require_x_cutoff", label="Enter X% measured values (decimal)", value = 0.8),
                           hr(),
                           checkboxInput("checkbox_filtercv", label = "Filter on Specific Group CV"),
                           selectInput("text_filtercvgroup", label="Enter group for CV filter", 
@@ -180,8 +190,6 @@ shinyUI(fluidPage(
                      br(),
                      textInput("protein_norm_list", label="Protein Norm List", value = "Enter value here"),
                      hr(),
-                     checkboxInput("checkbox_norm_ptm", label = "Normalized on Specific Modification Only"),
-                     textInput("filter_grep", label="Filter(grep) for Modification", value = "Enter value here"),
                      br(),
                      actionButton("norm1", label = "Apply Normalization", width = 300,
                                   style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
@@ -189,8 +197,19 @@ shinyUI(fluidPage(
                column(width=7, offset =0,
                       "Raw Data Total Intensity",
                       br(),
-                      imageOutput("raw_bar")
-                      
+                      fluidRow(
+                        imageOutput("raw_bar"),
+                      ),
+                      br(),
+                      br(),
+                      br(),
+                      br(),
+                      br(),
+                      br(),
+                      br(),
+                      fluidRow(
+                        imageOutput("raw_ptm_bar")
+                      )
                )
           )
        ),
@@ -218,7 +237,7 @@ shinyUI(fluidPage(
                         br(),
                         actionButton("adjust_intensity_cutoff", label = "Calc Intensity Cutoff", width = 300,
                                      style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
-                        checkboxInput("checkbox_impute_ptm", label = "Impute with Data from Specific Modification Only"),
+                        textOutput("text_impute_ptm"),
                         circle = TRUE, status = "info", icon = icon("gear"), width = "500px", size = "sm",
                         tooltip = tooltipOptions(title = "More Imputation Options")
                         ),
@@ -229,7 +248,14 @@ shinyUI(fluidPage(
                column(width=7, offset =0,
                          "Total Intensity Histogram",
                       br(),
-                      imageOutput("histogram")
+                      imageOutput("histogram"),
+                      br(),
+                      br(),
+                      br(),
+                      br(),
+                      br(),
+                      br(),
+                      imageOutput("ptm_histogram")
 
                       )
              )
@@ -527,17 +553,29 @@ shinyUI(fluidPage(
                                         ),
                                    column(width=1, offset =0,
                                      dropdownButton(
+                                           textOutput("stats_gear1"),
                                            checkboxInput("peptide_missing_filter", label = "Refilter peptides by requiring X% measured values in one group?"),
                                            numericInput("peptide_missing_factor", label="Peptide X% measured cutoff (decimal)", value = 0.8),
                                            checkboxInput("peptide_cv_filter", label = "Refilter peptides by requiring X %CV one group?"),
                                            numericInput("peptide_cv_factor", label="Peptide X CV% cutoff", value = 100),
+                                           textOutput("stats_gear2"),
                                            checkboxInput("stats_spqc_cv_filter", label = "Filter by SPQC CV"),
                                             numericInput("stats_spqc_cv_filter_factor", label="SPQC %CV Cutoff", value = 50),
                                             checkboxInput("stats_comp_cv_filter", label = "Require one group CV below cuttoff"),
                                             numericInput("stats_comp_cv_filter_factor", label="Comp %CV Cutoff", value = 50),
                                             checkboxInput("pair_comp", label = "Pairwise Comparisons"),
-                                            checkboxInput("checkbox_out_ptm", label = "Report Specific Modification Only"),
-                                            textInput("report_grep", label="Filter(grep) for Modification", value = "Enter value"),
+                                            checkboxInput("stats_peptide_minimum", label = "Require minimum # of peptides per protein", value = 0),
+                                            numericInput("stats_peptide_minimum_factor", label="Peptide Minimum", value = 1),
+                                            h5('Extra Stats'),
+                                            checkboxInput("checkbox_adjpval", label = "Include bonferroni adjusted pvalue?"),
+                                            selectInput("padjust_options", label = "p.adjust method", choices = list("holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr"), 
+                                                       selected = "bonferroni"),
+                                            checkboxInput("checkbox_cohensd", label = "Include Cohen's D?"),
+                                            checkboxInput("checkbox_cohensd_hedges", label = "Use Hedge's Correction (low N)?"),
+                                            checkboxInput("checkbox_limmapvalue", label = "Include Limma Pvalue?"),
+                                            h5('Final Excel Options'),
+                                            checkboxInput("checkbox_report_ptm", label = "Report Only PTM?"),
+                                            textInput("peptide_report_grep", label="Report PTM grep", value = "Enter value here"),
                                             checkboxInput("checkbox_report_accession", label = "Report Specific Accession(s) Only"),
                                             textInput("report_accession", label="Protein Accessions for Final Report", value = "Enter value"),
                                             circle = TRUE, status = "info", icon = icon("gear"), width = "300px", size = "sm",
@@ -831,9 +869,18 @@ shinyUI(fluidPage(
                         
                         tabPanel("Volcano", id="tp_stats_volcano", 
                                  fluidRow(
-                                   column(width=1, offset =0,
+                                   column(width=3, offset =0,
                                           actionButton("create_stats_volcano", label = "Create Volcano Plots", width = 300,
                                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                                   ), 
+                                   column(width=2, offset = 0,
+                                          checkboxInput("stats_volcano_fixed_axis", label = "Fix x and y axis for all plots?")
+                                          ),
+                                   column(width=1, offset = 0,
+                                           numericInput("stats_volcano_y_axis", label = "y axis", value=10)
+                                   ),                                   
+                                   column(width=1, offset = 0,
+                                           numericInput("stats_volcano_x_axis", label = "x axis", value=5)
                                    )
                                  ), 
                                  fluidRow(
@@ -1188,6 +1235,11 @@ shinyUI(fluidPage(
                                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
                                    )
                                  ),
+                                 
+                                 fluidRow(
+                                  verbatimTextOutput('stats_data_final_protein')
+                                 ),
+                                 
                                  fluidRow(
                                    column(width=12, offset =0,
                                    hr(),
@@ -1198,11 +1250,20 @@ shinyUI(fluidPage(
                                    ),
                                    DT::dataTableOutput("stats_data_final", width='100%')
                                  )
+                              ),
+                              br(),
+                              
+                              fluidRow(
+                                     actionButton("stats_data_update", label = "Remove from Stats", width = 200,
+                                                  style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
                               )
+                              
+                              
+                              
                         ), #end data
                
                         
-                        tabPanel("One Protein", value = "tp_stats_oneprotein",
+                        tabPanel("Protein Plots", value = "tp_stats_oneprotein",
                                  fluidRow(
                                    column(width=1, offset =0,
                                           textInput("stats_oneprotein_accession", label="Accession", value = "0", width = 100)
@@ -1291,7 +1352,107 @@ shinyUI(fluidPage(
                                  #  hr(),
                                  #  rHandsontableOutput("oneprotein_peptide_table")
                                  # )
-              ) #end tab panel
+              ), #end tab panel
+              
+              tabPanel("Peptide Plots", value = "tp_stats_onepeptide",
+                       fluidRow(
+                         column(width=1, offset =0,
+                                textInput("stats_onepeptide_accession", label="Accession", value = "0", width = 100)
+                         ),
+                         column(width=2, offset =0,
+                                textInput("stats_onepeptide_sequence", label="Peptide Sequence", width = 250)
+                         ),
+                         column(width=2, offset =0,
+                                textInput("stats_onepeptide_modification", label="Peptide Modification", width = 250)
+                         ),
+                         column(width=3, offset =0,
+                                selectInput("stats_onepeptide_plot_comp", label = "comparison", 
+                                            choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
+                                            selected = 1)
+                         ),
+                         
+                         column(width=1, offset =0,
+                                checkboxInput("stats_onepeptide_plot_spqc", label = "Add SPQC?")
+                         ),
+                         column(width=1, offset =0,
+                                checkboxInput("stats_onepeptide_use_zscore", label = "Use zscore?")
+                         ),
+                         column(width=1, offset =0,
+                              numericInput("stats_onepeptide_residue", label="Residue", value = 0, width = 100)
+                         ),
+                         column(width=1, offset =0,
+                                actionButton("create_stats_onepeptide_plots", label = "Create Plots", width = 100,
+                                             style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                         )
+                       ),
+                       fluidRow(
+                         column(width=12, offset =0,
+                                dropdownButton(
+                                  textInput("stats_onepeptide_barplot_y_axis_label", label="y axis label", value = "Intensity", width = 200),
+                                  textInput("stats_onepeptide_barplot_title", label="plot title", value = "Total Summed Intensity", width = 200),
+                                  sliderInput("stats_onepeptide_barplot_label_size", label = h5("Label Size"), min = 1, 
+                                              max = 50, value = 11),
+                                  sliderInput("stats_onepeptide_barplot_title_size", label = h5("Title Size"), min = 10, 
+                                              max = 50, value = 20),
+                                  circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                  tooltip = tooltipOptions(title = "Click to see inputs !")
+                                ),
+                                div(
+                                  style = "position:relative",
+                                  plotOutput("stats_onepeptide_barplot", width = 1200, height = 400)
+                                ),
+                                downloadButton('download_stats_onepeptide_barplot')
+                         )
+                       ),
+                       fluidRow(
+                         column(width=12, offset =0,
+                                dropdownButton(
+                                  textInput("stats_onepeptide_grouped_barplot_y_axis_label", label="y axis label", value = "Intensity", width = 200),
+                                  textInput("stats_onepeptide_grouped_barplot_x_axis_label", label="x axis label", value = "Sequence", width = 200),
+                                  textInput("stats_onepeptide_grouped_barplot_title", label="plot title", value = "Total Summed Intensity", width = 200),
+                                  sliderInput("stats_onepeptide_grouped_barplot_label_size", label = h5("Label Size"), min = 1, 
+                                              max = 50, value = 11),
+                                  sliderInput("stats_onepeptide_grouped_barplot_title_size", label = h5("Title Size"), min = 10, 
+                                              max = 50, value = 20),
+                                  sliderInput("stats_onepeptide_grouped_barplot_axis_angle", label = h5("X-axis angle"), min = 0, 
+                                              max = 90, value = 45),
+                                  numericInput("stats_onepeptide_grouped_barplot_axis_vjust", label="X-axis vjust", value = 0.5),
+                                  circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                  tooltip = tooltipOptions(title = "Click to see inputs !")
+                                ),
+                                div(
+                                  style = "position:relative",
+                                  plotOutput("stats_onepeptide_grouped_barplot", width = 1200, height = 400)
+                                ),
+                                downloadButton('download_stats_onepeptide_grouped_barplot')
+                         )
+                       ),
+                       
+                       fluidRow(
+                         column(width=12, offset =0,
+                                hr(),
+                                tags$head(tags$style("#onepeptide_peptide_table{color: blue;
+                                                           font-size: 12px;
+                                                           }"
+                                )
+                                ),
+                                DT::dataTableOutput("onepeptide_peptide_table", width='100%')
+                         ),
+                         column(width=2, offset =0,
+                                textInput("stats_onepeptide_data_filename", label="File Name", value = "my_peptide_data.xlsx", width = 250)
+                         ),
+                         column(width=1, offset =0,
+                                actionButton("stats_onepeptide_data_save", label = "Save Data", width = 100,
+                                             style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                         )
+                       )
+
+              ) #end tab panel              
+              
+              
+              
+              
+              
              ) # end of navbar panel
     ),  #end of tab panel
     
@@ -1553,20 +1714,7 @@ shinyUI(fluidPage(
     tabPanel("Phos", value = "tp_phos",
              navbarPage("Phosphorylation:", id ="np_phos",
                         tabPanel("MotifX", id="motif",
-                                 fluidRow( 
-                                   
-                                   column(width=1, offset =0,
-                                          selectInput("select_final_data_motif", label = "Normalization", width = 150,
-                                                      choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
-                                                      selected = 1)
-                                   ),
-                                   column(width=1, offset =0,  
-                                          numericInput("pval_filter", label="  pvalue", value = 0.05, width = 100)
-                                   ),
-                                   column(width=1, offset =0,  
-                                          numericInput("fc_filter", label="    FC", value = 2, width = 100)
-                                   ),
-                                   
+                                 fluidRow(
                                    column(width=2, offset =0,
                                           selectInput("select_data_comp_motif", label = "comparison", 
                                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
@@ -1614,7 +1762,19 @@ shinyUI(fluidPage(
                textInput("dpmsr_set_name", label="File Name", value ="dpmsr_set_filename", width = 250),
                br(),
                actionButton("save_dpmsr_set", label = "Save dpmsr_set", width = 300,
-                    style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                    style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+              br(),
+              br(),
+              br(),
+              shinyFilesButton('test', label='Choose file to copy local', title='Choose file', multiple=FALSE,
+                              style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+             
+             
+             # shinyDirButton('new_save_directory', label='Choose Directory', title='Please select directory for files',
+             #            style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+             # actionButton("test_new_save", label = "test new save", width = 300,
+             #              style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+             
     ),# end of tab panel Save   
     
     
@@ -1641,4 +1801,4 @@ shinyUI(fluidPage(
     
      
  ) #end of navlistpanel
-)) #end of ui
+))) #end of ui

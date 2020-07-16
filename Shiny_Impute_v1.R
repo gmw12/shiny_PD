@@ -12,14 +12,16 @@ apply_impute <- function(session, input, output){
   check_impute_parallel(norm_list)
   
   norm_list2 <- dpmsr_set$y$norm_list2
+  
+  info_columns <- ncol(dpmsr_set$data$impute$impute) - dpmsr_set$y$sample_number
   if (2 %in% dpmsr_set$y$norm_list2)
-    {dpmsr_set$data$impute$tmm <<- tmm_normalize(dpmsr_set$data$impute$impute, dpmsr_set$data$impute$impute, "TMM_Norm")
+    {dpmsr_set$data$impute$tmm <<- tmm_normalize(dpmsr_set$data$impute$impute, dpmsr_set$data$impute$impute, "TMM_Norm", info_columns)
     }
   if (3 %in% dpmsr_set$y$norm_list2)
-    {dpmsr_set$data$impute$sltmm <<- tmm_normalize(dpmsr_set$data$impute$sl,dpmsr_set$data$impute$sl, "SLTMM_Norm")
+    {dpmsr_set$data$impute$sltmm <<- tmm_normalize(dpmsr_set$data$impute$sl,dpmsr_set$data$impute$sl, "SLTMM_Norm", info_columns)
   }
   if (11 %in% dpmsr_set$y$norm_list2)
-    {dpmsr_set$data$impute$protein <<- protein_normalize(dpmsr_set$data$impute$impute, "Protein_Norm")
+    {dpmsr_set$data$impute$protein <<- protein_normalize(dpmsr_set$data$impute$impute, "Protein_Norm", info_columns)
   }
 }
 
@@ -41,20 +43,25 @@ impute_parallel <- function(norm_type){
 check_impute_parallel <- function(norm_list){
   for(norm_name in names(norm_list)){
     if(is.null(dpmsr_set$data$impute[[norm_name]]    )){
-      cat(file=stderr(), str_c("apply_impute function...",norm_name), "\n")
+      cat(file=stderr(), str_c("check parallel, apply_impute function...",norm_name), "\n")
       dpmsr_set$data$impute[[norm_name]]<<-impute_only(dpmsr_set$data$normalized[[norm_name]], norm_name  )
     }
   }
 }
 
+# data_raw_impute <- impute_only(dpmsr_set$data$normalized$impute, "impute")
+# norm_name  <- "impute"
+# data_out <- dpmsr_set$data$normalized$impute
 #--------------------------------------------------------------------------------
-impute_only <-  function(data_out, norm_name){
-  distribution_data <- data_out
-  annotation_data <- data_out[1:dpmsr_set$y$info_columns]
-  data_out <- data_out[(dpmsr_set$y$info_columns+1):ncol(data_out)]
+impute_only <-  function(data_in, norm_name){
+  info_columns <- ncol(data_in) - dpmsr_set$y$sample_number
+  distribution_data <- data_in
+  annotation_data <- data_in[1:info_columns]
+  data_out <- data_in[(info_columns+1):ncol(data_in)]
+  print("made it")
   if (dpmsr_set$x$impute_method == "Duke" ||
       dpmsr_set$x$impute_method == "KNN" || dpmsr_set$x$impute_method =="LocalLeastSquares"){
-    data_out <- impute_multi(data_out, distribution_data)
+    data_out <- impute_multi(data_out, distribution_data, info_columns)
   } else if (dpmsr_set$x$impute_method== "Floor") {
     data_out[is.na(data_out)] <- dpmsr_set$x$area_floor
   } else if (dpmsr_set$x$impute_method == "Average/Group") {
@@ -64,7 +71,7 @@ impute_only <-  function(data_out, norm_name){
   } else if (dpmsr_set$x$impute_method == "MLE") {
     data_out <- impute_mle(data_out)  
   } else if (dpmsr_set$x$impute_method == "BottomX") {
-    data_out <- impute_bottomx(data_out, distribution_data)  
+    data_out <- impute_bottomx(data_out, distribution_data, info_columns)  
   } else if (dpmsr_set$x$impute_method == "Average/Global") {
     data_out <- impute_average_global(data_out)  
   } else {
@@ -76,14 +83,14 @@ impute_only <-  function(data_out, norm_name){
 
 #--------------------------------------------------------------------------------
 # imputation of missing data
-impute_multi <- function(data_in, distribution_in){
+impute_multi <- function(data_in, distribution_in, info_columns){
   #Use all data for distribution or only ptm
   if (as.logical(dpmsr_set$x$peptide_ptm_impute)){
-    distribution_data <- distribution_in[grep(dpmsr_set$x$peptide_grep, distribution_data$Modifications),]
+    distribution_data <- distribution_in[grep(dpmsr_set$x$peptide_impute_grep, distribution_in$Modifications),]
   }else{
     distribution_data <- distribution_in
   }
-  distribution_data <- distribution_data[(dpmsr_set$y$info_columns+1):ncol(distribution_data)] 
+  distribution_data <- distribution_data[(info_columns+1):ncol(distribution_data)] 
   distribution_data <- log(distribution_data,2)
   #distribution_data[is.na(distribution_data)] <- 0.0
   
@@ -164,7 +171,7 @@ impute_multi <- function(data_in, distribution_in){
   
   df3 <- data.frame(2^df3)
 
-  if (dpmsr_set$x$impute_method == "Duke"){df3 <- impute_bottomx(df3, distribution_in)}
+  if (dpmsr_set$x$impute_method == "Duke"){df3 <- impute_bottomx(df3, distribution_in, info_columns)}
   
   return(df3)
 }
@@ -172,13 +179,13 @@ impute_multi <- function(data_in, distribution_in){
 
 #--------------------------------------------------------------------------------
 # imputation of missing data
-impute_bottomx <- function(data_in, distribution_data){
+impute_bottomx <- function(data_in, distribution_data, info_columns){
   cat(file=stderr(), "apply_bottomx function...", "\n")
   #Use all data for distribution or only ptm
   if (as.logical(dpmsr_set$x$peptide_ptm_impute)){
-    distribution_data <- distribution_data[grep(dpmsr_set$x$peptide_grep, distribution_data$Modifications),]
+    distribution_data <- distribution_data[grep(dpmsr_set$x$peptide_impute_grep, distribution_data$Modifications),]
   }  
-  distribution_data <- distribution_data[(dpmsr_set$y$info_columns+1):ncol(distribution_data)] 
+  distribution_data <- distribution_data[(info_columns+1):ncol(distribution_data)] 
   distribution_data <- log(distribution_data,2)
   
   
@@ -283,7 +290,7 @@ impute_mle <- function(df){
 }
 
 
-# data_in <- dpmsr_set$data$normalized$sl[(dpmsr_set$y$info_columns+1):ncol(dpmsr_set$data$normalized$sl)]
+# data_in <- dpmsr_set$data$normalized$sl[(info_columns+1):ncol(dpmsr_set$data$normalized$sl)]
 # distribution_in <- data_in
 #--------------------------------------------------------------------------------
 # imputation of missing data
@@ -323,4 +330,26 @@ impute_average_global <- function(data_in){
     
   return(data_out)
 }
+
+
+
+
+
+
+#--------------------------------------------------------------------------------
+adjust_intensity_cutoff <- function(session, input, output){
+  cat(file=stderr(), "Calclulate new intensity cutoff", "\n")
+  if(as.numeric(dpmsr_set$x$int_cutoff_sd) < 0) {
+    dpmsr_set$x$int_cutoff <<- dpmsr_set$y$intensity_mean + (as.numeric(dpmsr_set$x$int_cutoff_sd) * dpmsr_set$y$intensity_sd )
+    cat(file=stderr(), str_c("std < 0    ",  dpmsr_set$x$int_cutoff ), "\n")
+  }else{
+    dpmsr_set$x$int_cutoff <<- dpmsr_set$y$intensity_mean + (dpmsr_set$x$int_cutoff_sd * dpmsr_set$y$intensity_sd )
+    cat(file=stderr(), str_c("std > 0    ",  dpmsr_set$x$int_cutoff ), "\n")
+  }
+  dpmsr_set$x$int_cutoff <<- trunc(2^dpmsr_set$x$int_cutoff,0)
+  output$text_i2 <- renderText(str_c("Intensity cutoff:  ", as.character(dpmsr_set$x$int_cutoff)))
+  
+}
+
+
 

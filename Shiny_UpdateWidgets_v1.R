@@ -3,6 +3,13 @@ update_widget_startup <- function(session, input, output){
   
   updateTextInput(session, "fileprefix", value = as.character(dpmsr_set$x$file_prefix))
   
+  if(dpmsr_set$x$final_data_output == "Protein"){
+    fdo <- 1
+  }else if(dpmsr_set$x$final_data_output == "Peptide"){
+    fdo <- 2
+    }
+  updateRadioButtons(session, "radio_output", selected = fdo )
+  
   if(dpmsr_set$x$raw_data_input == "Protein_Peptide"){rdi <- 1}
     else if(dpmsr_set$x$raw_data_input == "Protein"){rdi <- 2}
     else if(dpmsr_set$x$raw_data_input == "Peptide"){rdi <- 3}
@@ -12,24 +19,17 @@ update_widget_startup <- function(session, input, output){
 
   updateSelectInput(session, "razor", selected = dpmsr_set$x$peptides_to_use )
 
+  if (as.logical(dpmsr_set$x$peptide_isoform)) {test <- 1}else{test<-0}
+  updateCheckboxInput(session, "checkbox_isoform", value = test)
+
+  updateCheckboxInput(session, "checkbox_norm_ptm", value = as.logical(dpmsr_set$x$peptide_ptm_norm ))
+  updateCheckboxInput(session, "checkbox_impute_ptm", value = as.logical(dpmsr_set$x$peptide_ptm_impute ))
   
-  if(dpmsr_set$x$final_data_output == "Protein"){fdo <- 1}
-    else if(dpmsr_set$x$final_data_output == "Peptide"){fdo <- 2}
-  updateRadioButtons(session, "radio_output", selected = fdo )
+  updateTextInput(session, "peptide_norm_grep", value = as.character(dpmsr_set$x$peptide_norm_grep ))
+  updateTextInput(session, "peptide_impute_grep", value = as.character(dpmsr_set$x$peptide_impute_grep ))
   
-  if (as.logical(dpmsr_set$x$peptide_isoform)) {isoform <- 1}else{isoform<-0}
-  updateCheckboxInput(session, "checkbox_isoform", value = isoform) 
-  
-  if (as.logical(dpmsr_set$x$tmt_spqc_norm)) {tmtnorm <- 1}else{tmtnorm<-0}
-  updateCheckboxInput(session, "checkbox_tmt", value = tmtnorm) 
-  
-  if (as.logical(dpmsr_set$x$peptide_ptm_out) ) {ptmreport <- 1}else{ptmreport<-0}
-  updateCheckboxInput(session, "checkbox_out_ptm", value = ptmreport) 
-  
-  updateTextInput(session, "report_grep", value = as.character(dpmsr_set$x$peptide_report_grep))
-  
-  if (as.logical(dpmsr_set$x$accession_report_out) ) {accession_report <- 1}else{accession_report<-0}
-  updateCheckboxInput(session, "checkbox_report_accession", value = accession_report) 
+  updateCheckboxInput(session, "checkbox_tmt", value = as.logical(dpmsr_set$x$tmt_spqc_norm)) 
+  updateCheckboxInput(session, "checkbox_report_accession", value = as.logical(dpmsr_set$x$accession_report_out)) 
   
   updateTextInput(session, "report_accession", value = as.character(dpmsr_set$x$accession_report_list))
   
@@ -48,23 +48,24 @@ update_widget_startup <- function(session, input, output){
 #-Filter--------------------------------------------------------------------- 
 update_widget_filter <- function(session, input, output){
   
-  if (as.logical(dpmsr_set$x$require_x)) {requirex <- 1}else{requirex<-0}
-  updateCheckboxInput(session, "checkbox_require_x", value = requirex)
+  updateNumericInput(session, "minimum_measured_all", value = as.numeric(dpmsr_set$x$minimum_measured_all))
+  
+  updateCheckboxInput(session, "checkbox_require_x", value = as.logical(dpmsr_set$x$require_x))
   
   updateNumericInput(session, "require_x_cutoff", value = as.numeric(dpmsr_set$x$require_x_cutoff))
-
-  if (as.logical(dpmsr_set$x$filter_cv)) {require_cv <- 1}else{require_cv<-0}
-  updateCheckboxInput(session, "checkbox_filtercv", value = require_cv)
-
+  updateCheckboxInput(session, "checkbox_filtercv", value = as.logical(dpmsr_set$x$filter_cv))
+  
+  
   updateSelectInput(session, "text_filtercvgroup", choices = unique(dpmsr_set$design$Group)  )
   updateSelectInput(session, "text_filtercvgroup", selected = as.character(dpmsr_set$x$filter_cv_group))
   
   updateNumericInput(session, "number_filtercvcutoff", value = as.numeric(dpmsr_set$x$filter_cv_cutoff))
+
+
+  updateCheckboxInput(session, "checkbox_report_ptm", value = as.logical(dpmsr_set$x$peptide_report_ptm ))
   
-  if (as.logical(dpmsr_set$x$peptide_ptm_norm) ) {ptmreport <- 1}else{ptmreport<-0}
-  updateCheckboxInput(session, "checkbox_norm_ptm", value = ptmreport) 
+  updateTextInput(session, "peptide_report_grep", value = as.character(dpmsr_set$x$peptide_report_grep ))
   
-  updateTextInput(session, "filter_grep", value = as.character(dpmsr_set$x$peptide_grep ))
 }
   
   
@@ -123,7 +124,7 @@ update_widget_norm <- function(session, input, output){
     if(dpmsr_set$x$impute_method == "Duke"){impute_method <- 1}
       else if(dpmsr_set$x$impute_method == "Floor"){impute_method <- 2}
       else if(dpmsr_set$x$impute_method == "Minimum"){impute_method <- 3}
-      else if(dpmsr_set$x$impute_method == "Aerage/Group"){impute_method <- 4}
+      else if(dpmsr_set$x$impute_method == "Average/Group"){impute_method <- 4}
       else if(dpmsr_set$x$impute_method == "KNN"){impute_method <- 5}
       else if(dpmsr_set$x$impute_method == "LocalLeastSquares"){impute_method <- 6}
       else if(dpmsr_set$x$impute_method == "MLE"){impute_method <- 7}
@@ -144,7 +145,7 @@ update_widget_norm <- function(session, input, output){
     updateNumericInput(session, "missing_cutoff", value = as.numeric(dpmsr_set$x$missing_cutoff))
     updateNumericInput(session, "misaligned_cutoff", value = as.numeric(dpmsr_set$x$misaligned_cutoff))
     updateNumericInput(session, "intensity_cutoff_mean_sd", value = as.numeric(dpmsr_set$x$int_cutoff_sd))
-
+    
   }
   
 
@@ -241,7 +242,7 @@ update_widget_post_processing <- function(session, input, output){
       updatePickerInput(session, "comp_spqc", selected= dpmsr_set$y$stats$comp_spqc)
       updatePickerInput(session, "stats_plot_comp", choices = dpmsr_set$y$stats$groups$comp_name)
       updateSelectInput(session, "stats_oneprotein_plot_comp", choices = dpmsr_set$y$stats$groups$comp_name, selected = dpmsr_set$y$stats$groups$comp_name[1])
-      updatePickerInput(session, "stats_select_data_comp", choices = dpmsr_set$y$stats$groups$comp_name)
+      updateSelectInput(session, "stats_onepeptide_plot_comp", choices = dpmsr_set$y$stats$groups$comp_name, selected = dpmsr_set$y$stats$groups$comp_name[1])
       updatePickerInput(session, "stats_select_data_comp", choices = dpmsr_set$y$stats$groups$comp_name)
       updateSelectInput(session, "select_data_comp_motif", choices = dpmsr_set$y$stats$groups$comp_name)
       updateSelectInput(session, "select_data_comp_wiki", choices = dpmsr_set$y$stats$groups$comp_name)
@@ -253,6 +254,8 @@ update_widget_post_processing <- function(session, input, output){
       updateNumericInput(session, "stats_spqc_cv_filter_factor", value = dpmsr_set$y$stats$stats_spqc_cv_filter_factor)
       updateCheckboxInput(session, "stats_comp_cv_filter", value = dpmsr_set$y$stats$stats_spqc_cv_filter)
       updateNumericInput(session, "stats_comp_cv_filter_factor", value = dpmsr_set$y$stats$stats_spqc_cv_filter_factor)
+      updateCheckboxInput(session, "stats_peptide_minimum", value = dpmsr_set$y$stats$stats_peptide_minimum)
+      updateNumericInput(session, "stats_peptide_minimum_factor", value = dpmsr_set$y$stats$stats_peptide_minimum_factor)
       updatePickerInput(session, "comp_spqc", selected = dpmsr_set$y$stats$comp_spqc )
       for (i in 1:nrow(dpmsr_set$y$stats$groups)){
         updatePickerInput(session, str_c("comp_", i, "N"), selected= dpmsr_set$y$stats[[str_c("comp",i,"_N")]] )

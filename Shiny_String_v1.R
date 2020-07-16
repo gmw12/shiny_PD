@@ -6,12 +6,12 @@ setup_string <- function(session, input, output){
   #string_species <- get_STRING_species(version=10)
   
   if(input$select_organism=="Human"){
-          dpmsr_set$string$string_db <<- STRINGdb$new( version="10", species=9606,
+          dpmsr_set$string$string_db <<- STRINGdb$new(version="11.0", species=9606,
                                                score_threshold=0, input_directory="")
   }
   
   if(input$select_organism=="Mouse"){
-    dpmsr_set$string$string_db <<- STRINGdb$new( version="10", species=10090,
+    dpmsr_set$string$string_db <<- STRINGdb$new( version="11.0", species=10090,
                                                  score_threshold=0, input_directory="")
   } 
   

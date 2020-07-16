@@ -5,7 +5,7 @@ inputloaddata_render <- function(session, input, output){
   
   output$text1 <- renderText({str_c("Original Data Format:  ",  as.character(dpmsr_set$x$raw_data_input)   )  })
   output$text2 <- renderText({str_c("Current Data Format:  ",  as.character(dpmsr_set$y$state)   )  })
-  output$text3 <- renderText({str_c(as.character(dpmsr_set$y$state), " Count:  ",  nrow(dpmsr_set$data$data_peptide) )   })
+  output$text3 <- renderText({str_c(as.character(dpmsr_set$y$state), " Count:  ",  nrow(dpmsr_set$data$data_peptide_start) )   })
   
   output$mass_accuracy<- renderImage({
     list(src=str_c(dpmsr_set$file$qc_dir,"Mass_Accuracy.png"), contentType = 'image/png', width=500, height=300, alt="this is alt text")
@@ -63,9 +63,16 @@ inputloaddata_render <- function(session, input, output){
 inputfilterapply_render <- function(session, input, output){
   
   output$text4 <- renderText({str_c("Filtered ", as.character(dpmsr_set$y$state), " Count:  ",  nrow(dpmsr_set$data$data_peptide) )   })
+  
   output$raw_bar <- renderImage({
     list(src=str_c(dpmsr_set$file$qc_dir,"Raw_barplot.png"), contentType = 'image/png', width=600, height=500, alt="this is alt text")
   }, deleteFile = FALSE)
+  
+  output$raw_ptm_bar <- renderImage({
+    list(src=str_c(dpmsr_set$file$qc_dir,"Raw_PTM_Only_barplot.png"), contentType = 'image/png', width=600, height=500, alt="No PTM Only barplot!")
+  }, deleteFile = FALSE)
+  
+  
   
 }
 
@@ -76,6 +83,10 @@ inputnorm_render <- function(session, input, output){
   
   output$histogram <- renderImage({
     list(src=str_c(dpmsr_set$file$qc_dir,"Intensity_Histogram.png"), contentType = 'image/png', width=600, height=500, alt="this is alt text")
+  }, deleteFile = FALSE)
+  
+  output$ptm_histogram <- renderImage({
+    list(src=str_c(dpmsr_set$file$qc_dir,"PTM_Only_Intensity_Histogram.png"), contentType = 'image/png', width=600, height=500, alt="No PTM Histogram!")
   }, deleteFile = FALSE)
   
   output$text_i2 <- renderText(str_c("Intensity cutoff:  ", as.character(dpmsr_set$x$int_cutoff)))

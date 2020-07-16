@@ -4,7 +4,7 @@ norm_prep <- function(){
       && !as.logical(dpmsr_set$x$peptide_isoform)) {
     dpmsr_set$data$norm_data <<- remove_duplicates(dpmsr_set$data$data_peptide)  
     if (as.logical(dpmsr_set$x$peptide_ptm_norm)){
-      dpmsr_set$data$norm_data <<- dpmsr_set$data$norm_data[grep(dpmsr_set$x$peptide_grep, 
+      dpmsr_set$data$norm_data <<- dpmsr_set$data$norm_data[grep(dpmsr_set$x$peptide_norm_grep, 
                                       dpmsr_set$data$norm_data$Modifications),]
     }
     Simple_Excel(dpmsr_set$data$norm_data,  str_c(dpmsr_set$file$extra_prefix, "_norm_data.xlsx", collapse = " "))
@@ -16,7 +16,7 @@ norm_prep <- function(){
       && as.logical(dpmsr_set$x$peptide_isoform)) {
     dpmsr_set$data$norm_data <<- remove_duplicates(dpmsr_set$data$data_peptide)
     if (as.logical(dpmsr_set$x$peptide_ptm_norm)){
-      dpmsr_set$data$norm_data <<- dpmsr_set$data$norm_data[grep(dpmsr_set$x$peptide_grep, 
+      dpmsr_set$data$norm_data <<- dpmsr_set$data$norm_data[grep(dpmsr_set$x$peptide_norm_grep, 
                                                                  dpmsr_set$data$norm_data$Modifications),]
     }
     Simple_Excel(dpmsr_set$data$norm_data,  str_c(dpmsr_set$file$extra_prefix, "_norm_data.xlsx", collapse = " "))
@@ -51,14 +51,15 @@ apply_norm <- function(){
 norm_parallel <- function(norm_type){
   norm_data <- dpmsr_set$data$norm_data
   data_to_norm <- dpmsr_set$data$data_to_norm
- if(norm_type==1){data_sl <- sl_normalize(norm_data, data_to_norm, "SL_Norm")}
-  else if(norm_type==4){data_quantile <- quantile_normalize(data_to_norm, "Quantile_Norm")}
-  else if(norm_type==5){data_lr <- lr_normalize(data_to_norm, "LinReg_Norm")}
-  else if(norm_type==6){data_loess <- loess_normalize(data_to_norm, "LOESS_Norm")} 
-  else if(norm_type==7){data_vsn <- vsn_normalize(data_to_norm, "VSN_Norm")}
-  else if(norm_type==8){data_ti <- ti_normalize(norm_data, data_to_norm, "TI_Norm")} 
-  else if(norm_type==9){data_mi <- mi_normalize(norm_data, data_to_norm, "MI_Norm")} 
-  else if(norm_type==10){data_ai <- ai_normalize(norm_data, data_to_norm, "AI_Norm")} 
+  info_columns <- ncol(norm_data) - dpmsr_set$y$sample_number
+ if(norm_type==1){data_sl <- sl_normalize(norm_data, data_to_norm, "SL_Norm", info_columns)}
+  else if(norm_type==4){data_quantile <- quantile_normalize(data_to_norm, "Quantile_Norm", info_columns)}
+  else if(norm_type==5){data_lr <- lr_normalize(data_to_norm, "LinReg_Norm", info_columns)}
+  else if(norm_type==6){data_loess <- loess_normalize(data_to_norm, "LOESS_Norm", info_columns)} 
+  else if(norm_type==7){data_vsn <- vsn_normalize(data_to_norm, "VSN_Norm", info_columns)}
+  else if(norm_type==8){data_ti <- ti_normalize(norm_data, data_to_norm, "TI_Norm", info_columns)} 
+  else if(norm_type==9){data_mi <- mi_normalize(norm_data, data_to_norm, "MI_Norm", info_columns)} 
+  else if(norm_type==10){data_ai <- ai_normalize(norm_data, data_to_norm, "AI_Norm", info_columns)} 
   else if(norm_type==99){data_impute <- data_to_norm} 
 }
 
@@ -66,10 +67,10 @@ norm_parallel <- function(norm_type){
 
 #--------------------------------------------------------------------------------------
 # global scaling value, sample loading normalization
-sl_normalize <- function(norm_data, data_to_norm, data_title){
-  annotation_data <- data_to_norm[1:dpmsr_set$y$info_columns]
-  data_to_norm <- data_to_norm[(dpmsr_set$y$info_columns+1):ncol(data_to_norm)]
-  norm_data <- norm_data[(dpmsr_set$y$info_columns+1):ncol(norm_data)]
+sl_normalize <- function(norm_data, data_to_norm, data_title, info_columns){
+  annotation_data <- data_to_norm[1:info_columns]
+  data_to_norm <- data_to_norm[(info_columns+1):ncol(data_to_norm)]
+  norm_data <- norm_data[(info_columns+1):ncol(norm_data)]
   excel_name <- "_Peptide_SL_Norm.xlsx"
   target <- mean(colSums(norm_data, na.rm=TRUE))
   norm_facs <- target / colSums(norm_data,na.rm=TRUE)
@@ -80,10 +81,10 @@ sl_normalize <- function(norm_data, data_to_norm, data_title){
 }
 
 # average global scaling value, sample loading normalization
-ai_normalize <- function(norm_data, data_to_norm, data_title){
-  annotation_data <- data_to_norm[1:dpmsr_set$y$info_columns]
-  data_to_norm <- data_to_norm[(dpmsr_set$y$info_columns+1):ncol(data_to_norm)]
-  norm_data <- norm_data[(dpmsr_set$y$info_columns+1):ncol(norm_data)]
+ai_normalize <- function(norm_data, data_to_norm, data_title, info_columns){
+  annotation_data <- data_to_norm[1:info_columns]
+  data_to_norm <- data_to_norm[(info_columns+1):ncol(data_to_norm)]
+  norm_data <- norm_data[(info_columns+1):ncol(norm_data)]
   excel_name <- "_Peptide_AI_Norm.xlsx"
   target <- mean(colMeans(norm_data, na.rm=TRUE))
   norm_facs <- target / colMeans(norm_data, na.rm=TRUE)
@@ -94,10 +95,10 @@ ai_normalize <- function(norm_data, data_to_norm, data_title){
 }
 
 # intensity / sum of intensities then * median of sum of intensitites
-ti_normalize <- function(norm_data, data_to_norm, data_title){
-  annotation_data <- data_to_norm[1:dpmsr_set$y$info_columns]
-  data_to_norm <- data_to_norm[(dpmsr_set$y$info_columns+1):ncol(data_to_norm)]
-  norm_data <- norm_data[(dpmsr_set$y$info_columns+1):ncol(norm_data)]
+ti_normalize <- function(norm_data, data_to_norm, data_title, info_columns){
+  annotation_data <- data_to_norm[1:info_columns]
+  data_to_norm <- data_to_norm[(info_columns+1):ncol(data_to_norm)]
+  norm_data <- norm_data[(info_columns+1):ncol(norm_data)]
   excel_name <- "_Peptide_TI_Norm.xlsx"
   target <- median(colSums(norm_data, na.rm=TRUE))
   norm_facs <- target / colSums(norm_data, na.rm=TRUE)
@@ -108,10 +109,10 @@ ti_normalize <- function(norm_data, data_to_norm, data_title){
 }
 
 # intensity / sum of intensities then * median of sum of intensitites
-mi_normalize <- function(norm_data, data_to_norm, data_title){
-  annotation_data <- data_to_norm[1:dpmsr_set$y$info_columns]
-  data_to_norm <- data_to_norm[(dpmsr_set$y$info_columns+1):ncol(data_to_norm)]
-  norm_data <- norm_data[(dpmsr_set$y$info_columns+1):ncol(norm_data)]
+mi_normalize <- function(norm_data, data_to_norm, data_title, info_columns){
+  annotation_data <- data_to_norm[1:info_columns]
+  data_to_norm <- data_to_norm[(info_columns+1):ncol(data_to_norm)]
+  norm_data <- norm_data[(info_columns+1):ncol(norm_data)]
   excel_name <- "_Peptide_MI_Norm.xlsx"
   intensity_medians <- colMedians(data.matrix(norm_data), na.rm=TRUE)
   target <- mean(intensity_medians)
@@ -124,9 +125,9 @@ mi_normalize <- function(norm_data, data_to_norm, data_title){
 
 
 # global scaling value, sample loading normalization
-vsn_normalize <- function(data_to_norm, data_title){
-  annotation_data <- data_to_norm[1:dpmsr_set$y$info_columns]
-  data_to_norm <- data_to_norm[(dpmsr_set$y$info_columns+1):ncol(data_to_norm)]
+vsn_normalize <- function(data_to_norm, data_title, info_columns){
+  annotation_data <- data_to_norm[1:info_columns]
+  data_to_norm <- data_to_norm[(info_columns+1):ncol(data_to_norm)]
   excel_name <- "_Peptide_VSN_Norm.xlsx"
   data_to_norm[data_to_norm==0] <- NA
   data_out <- normalizeVSN(data.matrix(data_to_norm))
@@ -143,9 +144,9 @@ vsn_normalize <- function(data_to_norm, data_title){
 
 
 # global scaling value, sample loading normalization
-quantile_normalize <- function(data_to_norm, data_title){
-  annotation_data <- data_to_norm[1:dpmsr_set$y$info_columns]
-  data_to_norm <- data_to_norm[(dpmsr_set$y$info_columns+1):ncol(data_to_norm)]
+quantile_normalize <- function(data_to_norm, data_title, info_columns){
+  annotation_data <- data_to_norm[1:info_columns]
+  data_to_norm <- data_to_norm[(info_columns+1):ncol(data_to_norm)]
   excel_name <- "_Peptide_Quantile_Norm.xlsx"
   data_out <- normalize.quantiles(data.matrix(data_to_norm))
   data_out <- data.frame(data_out)
@@ -156,9 +157,9 @@ quantile_normalize <- function(data_to_norm, data_title){
 
 
 # global scaling value, sample loading normalization
-loess_normalize <- function(data_to_norm, data_title){
-  annotation_data <- data_to_norm[1:dpmsr_set$y$info_columns]
-  data_to_norm <- data_to_norm[(dpmsr_set$y$info_columns+1):ncol(data_to_norm)]
+loess_normalize <- function(data_to_norm, data_title, info_columns){
+  annotation_data <- data_to_norm[1:info_columns]
+  data_to_norm <- data_to_norm[(info_columns+1):ncol(data_to_norm)]
   excel_name <- "_Peptide_LOESS_Norm.xlsx"
   data_to_norm <- log2(data_to_norm)
   data_out <- normalizeCyclicLoess(data_to_norm, weights = NULL, span=0.7, iterations = 3, method = "fast")
@@ -174,9 +175,9 @@ loess_normalize <- function(data_to_norm, data_title){
 
 
 #linear regression normalization
-lr_normalize <- function(data_in, data_title) {
-  annotation_data <- data_in[1:dpmsr_set$y$info_columns]
-  data_in <- data_in[(dpmsr_set$y$info_columns+1):ncol(data_in)]
+lr_normalize <- function(data_in, data_title, info_columns) {
+  annotation_data <- data_in[1:info_columns]
+  data_in <- data_in[(info_columns+1):ncol(data_in)]
   excel_name <- "_Peptide_LR_Norm.xlsx"
   #normalize lr on data with no missing values, create new data frame
   data_nomissing <- data_in
@@ -220,11 +221,11 @@ lr_normalize <- function(data_in, data_title) {
 
 
 # global scaling value, sample loading normalization
-protein_normalize <- function(data_to_norm, data_title){
+protein_normalize <- function(data_to_norm, data_title, info_columns){
   protein_norm_raw <-subset(data_to_norm, Accession %in% dpmsr_set$x$protein_norm_list)
-  protein_norm_raw <- protein_norm_raw[(dpmsr_set$y$info_columns+1):(dpmsr_set$y$info_columns+dpmsr_set$y$sample_number)]
-  annotation_data <- data_to_norm[1:dpmsr_set$y$info_columns]
-  data_to_norm <- data_to_norm[(dpmsr_set$y$info_columns+1):ncol(data_to_norm)]
+  protein_norm_raw <- protein_norm_raw[(info_columns+1):(info_columns+dpmsr_set$y$sample_number)]
+  annotation_data <- data_to_norm[1:info_columns]
+  data_to_norm <- data_to_norm[(info_columns+1):ncol(data_to_norm)]
   #protein_norm_raw$missings <- rowSums(protein_norm_raw == 0.0)
   #protein_norm_raw <- subset(protein_norm_raw, missings==0)
   #protein_norm_raw <- protein_norm_raw[1:sample_number]
@@ -239,10 +240,10 @@ protein_normalize <- function(data_to_norm, data_title){
 
 
 #TMM Normalized 
-tmm_normalize <- function(norm_data, data_to_norm, data_title){
-  annotation_data <- data_to_norm[1:dpmsr_set$y$info_columns]
-  data_to_norm <- data_to_norm[(dpmsr_set$y$info_columns+1):ncol(data_to_norm)]
-  norm_data <- norm_data[(dpmsr_set$y$info_columns+1):ncol(norm_data)]
+tmm_normalize <- function(norm_data, data_to_norm, data_title, info_columns){
+  annotation_data <- data_to_norm[1:info_columns]
+  data_to_norm <- data_to_norm[(info_columns+1):ncol(data_to_norm)]
+  norm_data <- norm_data[(info_columns+1):ncol(norm_data)]
   #excel_name <- "_Peptide_TMM1_Norm.xlsx"
   #Simple_Excel(cbind(annotate_df, tmm), str_c(file_prefix3, "_Peptide_TMM_Norm_Impute.xlsx", collapse = " ")) 
   tmm <- norm_data
@@ -262,10 +263,10 @@ tmm_normalize <- function(norm_data, data_to_norm, data_title){
 
 
 # SL TMM Normalized 
-sltmm_normalize <- function(norm_data, data_to_norm, data_title){
-  annotation_data <- data_to_norm[1:dpmsr_set$y$info_columns]
-  data_to_norm <- data_to_norm[(dpmsr_set$y$info_columns+1):ncol(data_to_norm)]
-  norm_data <- norm_data[(dpmsr_set$y$info_columns+1):ncol(norm_data)]
+sltmm_normalize <- function(norm_data, data_to_norm, data_title, info_columns){
+  annotation_data <- data_to_norm[1:info_columns]
+  data_to_norm <- data_to_norm[(info_columns+1):ncol(data_to_norm)]
+  norm_data <- norm_data[(info_columns+1):ncol(norm_data)]
   #excel_name <- "_Peptide_SLTMM1_Norm.xlsx"
   target <- mean(colSums(norm_data))
   norm_facs <- target / colSums(norm_data)
@@ -294,7 +295,7 @@ remove_duplicates <- function(data_in){
   data_out <- distinct(data_in, dup, .keep_all = TRUE)
   data_out$dup <- NULL
   Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_remove_duplicates.xlsx", collapse = " "))
-  #data_out <- data_out[(dpmsr_set$y$info_columns+1):ncol(data_out)]
+  #data_out <- data_out[(info_columns+1):ncol(data_out)]
   return(data_out)
 }
 

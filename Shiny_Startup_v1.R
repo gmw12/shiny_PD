@@ -5,6 +5,8 @@ library(grid)
 library(tidyverse)
 library(dplyr)
 library(fs)
+library(effsize)
+library(colourpicker)
 
 library(tibble)
 library(stringr)
@@ -45,7 +47,7 @@ library(GSEABase)
 library(rWikiPathways)
 library(STRINGdb)
 library(igraph)
-library(colourpicker)
+
 
 cat(file=stderr(), "load Shiny functions", "\n")
 source("Shiny_UpdateWidgets_v1.R")
@@ -71,3 +73,7 @@ source("Shiny_MailMerge_v1.R")
 source("Shiny_TMTSPQC_v1.R")
 source("Shiny_Interactive_v1.R")
 source("Shiny_MVA_v1.R")
+source("Shiny_Tables_v1.R")
+
+
+

@@ -1,22 +1,34 @@
 
 
 #cohensD ---------------------------------
-cohend_gw <- function(x, y) {
-  cohend_est = try(cohen.d(
-    as.numeric(x),
-    as.numeric(y),
-    na.rm = TRUE,
-    pooled = FALSE,
-    paired = FALSE
-  ))
-  if (is(cohend_est, "try-error"))
-    return(NA)
-  else
-    return(signif((cohend_est$estimate), digits = 3))
+cohend_gw <- function(x, y, hedges) {
+  
+  cohend <- function(x, y) {
+    cohend_est = try(cohen.d(
+      as.numeric(x),
+      as.numeric(y),
+      na.rm = TRUE,
+      pooled = FALSE,
+      paired = FALSE,
+      hedges.correction = hedges
+    ))
+    if (is(cohend_est, "try-error"))
+      return(NA)
+    else
+      return(signif((cohend_est$estimate), digits = 3))
+  }
+  
+  x <- data.frame(t(x))
+  y <- data.frame(t(y))
+  
+  cd <- mapply(function(x,y) cohend(x,y), x, y)
+  return(cd)
 }
 
 #missing factor ---------------------------------
 missing_factor_gw <- function(x, y) {
+  x <- x %>% mutate_all(as.numeric)
+  y <- y %>% mutate_all(as.numeric)
   mf_x <- rowSums(x) / ncol(x)
   mf_y <- rowSums(y) / ncol(y)
   df_mf <- data.frame(cbind(mf_x, mf_y), stringsAsFactors = FALSE)
@@ -47,7 +59,7 @@ foldchange_gw <- function(x, y) {
     test <- rowMeans(indiv_fc)
   }
   fc <- ifelse ((test >= 1), test,-1 / test)
-  return(signif(fc, digits = 3))
+  return(signif(fc, digits = 7))
 }
 
 #fold change pair---------------------------------
@@ -59,7 +71,7 @@ foldchange_pair_gw <- function(x, y) {
   }
   test <- rowMeans(indiv_fc)
   fc <- ifelse ((test >= 1), test,-1 / test)
-  return(signif(fc, digits = 3))
+  return(signif(fc, digits = 7))
 }
 
 
@@ -79,7 +91,7 @@ foldchange_decimal_gw <- function(x, y) {
     test <- rowMeans(indiv_fc)
   }
   fc <- test
-  return(signif(fc, digits = 3))
+  return(signif(fc, digits = 7))
 }
 
 #fold change pair decimal---------------------------------
@@ -91,7 +103,7 @@ foldchange_pair_decimal_gw <- function(x, y) {
   }
   test <- rowMeans(indiv_fc)
   fc <- test
-  return(signif(fc, digits = 3))
+  return(signif(fc, digits = 7))
 }
 
 
@@ -122,7 +134,7 @@ ttest_gw <- function(x, y) {
   if (is(ttest_pvalue, "try-error"))
     return(NA)
   else
-    return(signif((ttest_pvalue$p.value), digits = 3))
+    return(signif((ttest_pvalue$p.value), digits = 7))
 }
 
 
@@ -151,7 +163,7 @@ exactTest_gw <- function(x, y) {
 #x<-comp_N_data
 #y<-comp_D_data
 #comp_name <- comp_groups$comp_name[1]
-limma_gw <- function(x, y, comp_name, plot_dir) {
+limma_gw <- function(x, y) {   #, comp_name, plot_dir) {
   xy <- cbind(x, y)
   xy <- log2(xy)
   n <- ncol(x)
@@ -167,9 +179,9 @@ limma_gw <- function(x, y, comp_name, plot_dir) {
                      sort = "none",
                      number = Inf)
   data_out <- topfit$P.Value
-  try(limma_qq(fit2$t, comp_name, plot_dir), silent = TRUE)
-  try(limma_ma(topfit, comp_name, plot_dir), silent = TRUE)
-  try(limma_volcano(fit2, comp_name, plot_dir), silent = TRUE)
+  #try(limma_qq(fit2$t, comp_name, plot_dir), silent = TRUE)
+  #try(limma_ma(topfit, comp_name, plot_dir), silent = TRUE)
+  #try(limma_volcano(fit2, comp_name, plot_dir), silent = TRUE)
   return(data_out)
 }
 

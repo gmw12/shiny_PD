@@ -2,7 +2,7 @@
 #-----------------------------------------------------------
 #-----------------------------------------------------------
 
-update_dpmsr_set_from_widgets <- function(session, input){
+update_dpmsr_set_from_widgets <- function(session, input, output){
   #--Select type of data to load, and final format--------------------------------------------------    
   observe({
     if (input$radio_input==1){dpmsr_set$x$raw_data_input <<-"Protein_Peptide"}
@@ -12,21 +12,28 @@ update_dpmsr_set_from_widgets <- function(session, input){
   })
   
   observe({
-    if (input$radio_output==1){dpmsr_set$x$final_data_output<<-"Protein"}
-    else if (input$radio_output==2){dpmsr_set$x$final_data_output<<-"Peptide"}
+    if (input$radio_output=="1"){
+      dpmsr_set$x$final_data_output <<- "Protein"
+      cat(file=stderr(), str_c("output test  ", input$radio_output), "\n")
+      }
+    else if (input$radio_output=="2"){
+      dpmsr_set$x$final_data_output <<-"Peptide"
+      updateCheckboxInput(session, "peptide_missing_filter",  value = FALSE)
+      updateCheckboxInput(session, "peptide_cv_filter",  value = FALSE)
+      updateCheckboxInput(session, "stats_peptide_minimum",  value = FALSE)
+      cat(file=stderr(), str_c("output test  ", input$radio_output), "\n")
+      }
   }) 
+  
+
   
   observe({
     dpmsr_set$x$peptides_to_use <<- input$razor
   })
   
   observe({
-    if (input$checkbox_isoform){dpmsr_set$x$peptide_isoform<<-TRUE}else{dpmsr_set$x$peptide_isoform<<-FALSE}
+    if (input$checkbox_isoform){dpmsr_set$x$peptide_isoform <<- TRUE}else{dpmsr_set$x$peptide_isoform <<- FALSE}
   })
-  
-  # observe({
-  #   if (input$checkbox_tmt){dpmsr_set$x$peptide_isoform<<-TRUE}else{dpmsr_set$x$peptide_isoform<<-FALSE}
-  # })
   
 
   observe({
@@ -35,11 +42,15 @@ update_dpmsr_set_from_widgets <- function(session, input){
   
   #-Filters-----------------------------------------------------------------------------------------------------    
   observe({
-    if (input$checkbox_require_x){dpmsr_set$x$require_x <<-TRUE}else{dpmsr_set$x$require_2 <<-FALSE}
+    if (input$checkbox_require_x){dpmsr_set$x$require_x <<-TRUE}else{dpmsr_set$x$require_x <<-FALSE}
   })
   
   observe({
     dpmsr_set$x$require_x_cutoff <<-  input$require_x_cutoff
+  })
+  
+  observe({
+    dpmsr_set$x$minimum_measured_all <<-  input$minimum_measured_all
   })
   
   observe({
@@ -60,7 +71,25 @@ update_dpmsr_set_from_widgets <- function(session, input){
   })
   
   observe({
-    dpmsr_set$x$filter_grep <<-  input$filter_grep
+    dpmsr_set$x$peptide_norm_grep <<-  input$peptide_norm_grep
+  })
+  
+  observe({
+    if (input$checkbox_impute_ptm){dpmsr_set$x$peptide_ptm_impute <<- TRUE
+    }else{dpmsr_set$x$peptide_ptm_impute <<- FALSE}
+  })
+  
+  observe({
+    dpmsr_set$x$peptide_impute_grep <<-  input$peptide_impute_grep
+  })
+  
+  observe({
+    if (input$checkbox_report_ptm){dpmsr_set$x$peptide_report_ptm <<- TRUE
+    }else{dpmsr_set$x$peptide_report_ptm <<- FALSE}
+  })
+  
+  observe({
+    dpmsr_set$x$peptide_report_grep <<-  input$peptide_report_grep
   })
   
   #-Normalize-----------------------------------------------------------------------------------------------------      
@@ -184,15 +213,6 @@ update_dpmsr_set_from_widgets <- function(session, input){
   })
   
   observe({
-    if (input$checkbox_out_ptm){dpmsr_set$x$peptide_ptm_norm<<-TRUE
-    }else{dpmsr_set$x$peptide_ptm_norm<<-FALSE}
-  })
-  
-  observe({
-    dpmsr_set$x$report_grep <<-  input$report_grep
-  })
-  
-  observe({
     if (input$checkbox_report_accession){dpmsr_set$x$accession_report_out <<-TRUE
     }else{dpmsr_set$x$accession_report_out <<-FALSE}
   })
@@ -237,7 +257,12 @@ update_dpmsr_set_from_widgets <- function(session, input){
     dpmsr_set$y$organism <<-  input$select_organism
   })
 
+ 
   
+
+  
+  
+   
 }
 
 

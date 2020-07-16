@@ -48,9 +48,11 @@ load_design <- function(session, input){
     }
   }
   dpmsr_set$x$test <<- "test"
-  dpmsr_set$x$peptide_grep <<- str_replace_all(dpmsr_set$x$peptide_grep, "/", "\\\\")
-  dpmsr_set$x$peptide_report_grep <<- str_replace_all(dpmsr_set$x$peptide_report_grep, "/", "\\\\")
-  dpmsr_set$x$int_cutoff <- as.numeric(dpmsr_set$x$int_cutoff)
+  
+  #dpmsr_set$x$peptide_norm_grep <<- str_replace_all(dpmsr_set$x$peptide_norm_grep, "/", "\\\\")
+  #dpmsr_set$x$peptide_impute_grep <<- str_replace_all(dpmsr_set$x$peptide_impute_grep, "/", "\\\\")
+  #dpmsr_set$x$peptide_report_grep <<- str_replace_all(dpmsr_set$x$peptide_report_grep, "/", "\\\\")
+  #dpmsr_set$x$int_cutoff <- as.numeric(dpmsr_set$x$int_cutoff)
 }
 
 #----------------------------------------------------------------------------------------
@@ -108,20 +110,20 @@ load_data <- function(session, input, volumes){
 prepare_data <- function(session, input) {  #function(data_type, data_file_path){
    data_type <- input$radio_input
    if(as.numeric(data_type) == 1){
-    dpmsr_set$data$data_peptide <<- protein_to_peptide()
-    dpmsr_set$data$data_protein <<- protein_to_protein()
+    dpmsr_set$data$data_peptide_start <<- protein_to_peptide()
+    dpmsr_set$data$data_protein_start <<- protein_to_protein()
     dpmsr_set$y$state <<- "Peptide"
   }else if(data_type ==2){
-    dpmsr_set$data$data_protein <<- protein_to_protein()
+    dpmsr_set$data$data_protein_start <<- protein_to_protein()
     dpmsr_set$y$state <<- "Protein"
   }else if(data_type ==3){
-    dpmsr_set$data$data_peptide <<- peptide_to_peptide()
+    dpmsr_set$data$data_peptide_start <<- peptide_to_peptide()
     dpmsr_set$y$state <<- "Peptide"
   }else{msgBox <- tkmessageBox(title = "Whoops",
                            message = "Invalid input output in design file", icon = "info", type = "ok")}
 
    if(input$checkbox_isoform){
-     dpmsr_set$data$data_peptide_isoform <<- isoform_to_isoform()
+     dpmsr_set$data$data_peptide_isoform_start <<- isoform_to_isoform()
    }
 }
 
@@ -211,13 +213,14 @@ set_sample_groups<- function(){
   first_group<- NULL
   second_group<- NULL
   third_group<- NULL
+  
   for(i in 1:length(dpmsr_set$y$sample_groups$Group)){
     groups <-  unlist(str_split(dpmsr_set$y$sample_groups$Group[i], "_"))
     first_group <- c(first_group, groups[1])
     second_group <-  c(second_group, groups[2])
     third_group <-  c(third_group, groups[3])
   }
-  dpmsr_set$y$uniquegroups <<- unique(c(first_group, second_group, third_group))
+  dpmsr_set$y$uniquegroups <<- unique(c(first_group, second_group, third_group, "All.Samples")) #, "/^((?!SPQC).)*$/"  ))
   dpmsr_set$y$uniquegroups <<- dpmsr_set$y$uniquegroups[!is.na(dpmsr_set$y$uniquegroups)]
 
   

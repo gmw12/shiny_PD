@@ -28,7 +28,7 @@ set_pathway <- function(input, output, session){
       wp2gene <- clusterProfiler::read.gmt(str_c(dpmsr_set$file$string,wp.gmt))
       }
     if (tax_choice == "Mouse"){
-      wp.gmt <- rWikiPathways::downloadPathwayArchive(organism="Mus musculus" , format = "gmt", destpath = dpmsr_set$file$string)
+      wp.gmt <- rWikiPathways::downloadPathwayArchive(date = "20191010", organism="Mus musculus" , format = "gmt", destpath = dpmsr_set$file$string)
       wp2gene <- clusterProfiler::read.gmt(str_c(dpmsr_set$file$string,wp.gmt))
     }
     return(wp2gene)
@@ -38,8 +38,16 @@ set_pathway <- function(input, output, session){
   dpmsr_set$pathway$tax_db <<- db_get(tax_choice)
   
   dpmsr_set$pathway$wp2gene <<- gmt_get(tax_choice)
-  dpmsr_set$pathway$wp2gene <<- dpmsr_set$pathway$wp2gene %>% tidyr::separate(ont, c("name","version","wpid","org"), "%")
-
+  
+  dpmsr_set$pathway$wp2gene <<- try(dpmsr_set$pathway$wp2gene %>% tidyr::separate(term, c("name","version","wpid","org"), "%") )
+  
+  if (class(dpmsr_set$pathway$wp2gene) == "try-error") {
+    dpmsr_set$pathway$wp2gene <<- dpmsr_set$pathway$wp2gene %>% tidyr::separate(ont, c("name","version","wpid","org"), "%")
+  }
+  
+  #retired "ont"?
+  #dpmsr_set$pathway$wp2gene <<- dpmsr_set$pathway$wp2gene %>% tidyr::separate(ont, c("name","version","wpid","org"), "%")
+  
   cat(file=stderr(), "Set Pathway...3" , "\n")
   #---ViseaGo/topGo Setup----------------------------
   dpmsr_set$pathway$Uniprot <<- ViSEAGO::Uniprot2GO()
