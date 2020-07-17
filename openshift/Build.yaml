@@ -15,7 +15,7 @@ items:
       description: Keeps track of changes in the app
     labels:
       app: spd
-    name: ddh-shiny-app
+    name: spd-shiny-app
 - apiVersion: build.openshift.io/v1
   kind: BuildConfig
   metadata:
@@ -31,14 +31,13 @@ items:
         kind: ImageStreamTag
         name: base-shiny:latest
     source:
-      contextDir: "base-shiny"
       git:
         ref: master
         uri: https://github.com/gmw12/shiny_PD.git
       type: Git
     strategy:
       dockerStrategy:
-        dockerfilePath: Dockerfile
+        dockerfilePath: base-shiny/Dockerfile
     triggers:
     - type: ImageChange
     - type: ConfigChange
