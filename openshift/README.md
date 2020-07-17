@@ -1,4 +1,4 @@
-ddh-app
+spd-app
 =======
 
 OpenShift deployment of spd application using shiny server
