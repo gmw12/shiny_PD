@@ -6,7 +6,6 @@ RUN apt-get install build-essential libgl1-mesa-dev libglu1-mesa-dev libv8-dev l
 ADD ./Shiny_install.R /code/Shiny_install.R
 RUN Rscript /code/Shiny_install.R
 
-ADD . /code
 COPY base-shiny/shiny-server.conf /etc/shiny-server/shiny-server.conf
 RUN chown -R shiny /var/lib/shiny-server/
 
