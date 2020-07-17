@@ -1,6 +1,4 @@
    
-
-
 protein_table <- function(session, input, output, filter_df){
 
   pval_cols <- colnames(filter_df %>% dplyr::select(contains("pval") ) )
