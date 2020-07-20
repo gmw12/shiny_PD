@@ -1,0 +1,73 @@
+apiVersion: v1
+items:
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      description: Keeps track of changes in the base shiny image
+    labels:
+      app: spd
+    name: base-shiny
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      description: Keeps track of changes in the app
+    labels:
+      app: spd
+    name: spd-shiny-app
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      description: Build config for base shiny application
+      template.alpha.openshift.io/wait-for-ready: "true"
+    labels:
+      app: spd
+    name: base-shiny
+  spec:
+    output:
+      to:
+        kind: ImageStreamTag
+        name: base-shiny:latest
+    source:
+      git:
+        ref: master
+        uri: https://github.com/gmw12/shiny_PD.git
+      type: Git
+    strategy:
+      dockerStrategy:
+        dockerfilePath: base-shiny/Dockerfile
+    triggers:
+    - type: ImageChange
+    - type: ConfigChange
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      description: Build config for spd shiny application
+      template.alpha.openshift.io/wait-for-ready: "true"
+    labels:
+      app: spd
+    name: spd-shiny-app
+  spec:
+    output:
+      to:
+        kind: ImageStreamTag
+        name: spd-shiny-app:latest
+    source:
+      git:
+        ref: master
+        uri: https://github.com/gmw12/shiny_PD.git
+      type: Git
+    strategy:
+      dockerStrategy:
+        from:
+          kind: ImageStreamTag
+          name: base-shiny:latest
+        dockerfilePath: Dockerfile
+    triggers:
+    - type: ImageChange
+    - type: ConfigChange
+kind: List
+metadata: {}
