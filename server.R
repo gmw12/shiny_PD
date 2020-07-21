@@ -14,7 +14,6 @@ library(DT)
 library(shinyalert)
 
 cat(file=stderr(), "Server.R line 11", "\n")
-
 cat(file=stderr(), "Server.R line 15", "\n")
 
 shinyServer(function(input, output, session) {
