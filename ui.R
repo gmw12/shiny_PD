@@ -29,7 +29,7 @@ shinyUI(
              br(),
              tags$h1("Loading app...") 
     ),
-    tabPanel("Load Design", value = "tp1", align="center",
+    tabPanel("Load Design", value = "tp_load_design", align="center",
                         hr(),
                         tags$h1("Choose and Load the study design file..."),
                         br(),
@@ -133,7 +133,7 @@ shinyUI(
     ),  
 
 
-      tabPanel("Filters", value = "tp4", align="center",
+      tabPanel("Filters", value = "tp_filters", align="center",
                tags$h1("Apply Filters"),
                hr(),
                fluidRow(
@@ -170,7 +170,7 @@ shinyUI(
                ), #end tab panel
 
 
-      tabPanel("Normalize", value = "tp5",
+      tabPanel("Normalize", value = "tp_normalize",
                fluidRow(
                  column(width=4, offset =1,
                      br(),
@@ -216,7 +216,7 @@ shinyUI(
        ),
 
 
-    tabPanel("Impute", value = "tp6",
+    tabPanel("Impute", value = "tp_impute",
              fluidRow(
                column(width=4, offset =1,
                       textOutput("text_i1"),
@@ -523,6 +523,28 @@ shinyUI(
           ), #end of qc tabpanel
     
    
+    
+    tabPanel("Load Data", value = "tp_customer_load", align="center",
+             hr(),
+             tags$h1("Welcome to DPMSR Proteome Discover Data Visualization Tool"),
+             br(),
+             br(),
+             br(),
+             br(),
+             tags$h2("Choose and Load the study design file..."),
+             br(),
+             fileInput("customer_dpmsr_set", "Choose dpmsr_set file",
+                       multiple = FALSE,
+                       accept = c(".dpmsr_set", ".txt")),
+            br(),
+            br(),
+            br(),
+            actionButton("load_customer_dpmsr_set", label = "Load dpmsr_set", width = 200, 
+                         style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+    ),
+    
+    
+    
     tabPanel("Stats", value = "tp_stats",
              navbarPage("Stats:", id ="nbp_stats",
                         tabPanel("Setup", id="tp_stats_setup", 
@@ -729,8 +751,11 @@ shinyUI(
                                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
                                           br(),
                                           br(),
-                                          actionButton("save_stats", label = "Save Stats to Excel", width = 300,
-                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                                          actionButton("save_stats", label = "Create Excel Output File", width = 300,
+                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                                          br(),
+                                          br(),
+                                          downloadButton('download_stats_excel')
                                  )
                         ),
                         
@@ -1762,13 +1787,12 @@ shinyUI(
                br(),
                textInput("dpmsr_set_name", label="File Name", value ="dpmsr_set_filename", width = 250),
                br(),
-               actionButton("save_dpmsr_set", label = "Save dpmsr_set", width = 300,
+               actionButton("save_dpmsr_set", label = "Create new dpmsr_set", width = 300,
                     style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
               br(),
               br(),
               br(),
-              shinyFilesButton('test', label='Choose file to copy local', title='Choose file', multiple=FALSE,
-                              style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+              downloadButton('download_new_dpmsr_set')
              
              
              # shinyDirButton('new_save_directory', label='Choose Directory', title='Please select directory for files',

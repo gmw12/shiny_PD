@@ -331,8 +331,8 @@ stat_calc2 <- function(session, input, output) {
       df <- collapse_peptide_stats(df, info_columns)
       df_impute <- collapse_peptide_stats(df_impute, info_columns)
       
-      xdf <<- df
-      xdf_impute <<- df_impute
+      #xdf <<- df
+      #xdf_impute <<- df_impute
       
       test2 <- df_impute[4:ncol(df_impute)]
       test2[test2==0] <- "-"
@@ -344,8 +344,8 @@ stat_calc2 <- function(session, input, output) {
       df <- add_column(df, test2[,1] , .after = "Peptides")
       names(df)[4] <- "PD_Detected_Peptides"
       
-      xdf2 <<- df
-      xdfimpute2 <<- df_impute
+      #xdf2 <<- df
+      #xdfimpute2 <<- df_impute
       
       annotate_in <- df[1:dpmsr_set$y$info_columns_final]
       data_in <- df[(dpmsr_set$y$info_columns_final+1):(ncol(df))]
@@ -430,7 +430,7 @@ stat_calc2 <- function(session, input, output) {
     
     data_table <- data_table[order(data_table$Stats, -data_table[[dpmsr_set$y$stats$groups$pval[i]]], decreasing = TRUE),]
     
-    xdt <<- data_table
+    #xdt <<- data_table
     
     #filter stats by ptm or accession if needed
     if(dpmsr_set$x$final_data_output == "Peptide" &  input$checkbox_report_ptm){
@@ -487,7 +487,10 @@ stats_Final_Excel <- function(session, input, output) {
     
     wb <- createWorkbook()
     
-    if(dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Protein"){
+    
+    #----------------------------------------
+    
+    if(site_user == "dpmsr" && (dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Protein")){
   
       raw_protein <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_Protein_to_Protein_Raw.xlsx"))
       raw_peptide <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_ProteinPeptide_to_Peptide_Raw.xlsx"))
@@ -519,6 +522,10 @@ stats_Final_Excel <- function(session, input, output) {
       writeData(wb, sheet = nextsheet, raw_peptide) 
       nextsheet <- nextsheet +1
     }
+    
+    #----------------------------------------
+    
+    
     
     #addWorksheet(wb, deparse(substitute(df2)))
     addWorksheet(wb, "Normalized Data")

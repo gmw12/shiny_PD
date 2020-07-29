@@ -23,18 +23,7 @@
   #   }
   # })   
   
-   
-   observe({
-     if (input$radio_output==2){
-       hideTab(inputId = "nbp_stats", target = "tp_stats_oneprotein")
-       showTab(inputId = "nbp_stats", target = "tp_stats_onepeptide")
-       hideTab(inputId = "nlp1", target = "pathway")
-     }else{
-       showTab(inputId = "nbp_stats", target = "tp_stats_oneprotein")
-       hideTab(inputId = "nbp_stats", target = "tp_stats_onepeptide")
-       showTab(inputId = "nlp1", target = "pathway")
-     }
-   })
+
    
   observe({
     if (input$radio_input==1 && input$radio_output==1 ){
@@ -206,16 +195,7 @@
     }
   })  
   
-  
-  observe({
-    if (input$checkbox_tmt){
-    hideTab(inputId = "nlp1", target = "tp6")
-    showTab(inputId = "nlp1", target = "tp_tmt")
-  }else{
-    showTab(inputId = "nlp1", target = "tp6")
-    hideTab(inputId = "nlp1", target = "tp_tmt")
-       }
-  })
+
   
   
   observe({
@@ -571,6 +551,67 @@
        shinyjs::hide("checkbox_cohensd_hedges") 
      }
    })
+   
+   
+   
+   #------------------------------------------------------------------------
+   #Show/Hide UI elements
+   
+   observe({
+     if (input$checkbox_tmt){
+       hideTab(inputId = "nlp1", target = "tp6")
+       showTab(inputId = "nlp1", target = "tp_tmt")
+     }else{
+       showTab(inputId = "nlp1", target = "tp6")
+       hideTab(inputId = "nlp1", target = "tp_tmt")
+     }
+   })
+   
+   
+   observe({
+     if (input$radio_output==2){
+       hideTab(inputId = "nbp_stats", target = "tp_stats_oneprotein")
+       showTab(inputId = "nbp_stats", target = "tp_stats_onepeptide")
+       hideTab(inputId = "nlp1", target = "pathway")
+     }else{
+       showTab(inputId = "nbp_stats", target = "tp_stats_oneprotein")
+       hideTab(inputId = "nbp_stats", target = "tp_stats_onepeptide")
+       showTab(inputId = "nlp1", target = "pathway")
+     }
+   })
+   
+   
+   observe({
+     if (site_user == "not_dpmsr"){
+       hideTab(inputId = "nlp1", target = "tp_load_design")
+       hideTab(inputId = "nlp1", target = "tp_load_data")
+       hideTab(inputId = "nlp1", target = "tp_overview")
+       hideTab(inputId = "nlp1", target = "tp_filters")
+       hideTab(inputId = "nlp1", target = "tp_normalize")
+       hideTab(inputId = "nlp1", target = "tp_impute")
+       hideTab(inputId = "nlp1", target = "tp_tmt")
+       hideTab(inputId = "nlp1", target = "tp_qc")
+       hideTab(inputId = "nlp1", target = "tp_report")
+       showTab(inputId = "nlp1", target = "tp_customer_load")
+     }else if (site_user == "dpmsr") {
+       showTab(inputId = "nlp1", target = "tp_load_design")
+       showTab(inputId = "nlp1", target = "tp_load_data")
+       showTab(inputId = "nlp1", target = "tp_overview")
+       showTab(inputId = "nlp1", target = "tp_filters")
+       showTab(inputId = "nlp1", target = "tp_normalize")
+       showTab(inputId = "nlp1", target = "tp_impute")
+       showTab(inputId = "nlp1", target = "tp_qc")
+       showTab(inputId = "nlp1", target = "tp_report")
+       hideTab(inputId = "nlp1", target = "tp_customer_load")
+     }
+   })
+   
+   
+   
+   
+   
+   
+   
    
    
    

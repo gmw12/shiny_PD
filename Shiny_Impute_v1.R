@@ -58,7 +58,7 @@ impute_only <-  function(data_in, norm_name){
   distribution_data <- data_in
   annotation_data <- data_in[1:info_columns]
   data_out <- data_in[(info_columns+1):ncol(data_in)]
-  print("made it")
+  
   if (dpmsr_set$x$impute_method == "Duke" ||
       dpmsr_set$x$impute_method == "KNN" || dpmsr_set$x$impute_method =="LocalLeastSquares"){
     data_out <- impute_multi(data_out, distribution_data, info_columns)
@@ -96,6 +96,11 @@ impute_multi <- function(data_in, distribution_in, info_columns){
   
   data_in <- log(data_in,2)
   #data_in[is.na(data_in)] <- 0.0
+
+  # save set of randome numbers to be used for impute, if reipute numbers the same
+  set.seed(123)
+  rand_impute <- runif(100000, min=-1, max=1)
+  rand_count <- 1
 
   for(i in 1:dpmsr_set$y$group_number){
     # calculate stats for each sample group
@@ -136,8 +141,9 @@ impute_multi <- function(data_in, distribution_in, info_columns){
           for (k in 1:dpmsr_set$y$sample_groups$Count[i]){
             if (is.na(df[j,k])) {
               #nf <-  rnorm(1, 0, 1)
-              nf <- mean(runif(4, min=-1, max=1))
-              df[j,k] = df$average[j] + (nf*findsd$sd[1])
+              #nf <- mean(runif(4, min=-1, max=1))
+              df[j,k] = df$average[j] + (rand_impute[rand_count] * findsd$sd[1])
+              rand_count <- rand_count + 1
             }
           }
         }
@@ -201,9 +207,17 @@ impute_bottomx <- function(data_in, distribution_data, info_columns){
   data_in <- log(data_in,2)
   test <- apply(is.na(data_in), 2, which)
   
+  # save set of randome numbers to be used for impute, if reipute numbers the same
+  set.seed(321)
+  rand_impute <- runif(100000, min=0, max=1)
+  rand_count <- 1
+  
   for(n in names(test)){
     for(l in (test[[n]]))
-      data_in[[n]][l] <- mean(runif(4, bottomx_min, bottomx_max))
+      #data_in[[n]][l] <- mean(runif(4, bottomx_min, bottomx_max))
+      # uses stored random numbers from -1 to 1
+      data_in[[n]][l] <- bottomx_min + (rand_impute[rand_count] * (bottomx_max-bottomx_min))
+      rand_count <- rand_count +1
   }
   
   data_in <- data.frame(2^data_in)

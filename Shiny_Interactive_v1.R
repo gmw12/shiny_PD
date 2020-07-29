@@ -139,7 +139,7 @@ interactive_barplot <- function(session, input, output, df, namex, color_list, o
 #------------------------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------------------------
 
-interactive_boxplot <- function(session, input, output, df, namex, color_list)
+interactive_boxplot <- function(session, input, output, df, namex, color_list, comp_name)
 {
   colnames(df) <- namex
   df3 <- log2(df) %>% gather(Sample, Intensity, colnames(df))
@@ -166,8 +166,7 @@ interactive_boxplot <- function(session, input, output, df, namex, color_list)
   
   output$download_stats_boxplot <- downloadHandler(
     filename = function(){
-      str_c("stats_Boxplot_", dpmsr_set$y$stats$groups$comp_name[as.numeric(input$stats_plot_comp)],
-            ".png", collapse = " ")
+      str_c("stats_Boxplot_", comp_name, ".png", collapse = " ")
     },
     content = function(file){
       req(create_stats_boxplot())
@@ -179,7 +178,7 @@ interactive_boxplot <- function(session, input, output, df, namex, color_list)
 #------------------------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------------------------
 
-interactive_pca2d <- function(session, input, output, df, namex, color_list, groupx)
+interactive_pca2d <- function(session, input, output, df, namex, color_list, groupx, comp_name)
 {
   x_transpose <- t(df)
   x_transpose <-data.frame(x_transpose)
@@ -192,7 +191,7 @@ interactive_pca2d <- function(session, input, output, df, namex, color_list, gro
   df_out <- as.data.frame(x_pca$x)
   df_out_test <<- df_out
   df_xgr <- data.frame(x_gr)
-  df_xgr_test <<- df_xgr
+  #df_xgr_test <<- df_xgr
   #df_xgr$x_gr <- as.character(df_xgr$x_gr)
   
   hover_data <- data.frame(cbind(namex, df_out[[input$stats_pca2d_x]], df_out[[input$stats_pca2d_y]]), stringsAsFactors = FALSE  )
@@ -224,8 +223,7 @@ interactive_pca2d <- function(session, input, output, df, namex, color_list, gro
   
   output$download_stats_pca2d <- downloadHandler(
     filename = function(){
-      str_c("stats_pca2d_", dpmsr_set$y$stats$groups$comp_name[as.numeric(input$stats_plot_comp)],
-            ".png", collapse = " ")
+      str_c("stats_pca2d_", comp_name, ".png", collapse = " ")
     },
     content = function(file){
       req(create_stats_pca2d())
@@ -268,7 +266,7 @@ interactive_pca2d <- function(session, input, output, df, namex, color_list, gro
 #------------------------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------------------------
 
-interactive_pca3d <- function(session, input, output, df, namex, color_list, groupx)
+interactive_pca3d <- function(session, input, output, df, namex, color_list, groupx, comp_name)
 {
   x_transpose <- t(df)
   x_transpose <-data.frame(x_transpose)
@@ -298,8 +296,7 @@ interactive_pca3d <- function(session, input, output, df, namex, color_list, gro
   
   output$download_stats_pca3d <- downloadHandler(
     filename = function(){
-      str_c("stats_pca3d_", dpmsr_set$y$stats$groups$comp_name[as.numeric(input$stats_plot_comp)],
-            ".png", collapse = " ")
+      str_c("stats_pca3d_", comp_name, ".png", collapse = " ")
     },
     content = function(file){
       req(create_stats_pca3d())
@@ -312,7 +309,7 @@ interactive_pca3d <- function(session, input, output, df, namex, color_list, gro
 #------------------------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------------------------
 
-interactive_cluster <- function(session, input, output, df, namex)
+interactive_cluster <- function(session, input, output, df, namex, comp_name)
 {
   colnames(df) <- namex
   
@@ -331,7 +328,6 @@ interactive_cluster <- function(session, input, output, df, namex)
       theme(plot.title = element_text(hjust = 0.5, size=input$stats_cluster_title_size), 
             axis.text.x = element_text(size=input$stats_cluster_label_size, angle = 90,  color="black"),
             axis.text.y = element_text(size=input$stats_cluster_label_size,  color="black"))
-      
   })
   
   output$stats_cluster <- renderPlot({
@@ -341,39 +337,49 @@ interactive_cluster <- function(session, input, output, df, namex)
   
   output$download_stats_cluster <- downloadHandler(
     filename = function(){
-      str_c("stats_cluster_", dpmsr_set$y$stats$groups$comp_name[as.numeric(input$stats_plot_comp)],
-            ".png", collapse = " ")
+      str_c("stats_cluster_", comp_name, ".png", collapse = " ")
     },
     content = function(file){
       req(create_stats_cluster())
       ggsave(file, plot = create_stats_cluster(), device = 'png')
     }
   )
+  
+  
 }
 
 
 #------------------------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------------------------
 
-interactive_heatmap <- function(session, input, output, df, namex, groupx)
+interactive_heatmap <- function(session, input, output, df, namex, groupx, comp_name)
 {
   colnames(df) <- namex
-  
   df <- log2(df)
   df <- data.matrix(df)
   
+  ## Row- and column-wise clustering 
+  hr <- hclust(as.dist(1-cor(t(df), method="pearson")), method="complete")
+  hc <- hclust(as.dist(1-cor(df, method="spearman")), method="complete") 
+  ## Tree cutting
+  mycl <- cutree(hr, h=max(hr$height)/1.5); mycolhc <- rainbow(length(unique(mycl)), start=0.1, end=0.9); mycolhc <- mycolhc[as.vector(mycl)] 
+  ## Plot heatmap 
+  mycol <- redgreen(75)
+  
+
   create_stats_heatmap <- reactive({
-    ## Row- and column-wise clustering 
-    hr <- hclust(as.dist(1-cor(t(df), method="pearson")), method="complete")
-    hc <- hclust(as.dist(1-cor(df, method="spearman")), method="complete") 
-    ## Tree cutting
-    mycl <- cutree(hr, h=max(hr$height)/1.5); mycolhc <- rainbow(length(unique(mycl)), start=0.1, end=0.9); mycolhc <- mycolhc[as.vector(mycl)] 
-    ## Plot heatmap 
-    mycol <- redgreen(75)
-    #png(filename="erasemyheatmap.png", units="px", width = 1776, height = 1146)  
     heatmap.2(df, Rowv=as.dendrogram(hr), Colv=as.dendrogram(hc), col=mycol, labCol=groupx, 
-              scale="row", density.info="none", trace="none", RowSideColors=mycolhc, main = input$stats_heatmap_title) 
+              scale="row", density.info="none", trace="none", RowSideColors=mycolhc, main = input$stats_heatmap_title,
+              margins = c(10,10))
+    
+    png(filename="erasemyheatmap.png", units="px", width = 1776, height = 1776)  
+    heatmap.2(df, Rowv=as.dendrogram(hr), Colv=as.dendrogram(hc), col=mycol, labCol=groupx, 
+              scale="row", density.info="none", trace="none", RowSideColors=mycolhc, main = input$stats_heatmap_title,
+              margins = c(20,20))
+    dev.off()
   })
+  
+  
   
   output$stats_heatmap <- renderPlot({
     req(create_stats_heatmap())
@@ -382,16 +388,14 @@ interactive_heatmap <- function(session, input, output, df, namex, groupx)
   
   output$download_stats_heatmap <- downloadHandler(
     filename = function(){
-      str_c("stats_heatmap_", dpmsr_set$y$stats$groups$comp_name[as.numeric(input$stats_plot_comp)],
-            ".png", collapse = " ")
+      str_c("stats_heatmap_", comp_name, ".png", collapse = " ")
     },
     content = function(file){
-      req(create_stats_heatmap())
-      png(filename=file, units="px", width = 1776, height = 1146)  
-      create_stats_heatmap()
-      dev.off()
+      file.copy("erasemyheatmap.png", file)
     }
   )
+  
+  
 }
 
 #------------------------------------------------------------------------------------------------------------------------

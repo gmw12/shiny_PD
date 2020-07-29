@@ -1,4 +1,4 @@
-options(shiny.maxRequestSize=100*1024^2)
+options(shiny.maxRequestSize=500*1024^2)
 
 source("Shiny_Startup_v1.R")
 
@@ -15,6 +15,28 @@ library(shinyalert)
 
 cat(file=stderr(), "Server.R line 11", "\n")
 cat(file=stderr(), "Server.R line 15", "\n")
+
+
+if(Sys.info()["sysname"]=="Darwin" ){
+  volumes <- c(dd='/Users/gregwaitt/Documents/Data', wd='.', Home = fs::path_home(),  getVolumes()())
+  #version determines website content
+  site_user <<- "dpmsr"
+  #volumes <- c(wd='.', Home = fs::path_home(), "R Installation" = R.home(), getVolumes()())
+}else if (Sys.info()["nodename"] == "titan_shiny"){
+  #for titan_black VM
+  volumes <- c(dd='/home/dpmsr/shared', wd='.', Home = fs::path_home(), getVolumes()())
+  site_user <<- "dpmsr"
+}else{
+  #for public website
+  volumes <- c(dd='/data', wd='.', Home = fs::path_home(), getVolumes()())
+  site_user <<- "not_dpmsr"
+}
+
+
+
+
+
+
 
 shinyServer(function(input, output, session) {
   
@@ -41,9 +63,13 @@ shinyServer(function(input, output, session) {
     if(Sys.info()["sysname"]=="Darwin" ){
       volumes <- c(dd='/Users/gregwaitt/Documents/Data', wd='.', Home = fs::path_home(),  getVolumes()())
       #volumes <- c(wd='.', Home = fs::path_home(), "R Installation" = R.home(), getVolumes()())
-    }else{
+    }else if (Sys.info()["nodename"] == "titan_shiny"){
       #for titan_black VM
       volumes <- c(dd='/home/dpmsr/shared', wd='.', Home = fs::path_home(), getVolumes()())
+    }
+    else{
+      #for public website
+      volumes <- c(dd='/data', wd='.', Home = fs::path_home(), getVolumes()())
     }
     
     cat(file=stderr(), "Shiny Server started ...5", "\n")
@@ -92,8 +118,12 @@ shinyServer(function(input, output, session) {
     cat(file=stderr(), "Shiny Server started ...7", "\n")
     
     hideTab(inputId = "nlp1", target = "load")
-    updateTabsetPanel(session, "nlp1", selected = "tp1")
     
+    if (site_user == "dpmsr"){
+      updateTabsetPanel(session, "nlp1", selected = "tp_load_design")
+    }else{
+      updateTabsetPanel(session, "nlp1", selected = "tp_customer_load")
+    }
   #------------------------------------------------------------------------------------------------------  
     observeEvent(input$action_clear, {
       cat(file=stderr(), "clean old data", "\n")
@@ -162,7 +192,7 @@ shinyServer(function(input, output, session) {
           cat(file=stderr(), "preprocess filter", "\n")
           preprocess_filter(session, input, output)
           removeModal()
-          updateTabsetPanel(session, "nlp1", selected = "tp5")
+          updateTabsetPanel(session, "nlp1", selected = "tp_normalize")
 
           showModal(modalDialog("Preparing Data for Norm...", footer = NULL))
           cat(file=stderr(), "prepare data for normalization", "\n")
@@ -223,7 +253,7 @@ shinyServer(function(input, output, session) {
       tmt_spqc_prep()
       updateTabsetPanel(session, "nlp1", selected = "tp_tmt")
     }else{
-    updateTabsetPanel(session, "nlp1", selected = "tp6")
+    updateTabsetPanel(session, "nlp1", selected = "tp_impute")
     }
   })
 
@@ -448,7 +478,18 @@ observeEvent(input$data_show, {
       stats_Final_Excel(session, input, output)
       removeModal()
     }
-    )    
+    )   
+    
+    output$download_stats_excel <- downloadHandler(
+      file = function(){
+        input$final_stats_name
+        #str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", input$final_stats_name)
+      },
+      content = function(file){
+        fullName <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", input$final_stats_name)
+        file.copy(fullName, file)
+      }
+    )
     #-------------------------------------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------------------------------------
     
@@ -458,35 +499,44 @@ observeEvent(input$data_show, {
       
       if( !is.null(dpmsr_set$data$final[[input$select_final_data_stats ]] )) {
       
-        df <- dpmsr_set$data$final[[input$select_final_data_stats ]][(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)]
+        if(!is.null(input$stats_plot_comp)){
+
+            df <- dpmsr_set$data$final[[input$select_final_data_stats ]][(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)]
+            
+            comp_string <- input$stats_plot_comp
+            cat(file=stderr(), "Create stats plots" , "\n")
+            for (i in 1:length(comp_string)){
+              comp_number <- which(dpmsr_set$y$stats$groups$comp_name == comp_string[i])
+              if (i==1){
+                comp_rows <- c(dpmsr_set$y$stats$groups$sample_numbers_N[comp_number],dpmsr_set$y$stats$groups$sample_numbers_D[comp_number] )
+              }else{
+                comp_rows <- c(comp_rows, dpmsr_set$y$stats$groups$sample_numbers_N[comp_number],dpmsr_set$y$stats$groups$sample_numbers_D[comp_number] )
+              }
+            }
+            #add spqc to plots
+            if(input$stats_plot_spqc){
+                comp_rows <- c(comp_rows, dpmsr_set$y$stats$comp_spqc_sample_numbers)
+            }
+            
+            comp_rows <- sort(unique(unlist(comp_rows)), decreasing = FALSE)
+            df <- df[,comp_rows]
+            namex <- dpmsr_set$design$Label[comp_rows]
+            color_list <- dpmsr_set$design$colorlist[comp_rows]
+            groupx <- dpmsr_set$design$Group[comp_rows]
+            
+            interactive_barplot(session, input, output, df, namex, color_list, "stats_barplot", input$stats_plot_comp)
+            interactive_boxplot(session, input, output, df, namex, color_list, input$stats_plot_comp)
+            interactive_pca2d(session, input, output, df, namex, color_list, groupx, input$stats_plot_comp)
+            interactive_pca3d(session, input, output, df, namex, color_list, groupx, input$stats_plot_comp)
+            interactive_cluster(session, input, output, df, namex, input$stats_plot_comp)
+            interactive_heatmap(session, input, output, df, namex, groupx, input$stats_plot_comp)
         
-        comp_string <- input$stats_plot_comp
-        cat(file=stderr(), "Create stats plots" , "\n")
-        for (i in 1:length(comp_string)){
-          comp_number <- which(dpmsr_set$y$stats$groups$comp_name == comp_string[i])
-          if (i==1){
-            comp_rows <- c(dpmsr_set$y$stats$groups$sample_numbers_N[comp_number],dpmsr_set$y$stats$groups$sample_numbers_D[comp_number] )
-          }else{
-            comp_rows <- c(comp_rows, dpmsr_set$y$stats$groups$sample_numbers_N[comp_number],dpmsr_set$y$stats$groups$sample_numbers_D[comp_number] )
-          }
+            
+        }else{
+          shinyalert("Oops!", "Please select comparison", type = "error")
         }
-        #add spqc to plots
-        if(input$stats_plot_spqc){
-            comp_rows <- c(comp_rows, dpmsr_set$y$stats$comp_spqc_sample_numbers)
-        }
         
-        comp_rows <- sort(unique(unlist(comp_rows)), decreasing = FALSE)
-        df <- df[,comp_rows]
-        namex <- dpmsr_set$design$Label[comp_rows]
-        color_list <- dpmsr_set$design$colorlist[comp_rows]
-        groupx <- dpmsr_set$design$Group[comp_rows]
         
-        interactive_barplot(session, input, output, df, namex, color_list, "stats_barplot", input$stats_plot_comp)
-        interactive_boxplot(session, input, output, df, namex, color_list)
-        interactive_pca2d(session, input, output, df, namex, color_list, groupx)
-        interactive_pca3d(session, input, output, df, namex, color_list, groupx)
-        interactive_cluster(session, input, output, df, namex)
-        interactive_heatmap(session, input, output, df, namex, groupx)
       }else{
         shinyalert("Oops!", "Data does not exist yet.  Did you impute?", type = "error")
       }
@@ -892,6 +942,7 @@ observeEvent(input$data_show, {
       set_pathway(input, output, session)
       removeModal()
       updateTabsetPanel(session, "nlp1", selected = "wiki")
+      updateNavbarPage(session, "path", selected = "wiki")
     }
     )
     
@@ -1146,6 +1197,18 @@ observeEvent(input$data_show, {
     })  
     
     
+    
+    
+    output$download_new_dpmsr_set <- downloadHandler(
+      filename = function(){
+        str_c(input$dpmsr_set_name, ".dpmsr_set")
+      },
+      content = function(file){
+        fullName <- str_c(dpmsr_set$file$output_dir, input$dpmsr_set_name, ".dpmsr_set")
+        file.copy(fullName, file)
+      }
+    )
+    
     #-------------------------------------------------------------------------------------------------------------      
     #------------------------------------------------------------------------------------------------------------- 
     observeEvent(input$action_load_dpmsr_set, { 
@@ -1198,6 +1261,61 @@ observeEvent(input$data_show, {
     #   contentType = "application/zip"
     # )   
     # 
+    
+    
+
+    #-------------------------------------------------------------------------------------------------------------      
+    #------------------------------------------------------------------------------------------------------------- 
+    observeEvent(input$load_customer_dpmsr_set, { 
+      cat(file=stderr(), "load customer dpmsr_set triggered", "\n")
+      
+      
+      req(input$customer_dpmsr_set)
+      
+      if(!is.null(input$customer_dpmsr_set)) {fileUploaded <- TRUE  }  
+      
+      if (fileUploaded){
+        showModal(modalDialog("Working...", footer = NULL))  
+        load(file=input$customer_dpmsr_set$datapath, envir = .GlobalEnv)
+        
+        #reload shiny 
+        update_widget_all(session, input, output)
+        update_dpmsr_set_from_widgets(session, input)
+        
+        
+        #reset file locations
+        dpmsr_set$file$data_dir <<- str_c("/data/ShinyData/", dpmsr_set$x$file_prefix)
+        create_dir(dpmsr_set$file$data_dir)
+        dpmsr_set$file$output_dir <<- str_replace_all(dpmsr_set$file$data_dir, "/", "//")
+        dpmsr_set$file$output_dir <<- str_c(dpmsr_set$file$output_dir, "//")
+        create_dir(dpmsr_set$file$output_dir)
+        dpmsr_set$file$string <<- str_c(dpmsr_set$file$output_dir, "String//")
+        create_dir(dpmsr_set$file$string)
+        
+        create_dir(str_c(dpmsr_set$file$output_dir,dpmsr_set$data$stats$final_comp))
+        
+
+        
+        
+        
+        removeModal()
+        updateTabsetPanel(session, "nlp1", selected = "tp_stats")
+      } else{
+        shinyalert("Oops!", "Please wait for file to upload...", type = "error")
+      }
+      
+
+    })  
+    
+    
+    
+    
+    
+    
+    
+    #-------------------------------------------------------------------------------------------------------------      
+    #------------------------------------------------------------------------------------------------------------- 
+    
     
     cat(file=stderr(), "Shiny Server started ...end", "\n")  
 }

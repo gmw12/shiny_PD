@@ -39,11 +39,16 @@ set_pathway <- function(input, output, session){
   
   dpmsr_set$pathway$wp2gene <<- gmt_get(tax_choice)
   
-  dpmsr_set$pathway$wp2gene <<- try(dpmsr_set$pathway$wp2gene %>% tidyr::separate(term, c("name","version","wpid","org"), "%") )
-  
-  if (class(dpmsr_set$pathway$wp2gene) == "try-error") {
+  if (version$major < 4){
     dpmsr_set$pathway$wp2gene <<- dpmsr_set$pathway$wp2gene %>% tidyr::separate(ont, c("name","version","wpid","org"), "%")
+  }else {
+  dpmsr_set$pathway$wp2gene <<- try(dpmsr_set$pathway$wp2gene %>% tidyr::separate(term, c("name","version","wpid","org"), "%") )
   }
+  
+  
+  #if (class(dpmsr_set$pathway$wp2gene) == "try-error") {
+  #  dpmsr_set$pathway$wp2gene <<- dpmsr_set$pathway$wp2gene %>% tidyr::separate(ont, c("name","version","wpid","org"), "%")
+  #}
   
   #retired "ont"?
   #dpmsr_set$pathway$wp2gene <<- dpmsr_set$pathway$wp2gene %>% tidyr::separate(ont, c("name","version","wpid","org"), "%")

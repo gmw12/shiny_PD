@@ -243,7 +243,7 @@ update_widget_post_processing <- function(session, input, output){
       updatePickerInput(session, "stats_plot_comp", choices = dpmsr_set$y$stats$groups$comp_name)
       updateSelectInput(session, "stats_oneprotein_plot_comp", choices = dpmsr_set$y$stats$groups$comp_name, selected = dpmsr_set$y$stats$groups$comp_name[1])
       updateSelectInput(session, "stats_onepeptide_plot_comp", choices = dpmsr_set$y$stats$groups$comp_name, selected = dpmsr_set$y$stats$groups$comp_name[1])
-      updatePickerInput(session, "stats_select_data_comp", choices = dpmsr_set$y$stats$groups$comp_name)
+      updateSelectInput(session, "stats_select_data_comp", choices = dpmsr_set$y$stats$groups$comp_name)
       updateSelectInput(session, "select_data_comp_motif", choices = dpmsr_set$y$stats$groups$comp_name)
       updateSelectInput(session, "select_data_comp_wiki", choices = dpmsr_set$y$stats$groups$comp_name)
       updateSelectInput(session, "select_data_comp_profile", choices = dpmsr_set$y$stats$groups$comp_name)
