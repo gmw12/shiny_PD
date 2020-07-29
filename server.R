@@ -1156,10 +1156,14 @@ observeEvent(input$data_show, {
       
       string_list <- run_string(session, input, output)
       
+      cat(file=stderr(), "string list complete, create plot", "\n")
+      
       output$string_plot <- renderImage({
         list(src=string_list$string_file_name,  
              contentType = 'image/png', width=2000, height=2000, alt="this is alt text")
       }, deleteFile = FALSE)
+      
+      cat(file=stderr(), "create string link", "\n")
       
       output$string_link <- renderText({string_list$linkthis})
 
