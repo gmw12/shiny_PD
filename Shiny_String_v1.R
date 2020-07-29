@@ -52,15 +52,19 @@ setup_string <- function(session, input, output){
 #-------------------------------------------------------------------
   
 run_string <- function(session, input, output){
-  
+  cat(file=stderr(), "run string step 1", "\n")
   input_fc_up <- log(input$foldchange_cutoff, 2)
   input_fc_down <- log(1/input$foldchange_cutoff, 2)
   
   input_pval <- input$pvalue_cutoff
   input_comp <- input$select_data_comp_string
   
+  cat(file=stderr(), "run string step 2", "\n")
+  
   df <- dpmsr_set$string[[input_comp]]
   df <- subset(df, pvalue < input_pval)
+  
+  cat(file=stderr(), "run string step 3", "\n")
   
   if (input$string_direction == "Up"){
     df <- subset(df, logFC >= input_fc_up)
@@ -72,18 +76,24 @@ run_string <- function(session, input, output){
   
   df <- df[order(-df$logFC),]
 
+  cat(file=stderr(), "run string step 4", "\n")
+  
   if (nrow(df) > input$protein_number){
     hits <- df$STRING_id[1:input$protein_number]
   }else{
     hits <- df$STRING_id
   }
   
+  
   dpmsr_set$string$string_db$plot_network(hits)
   
+  cat(file=stderr(), "run string step 5", "\n")
   string_file_name <- str_c(dpmsr_set$file$string, input_comp, ".png")
   
+  cat(file=stderr(), "run string step 6", "\n")
   dpmsr_set$string$string_db$get_png(hits, required_score=NULL, network_flavor="evidence", file=string_file_name, payload_id=NULL)
   
+  cat(file=stderr(), "run string step 7", "\n")
   linkthis <- dpmsr_set$string$string_db$get_link(hits, required_score=NULL, network_flavor="evidence", payload_id=NULL)
   
   return(list("string_file_name" = string_file_name, "linkthis"=linkthis))
