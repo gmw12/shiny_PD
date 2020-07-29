@@ -526,7 +526,7 @@ shinyUI(
     
     tabPanel("Load Data", value = "tp_customer_load", align="center",
              hr(),
-             tags$h1("Welcome to DPMSR Proteome Discover Data Visualization Tool"),
+             tags$h1("Welcome to DPMSR Proteome Discoverer Data Visualization Tool"),
              br(),
              br(),
              br(),

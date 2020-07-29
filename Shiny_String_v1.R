@@ -12,14 +12,22 @@ setup_string <- function(session, input, output){
     }
   
   
+  if (site_user == "dpmsr"){
+    string_input_dir <- ""
+  }else{
+    string_input_dir <- "/data/ShinyData"
+  }
+  
+  
+  
   if(input$select_organism=="Human"){
           dpmsr_set$string$string_db <<- STRINGdb$new(version=string_version, species=9606,
-                                               score_threshold=0, input_directory="")
+                                               score_threshold=0, input_directory=string_input_dir)
   }
   
   if(input$select_organism=="Mouse"){
     dpmsr_set$string$string_db <<- STRINGdb$new( version=string_version, species=10090,
-                                                 score_threshold=0, input_directory="")
+                                                 score_threshold=0, input_directory=string_input_dir)
   } 
   
   for (i in 1:dpmsr_set$x$comp_number){
