@@ -5,13 +5,20 @@ setup_string <- function(session, input, output){
   
   #string_species <- get_STRING_species(version=10)
   
+  if (version$major < 4){
+    string_version <- "10"
+  }else{
+      string_version <- "11.0"
+    }
+  
+  
   if(input$select_organism=="Human"){
-          dpmsr_set$string$string_db <<- STRINGdb$new(version="11.0", species=9606,
+          dpmsr_set$string$string_db <<- STRINGdb$new(version=string_version, species=9606,
                                                score_threshold=0, input_directory="")
   }
   
   if(input$select_organism=="Mouse"){
-    dpmsr_set$string$string_db <<- STRINGdb$new( version="11.0", species=10090,
+    dpmsr_set$string$string_db <<- STRINGdb$new( version=string_version, species=10090,
                                                  score_threshold=0, input_directory="")
   } 
   

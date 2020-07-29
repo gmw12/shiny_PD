@@ -371,8 +371,8 @@ interactive_heatmap <- function(session, input, output, df, namex, groupx, comp_
     heatmap.2(df, Rowv=as.dendrogram(hr), Colv=as.dendrogram(hc), col=mycol, labCol=groupx, 
               scale="row", density.info="none", trace="none", RowSideColors=mycolhc, main = input$stats_heatmap_title,
               margins = c(10,10))
-    
-    png(filename="erasemyheatmap.png", units="px", width = 1776, height = 1776)  
+    heatmap_filename <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", "erasemyheatmap.png")
+    png(filename=heatmap_filename, units="px", width = 1776, height = 1776)  
     heatmap.2(df, Rowv=as.dendrogram(hr), Colv=as.dendrogram(hc), col=mycol, labCol=groupx, 
               scale="row", density.info="none", trace="none", RowSideColors=mycolhc, main = input$stats_heatmap_title,
               margins = c(20,20))
@@ -391,7 +391,8 @@ interactive_heatmap <- function(session, input, output, df, namex, groupx, comp_
       str_c("stats_heatmap_", comp_name, ".png", collapse = " ")
     },
     content = function(file){
-      file.copy("erasemyheatmap.png", file)
+      heatmap_filename <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", "erasemyheatmap.png")
+      file.copy(heatmap_filename, file)
     }
   )
   
