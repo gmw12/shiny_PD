@@ -84,25 +84,35 @@ run_string <- function(session, input, output){
     hits <- df$STRING_id
   }
   
-  
-  dpmsr_set$string$string_db$plot_network(hits)
-  
   cat(file=stderr(), "run string step 5", "\n")
-  string_file_name <- str_c(dpmsr_set$file$string, input_comp, ".png")
+  #dpmsr_set$string$string_db$plot_network(hits)
   
   cat(file=stderr(), "run string step 6", "\n")
-  dpmsr_set$string$string_db$get_png(hits, required_score=NULL, network_flavor="evidence", file=string_file_name, payload_id=NULL)
+  string_file_name <- str_c(dpmsr_set$file$string, input_comp, ".png")
   
   cat(file=stderr(), "run string step 7", "\n")
-  linkthis <- dpmsr_set$string$string_db$get_link(hits, required_score=NULL, network_flavor="evidence", payload_id=NULL)
+  #dpmsr_set$string$string_db$get_png(hits, required_score=NULL, network_flavor="evidence", file=string_file_name, payload_id=NULL)
   
-  return(list("string_file_name" = string_file_name, "linkthis"=linkthis))
+  #save string png
+  cat(file=stderr(), "run string step 8", "\n")
+  png(filename=string_file_name, units="px", width = 1200, height = 1200)
+  dpmsr_set$string$string_db$plot_network(hits, add_link = TRUE, add_summary = TRUE)
+  dev.off()
+  
+  
+  
+  # depreciated
+  # cat(file=stderr(), "run string step 8", "\n")
+  # linkthis <- dpmsr_set$string$string_db$get_link(hits, required_score=NULL, network_flavor="evidence", payload_id=NULL)
+  
+  
+  return(list("string_file_name" = string_file_name))
 }
 
 
 #--------------------------------------------------------------------
 
-run_string_enrich <- function(input, output, data_in){
+run_string_enrich <- function(input, output){
   
   input_fc_up <- log(input$foldchange_cutoff, 2)
   input_fc_down <- log(1/input$foldchange_cutoff, 2)
@@ -112,7 +122,7 @@ run_string_enrich <- function(input, output, data_in){
   input_comp <- input$select_data_comp_string_enrich
   
   df <- dpmsr_set$string[[input_comp]]
-  df <- subset(df, pvalue < input_pval)
+  df <- subset(df, pvalue <= input_pval)
   
   if (input$string_enrich_direction == "Up"){
     df <- subset(df, logFC >= input_fc_up)
@@ -126,9 +136,7 @@ run_string_enrich <- function(input, output, data_in){
   
   hits <- df$STRING_id
   
-  enrichment <- dpmsr_set$string$string_db$get_enrichment(hits, category = input$select_string_enrich, methodMT = input$select_methodMT, iea = TRUE )
-  
-  Simple_Excel(enrichment, str_c(dpmsr_set$file$string, input_comp, "_", input$select_string_enrich, ".xlsx", collapse = " "))
+  enrichment <- dpmsr_set$string$string_db$get_enrichment(hits, category = input$select_string_enrich )
   
 return(enrichment)
 
@@ -136,4 +144,6 @@ return(enrichment)
 }
 
 
-#enrichment <- dpmsr_set$string$string_db$get_enrichment(checkdf, category = "Process", methodMT = "fdr", iea = TRUE )
+
+
+

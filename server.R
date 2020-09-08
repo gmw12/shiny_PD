@@ -34,10 +34,6 @@ if(Sys.info()["sysname"]=="Darwin" ){
 
 
 
-
-
-
-
 shinyServer(function(input, output, session) {
   
     cat(file=stderr(), "Shiny Server started ...1", "\n")
@@ -971,8 +967,27 @@ observeEvent(input$data_show, {
       }
       
       removeModal()
-      }
+      
+      
+      fullName <- str_c(dpmsr_set$file$string, "Wiki_", input$select_data_comp_wiki, "_", 
+                        input$select_ont_wiki,input$select_level_wiki, ".xlsx", collapse = " ")
+      output$download_wiki_table <- downloadHandler(
+        filename = function(){
+          str_c("Wiki_", input$select_data_comp_wiki, "_", 
+                input$select_ont_wiki,input$select_level_wiki, ".xlsx", collapse = " ")
+        },
+        content = function(file){
+          file.copy(fullName, file)
+        }
+      )
+      
+      
+      
+    }
     )
+    
+
+    
     
     #-------------------------------------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------------------------------------
@@ -997,15 +1012,46 @@ observeEvent(input$data_show, {
             hot_col(col = "geneID", halign = "htCenter", colWidths = 150)
         })
         
-        output$go_profile_plot <- renderPlot({
-          barplot(profile_data, title = str_c("Go Profile ", input$select_ont_profile, " level=", input$select_level_profile), 
-                  drop=TRUE, showCategory=12, order=TRUE)
-        })
+        #diret plot of profile
+         output$go_profile_plot <- renderPlot({
+           barplot(profile_data, title = str_c("Go Profile ", input$select_ont_profile, " level=", input$select_level_profile), 
+                   drop=TRUE, showCategory=12, order=TRUE)
+         })
+        
       }else{
         shinyalert("Oops!", "Go Profile enrichment failed...", type = "error")
       }
       
       removeModal()
+      
+      
+      table_fullName <- str_c(dpmsr_set$file$string, "GO_Profile_", input$select_data_comp_profile, "_", 
+                              input$select_ont_profile,input$select_level_profile, ".xlsx", collapse = " ")
+      output$download_go_profile_table <- downloadHandler(
+        filename = function(){
+          str_c("GO_Profile_", input$select_data_comp_profile, "_", 
+                input$select_ont_profile,input$select_level_profile, ".xlsx", collapse = " ")
+        },
+        content = function(file){
+          file.copy(table_fullName, file)
+        }
+      )
+      
+      plot_fullName <- str_c(dpmsr_set$file$string, "GO_Profile_", input$select_data_comp_profile, "_", 
+                             input$select_ont_profile,input$select_level_profile, ".png", collapse = " ")
+      output$download_go_profile_plot <- downloadHandler(
+        filename = function(){
+          str_c("GO_Profile_", input$select_data_comp_profile, "_", 
+                input$select_ont_profile,input$select_level_profile, ".png", collapse = " ")
+        },
+        content = function(file){
+          file.copy(plot_fullName, file)
+        }
+      )
+      
+      
+      
+      
     }
     )
     #-------------------------------------------------------------------------------------------------------------
@@ -1032,13 +1078,20 @@ observeEvent(input$data_show, {
         shinyalert("Oops!", "Go Analysis failed...", type = "error")
       } 
         
-        
-      # output$wiki_plot <- renderPlot({
-      #   barplot(wiki_data, title = str_c("WikiPathways ", input$select_ont_wiki, " level=", input$select_level_wiki), 
-      #           drop=TRUE, showCategory=12, order=TRUE)
-      # })
+      fullName <- str_c(dpmsr_set$file$string, "GO_", input$select_data_comp_go, "_", 
+                        input$select_ont_go, ".xlsx", collapse = " ")
+      output$download_go_table <- downloadHandler(
+        filename = function(){
+          str_c("GO_", input$select_data_comp_go, "_", 
+                input$select_ont_go, ".xlsx", collapse = " ")
+        },
+        content = function(file){
+          file.copy(fullName, file)
+        }
+      )
       
       removeModal()
+      
     }
     )   
     
@@ -1115,28 +1168,28 @@ observeEvent(input$data_show, {
       
       output$volcano_data_final <-  DT::renderDataTable({volcano_DT })
       
+      Simple_Excel(volcano_go_data, str_c(dpmsr_set$file$string, "GoVolcano_", input$select_data_comp_go, "_", input$go_volcano_id, "_", 
+                                 input$select_ont_go, ".xlsx", collapse = " "))
+      
+      
+      fullName <- str_c(dpmsr_set$file$string, "GoVolcano_", input$select_data_comp_go, "_", input$go_volcano_id, "_", 
+                        input$select_ont_go, ".xlsx", collapse = " ")
+      output$download_go_volcano_table <- downloadHandler(
+        filename = function(){
+          str_c("GoVolcano_", input$select_data_comp_go, "_", input$go_volcano_id, "_", 
+                input$select_ont_go, ".xlsx", collapse = " ")
+        },
+        content = function(file){
+          file.copy(fullName, file)
+        }
+      )
+      
       
       removeModal()
     }
     )  
     
-    #-------------------------------------------------------------------------------------------------------------      
-    #-------------------------------------------------------------------------------------------------------------  
-    
-    
-    
-    observeEvent(input$volcano_data_save, { 
-      
-      showModal(modalDialog("Saving Go Volcano Data...", footer = NULL))  
 
-      volcano_data <- create_go_volcano(session, input, output)
-      volcano_go_data <- subset(dpmsr_set$data$stats$final, Accession %in% volcano_data$Accession  )
-      
-      filename <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", input$volcano_data_filename)
-      Simple_Excel_name(volcano_go_data, filename, "data")
-      removeModal()
-      
-    })
     #-------------------------------------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------------------------------------
     observeEvent(input$setup_string, {
@@ -1160,35 +1213,70 @@ observeEvent(input$data_show, {
       
       output$string_plot <- renderImage({
         list(src=string_list$string_file_name,  
-             contentType = 'image/png', width=2000, height=2000, alt="this is alt text")
+             contentType = 'image/png', width=1200, height=1200, alt="this is alt text")
       }, deleteFile = FALSE)
       
-      cat(file=stderr(), "create string link", "\n")
+
+      fullName <- string_list$string_file_name
+      output$download_string_plot <- downloadHandler(
+        filename = function(){
+          str_c(input$select_data_comp_string, ".png")
+        },
+        content = function(file){
+          file.copy(fullName, file)
+        }
+      )
       
-      output$string_link <- renderText({string_list$linkthis})
+      # depreciated
+      # cat(file=stderr(), "create string link", "\n")
+      # output$string_link <- renderText({string_list$linkthis})
 
       removeModal()
     }
     ) 
+    
+    
+    
+
     
     #-------------------------------------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------------------------------------
     observeEvent(input$go_string_enrich, {
       showModal(modalDialog("Working...", footer = NULL))  
       
-      string_result <- run_string_enrich(input, output, dpmsr_set$data$final[[input$select_final_data_string]])
+      string_result <- run_string_enrich(input, output)
+      
+      string_result <- dplyr::rename(string_result, genes = number_of_genes)
+      string_result <- dplyr::rename(string_result, genes_background = number_of_genes_in_background)
       
       output$string_table<- renderRHandsontable({
         rhandsontable(string_result, rowHeaders = NULL, readOnly = TRUE) %>%
           hot_cols(colWidths = 80, halign = "htCenter" ) %>%
-          hot_col(col = "term_id", halign = "htCenter", colWidths = 100) %>%
-          hot_col(col = "proteins", halign = "htCenter", colWidths = 100) %>%  
-          hot_col(col = "hits", halign = "htCenter", colWidths = 100)  %>% 
-          hot_col(col = "pvalue", halign = "htCenter", colWidths = 180, format = '0.0000000000000') %>% 
-          hot_col(col = "pvalue_fdr", halign = "htCenter", colWidths = 180, format = '0.0000000000000') %>% 
-          hot_col(col = "term_description", halign = "htCenter", colWidths = 600)
+          hot_col(col = "term", halign = "htCenter", colWidths = 100) %>%
+          hot_col(col = "genes_background", halign = "htCenter", colWidths = 100) %>%
+          hot_col(col = "preferredNames",  halign = "htLeft", colWidths = 200) %>%
+          hot_col(col = "inputGenes", halign = "htCenter", colWidths = 200) %>%
+          hot_col(col = "p_value", halign = "htCenter", colWidths = 180, format = '0.0000000000000') %>% 
+          hot_col(col = "fdr", halign = "htCenter", colWidths = 180, format = '0.0000000000000') %>% 
+          hot_col(col = "description",  halign = "htLeft", colWidths = 400)
       })
       removeModal()
+      
+
+      
+      fullName <- str_c(dpmsr_set$file$string, input$select_data_comp_string_enrich, "_", input$select_string_enrich, ".xlsx", collapse = " ")
+      Simple_Excel(string_result, fullName)
+      
+      output$download_string_enrich_table <- downloadHandler(
+        filename = function(){
+          str_c(input$select_data_comp_string_enrich, "_", input$select_string_enrich, ".xlsx", collapse = " ")
+        },
+        content = function(file){
+          file.copy(fullName, file)
+        }
+      )
+      
+      
     }
     )
     
@@ -1200,9 +1288,7 @@ observeEvent(input$data_show, {
       save(dpmsr_set, file=str_c(dpmsr_set$file$output_dir, input$dpmsr_set_name, ".dpmsr_set"))
     })  
     
-    
-    
-    
+
     output$download_new_dpmsr_set <- downloadHandler(
       filename = function(){
         str_c(input$dpmsr_set_name, ".dpmsr_set")
@@ -1212,6 +1298,34 @@ observeEvent(input$data_show, {
         file.copy(fullName, file)
       }
     )
+    
+    #-------------------------------------------------------------------------------------------------------------      
+    #-------------------------------------------------------------------------------------------------------------   
+    observeEvent(input$save_customer_dpmsr_set, { 
+      
+      df <- dpmsr_set
+      
+      df$data$data_raw_decoypsm <- NULL
+      df$data$data_raw_decoypeptide <- NULL
+      df$data$data_raw_decoyprotein <- NULL
+      df$data$data_raw_inputfiles <- NULL
+      df$data$data_raw_psm <- NULL
+      df$data$data_to_norm <- NULL
+      df$data$Protein_imputed_df <- NULL
+      df$data$protein_missing <- NULL
+      df$data$normalized <- NULL
+      df$data$impute <- NULL
+      df$overview <- NULL
+      df$protocol <- NULL
+      df$data$norm_data <- NULL
+      
+      save(df, file=str_c(dpmsr_set$file$output_dir, input$dpmsr_set_name_customer, ".dpmsr_set"))
+    })     
+    
+    
+    
+
+    
     
     #-------------------------------------------------------------------------------------------------------------      
     #------------------------------------------------------------------------------------------------------------- 

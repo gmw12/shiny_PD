@@ -1524,7 +1524,9 @@ shinyUI(
                      )
                    ),
                    rHandsontableOutput("wiki_table")
-                   )
+                   ),
+                  br(),
+                 downloadButton('download_wiki_table')
           ),
         
         tabPanel("Go Profile", id="go_profile",
@@ -1560,10 +1562,14 @@ shinyUI(
                                      }"
                           )
                           ),
-                          rHandsontableOutput("go_profile_table")
+                          rHandsontableOutput("go_profile_table"),
+                          br(),
+                          downloadButton('download_go_profile_table')
                    ),
                    column(width=6, offset =0,
-                          plotOutput("go_profile_plot")               
+                          plotOutput("go_profile_plot"),
+                          br(),
+                          downloadButton('download_go_profile_plot')
                    )
                  )
         ),
@@ -1601,7 +1607,8 @@ shinyUI(
                                   }"
                           )
                           ),
-                          rHandsontableOutput("go_table")
+                          rHandsontableOutput("go_table"),
+                           downloadButton('download_go_table')
                  )
            ), #end of go analysis
         
@@ -1623,7 +1630,7 @@ shinyUI(
                                       max = 50, value = 20),
                           sliderInput("plot_title_size", label = h5("Title Size"), min = 10, 
                                       max = 50, value = 20),   
-                          downloadButton('Download')
+                          downloadButton('download_go_volcano')
                    ),
                    column(width=8, offset =0,  
                      div(
@@ -1635,15 +1642,6 @@ shinyUI(
                    )
                  ),
                  fluidRow(
-                   column(width=2, offset =0,
-                          textInput("volcano_data_filename", label="File Name", value = "my_volcano_data.xlsx", width = 250)
-                   ),
-                   column(width=1, offset =0,
-                          actionButton("volcano_data_save", label = "Save Data", width = 100,
-                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
-                   )
-                 ),
-                 fluidRow(
                    column(width=12, offset =0,
                           hr(),
                           tags$head(tags$style("#volcano_data_final{color: blue;
@@ -1651,7 +1649,8 @@ shinyUI(
                                                            }"
                           )
                           ),
-                          DT::dataTableOutput("volcano_data_final", width='100%')
+                          DT::dataTableOutput("volcano_data_final", width='100%'),
+                          downloadButton('download_go_volcano_table')
                    )
                  )
         ), #end of go volcano 
@@ -1683,12 +1682,14 @@ shinyUI(
                  ),
                  fluidRow(
                    hr(),
-                   tags$head(tags$style("#string_link{color: blue;
-                                 font-size: 12px;
-                                  }"
-                   )
-                   ),
-                   textOutput("string_link"),
+                   # string link depreciated - save incase comes back
+                   # tags$head(tags$style("#string_link{color: blue;
+                   #               font-size: 12px;
+                   #                }"
+                   # )
+                   # ),
+                   # textOutput("string_link"),
+                   downloadButton('download_string_plot'),
                    plotOutput("string_plot")  
                    #rHandsontableOutput("string_table")
                  )
@@ -1709,11 +1710,6 @@ shinyUI(
                                       choices = list("Process", "Component", "Function", "KEGG", "Pfam", "InterPro"), 
                                       selected = "Process")
                    ),
-                   column(width=1, offset =0,
-                          selectInput("select_methodMT", label = "methodMT", 
-                                      choices = list("fdr", "bonferroni"), 
-                                      selected = "fdr")
-                   ),
                    column(width=2, offset =0,
                           actionButton("go_string_enrich", label = "String Enrichment", width = 150,
                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
@@ -1727,7 +1723,8 @@ shinyUI(
                                   }"
                    )
                    ),
-                   rHandsontableOutput("string_table") 
+                   rHandsontableOutput("string_table"),
+                   downloadButton('download_string_enrich_table')
                  )
         ) #end of string analysis        
         
@@ -1792,8 +1789,16 @@ shinyUI(
               br(),
               br(),
               br(),
-              downloadButton('download_new_dpmsr_set')
-             
+              downloadButton('download_new_dpmsr_set'),
+             hr(),
+             br(),
+             textInput("dpmsr_set_name_customer", label="File Name", value ="dpmsr_set_customer_filename", width = 250),
+             br(),
+             actionButton("save_customer_dpmsr_set", label = "Create customer dpmsr_set", width = 300,
+                          style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+             br(),
+             br(),
+             br(),
              
              # shinyDirButton('new_save_directory', label='Choose Directory', title='Please select directory for files',
              #            style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),

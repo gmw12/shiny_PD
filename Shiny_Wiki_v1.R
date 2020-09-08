@@ -50,7 +50,7 @@ run_wiki <- function(session, input, output){
 
 
 run_profile <- function(session, input, output){
-  
+  cat(file=stderr(), "run_profile ...1", "\n")
   comp_string <- input$select_data_comp_profile
   comp_number <- which(grepl(comp_string, dpmsr_set$y$stats$groups$comp_name))
   
@@ -58,6 +58,7 @@ run_profile <- function(session, input, output){
   
   data_in <- dpmsr_set$data$stats[[comp_string]]
   
+  cat(file=stderr(), "run_profile ...2", "\n")
   if(input$profile_direction == 'Up') {
     go_df <- subset(data_in, data_in$Stats == "Up" ) 
   }else if (input$profile_direction == 'Down') {
@@ -68,10 +69,12 @@ run_profile <- function(session, input, output){
   
   atest <- go_df$Accession
   
+  cat(file=stderr(), "run_profile ...3", "\n")
   test.df <- bitr(atest, fromType = "UNIPROT",
                   toType = c("ENTREZID", "ENSEMBL", "SYMBOL","GENENAME","PATH", "ONTOLOGY"),
                   OrgDb = dpmsr_set$pathway$tax_db)
   
+  cat(file=stderr(), "run_profile ...4", "\n")
   ggo <- groupGO(gene     = test.df$ENTREZID,
                  OrgDb    = dpmsr_set$pathway$tax_db,
                  ont      = input$select_ont_profile,
@@ -82,5 +85,15 @@ run_profile <- function(session, input, output){
                           input$select_ont_profile,input$select_level_profile, ".xlsx", collapse = " "))
   #ggo_result <<- ggo@result[1:5]
   #ggo_result <- ggo_result[order(-ggo_result$Count),]
+  
+  test_ggo <<- ggo
+  
+  #save profile png
+  profile_plot_name <- str_c(dpmsr_set$file$string, "GO_Profile_", input$select_data_comp_profile, "_", 
+                             input$select_ont_profile,input$select_level_profile, ".png", collapse = " ")
+  p <- barplot(ggo, title = str_c("Go Profile ", input$select_ont_profile, " level=", input$select_level_profile), 
+         drop=TRUE, showCategory=12, order=TRUE)
+  ggsave(profile_plot_name, p, width=10, height=8)
+  
   return(ggo)
 }

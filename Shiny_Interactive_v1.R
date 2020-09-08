@@ -27,9 +27,9 @@ interactive_go_volcano <- function(session, input, output)
       volcano_go_plot()
     })
     
-    output$Download <- downloadHandler(
+    output$download_go_volcano <- downloadHandler(
       filename = function(){
-        str_c(dpmsr_set$file$string, "GoVolcano_", input$select_data_comp_go, "_", input$go_volcano_id, "_", 
+        str_c("GoVolcano_", input$select_data_comp_go, "_", input$go_volcano_id, "_", 
               input$select_ont_go, ".png", collapse = " ")
       },
       content = function(file){

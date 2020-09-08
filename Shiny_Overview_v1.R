@@ -103,22 +103,28 @@ project_overview <- function(){
     file_name <- str_c(dpmsr_set$file$qc_dir, "Peptide_RT.png")
     ggsave(file_name, width=5, height=3)
     
+  
     
     
-    #--RT width--------------------------------------    
+    
+#--RT width--------------------------------------    
     df2 <- data.frame(dpmsr_set$data$data_features)
-    df2$RT_width <- (df2$Right.RT.in.min-df2$Left.RT.in.min)*60
-    df2 <- df2[(df2$RT_width < 100),]
+    if(nrow(df2) > 0) {
+      df2$RT_width <- (df2$Right.RT.in.min-df2$Left.RT.in.min)*60
+      df2 <- df2[(df2$RT_width < 100),]
+      
+      
+      g <- ggplot(df2, aes(x=RT_width))
+      g + geom_density(fill="purple") + theme_classic() +
+        labs(title="Feature Peak Width", 
+             x="Peak Width, sec",
+             y="Density")   +
+        theme(plot.title = element_text(hjust = 0.5))  
+      file_name <- str_c(dpmsr_set$file$qc_dir, "Feature_Peak_Width.png")
+      ggsave(file_name, width=5, height=3)
+    }
     
     
-    g <- ggplot(df2, aes(x=RT_width))
-    g + geom_density(fill="purple") + theme_classic() +
-      labs(title="Feature Peak Width", 
-           x="Peak Width, sec",
-           y="Density")   +
-      theme(plot.title = element_text(hjust = 0.5))  
-    file_name <- str_c(dpmsr_set$file$qc_dir, "Feature_Peak_Width.png")
-    ggsave(file_name, width=5, height=3)
     
     #--MZ--------------------------------------     
     df2 <- data.frame(df_peptide$mz.in.Da.by.Search.Engine.Mascot)
