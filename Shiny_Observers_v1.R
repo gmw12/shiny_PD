@@ -163,15 +163,15 @@ update_dpmsr_set_from_widgets <- function(session, input, output){
   })
   
   observe({
-    dpmsr_set$x$missing_cutoff <<- input$missing_cutoff
+    dpmsr_set$x$missing_cutoff <<- as.numeric(input$missing_cutoff)
   })
   
   observe({
-    dpmsr_set$x$misaligned_cutoff <<- input$misaligned_cutoff
+    dpmsr_set$x$misaligned_cutoff <<- as.numeric(input$misaligned_cutoff)
   })
   
   observe({
-    dpmsr_set$x$int_cutoff_sd <<- input$intensity_cutoff_mean_sd
+    dpmsr_set$x$int_cutoff_sd <<- as.numeric(input$intensity_cutoff_mean_sd)
   })
   
   #-stats-----------------------------------------------------------------------------------------------------      

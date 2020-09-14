@@ -52,6 +52,8 @@ check_impute_parallel <- function(norm_list){
 # data_raw_impute <- impute_only(dpmsr_set$data$normalized$impute, "impute")
 # norm_name  <- "impute"
 # data_out <- dpmsr_set$data$normalized$impute
+#data_in <- dpmsr_set$data$normalized$sl
+#norm_name <-
 #--------------------------------------------------------------------------------
 impute_only <-  function(data_in, norm_name){
   info_columns <- ncol(data_in) - dpmsr_set$y$sample_number
@@ -110,8 +112,8 @@ impute_multi <- function(data_in, distribution_in, info_columns){
     df$sum <- rowSums(df, na.rm = TRUE)
     df$rep <- dpmsr_set$y$sample_groups$Count[i]
     #df$min <- dpmsr_set$y$sample_groups$Count[i]/2
-    df$max_missing <- dpmsr_set$y$sample_groups$Count[i]*((100-dpmsr_set$x$missing_cutoff)/100)
-    df$max_misaligned <- dpmsr_set$y$sample_groups$Count[i]*(dpmsr_set$x$misaligned_cutoff/100)
+    df$max_missing <- dpmsr_set$y$sample_groups$Count[i]*((100-as.numeric(dpmsr_set$x$missing_cutoff))/100)
+    df$max_misaligned <- dpmsr_set$y$sample_groups$Count[i]*(as.numeric(dpmsr_set$x$misaligned_cutoff)/100)
     df$missings <- rowSums(is.na(df[1:dpmsr_set$y$sample_groups$Count[i]]))
     df$average <- apply(df[1:dpmsr_set$y$sample_groups$Count[i]], 1, FUN = function(x) {mean(x, na.rm=TRUE)})
     
