@@ -54,6 +54,8 @@ run_motifx <- function(input, output, data_in){
     motifx_all <- rbind(motifx_up, motifx_down, motifx_updown)
     
     cat(file=stderr(), "write motifx excel..." , "\n")  
+    # save filename to dpmsr_set so downloadhandler can grab it
+    dpmsr_set$data$phos$filename <<- str_c("MotifX_", input$select_data_comp_motif, ".xlsx")
     Simple_Excel(motifx_all, str_c(dpmsr_set$file$phos, "MotifX_", input$select_data_comp_motif, ".xlsx"))
 
   

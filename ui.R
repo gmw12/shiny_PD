@@ -1783,7 +1783,10 @@ shinyUI(
                                  }"
                                    )
                                    ),
-                                   rHandsontableOutput("motif_table")
+                                   rHandsontableOutput("motif_table"),
+                                   br(),
+                                   br(),
+                                   downloadButton('download_motifx_excel')
                                  )
                         )           
                         

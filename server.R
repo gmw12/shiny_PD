@@ -474,6 +474,7 @@ observeEvent(input$data_show, {
     }
     )   
     
+    #-------------------------------------------------------------------------------------------------------------    
     output$download_stats_excel <- downloadHandler(
       file = function(){
         input$final_stats_name
@@ -950,6 +951,17 @@ observeEvent(input$data_show, {
       }
     })
     
+    #-------------------------------------------------------------------------------------------------------------    
+    output$download_motifx_excel <- downloadHandler(
+      file = function(){
+        dpmsr_set$data$phos$filename
+        #str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", input$final_stats_name)
+      },
+      content = function(file){
+        fullName <- str_c(dpmsr_set$file$phos, dpmsr_set$data$phos$filename)
+        file.copy(fullName, file)
+      }
+    )
     
     #-------------------------------------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------------------------------------
