@@ -134,7 +134,7 @@ shinyUI(
 
 
       tabPanel("Filters", value = "tp_filters", align="center",
-               tags$h1("Apply Filters"),
+               tags$h1("Apply Raw Peptide Filters"),
                hr(),
                fluidRow(
                  column(width=3, offset = 1,
@@ -228,7 +228,6 @@ shinyUI(
                                    ),
                                    selected = 1),
                       dropdownButton(
-                        numericInput("bottom_x", label="Bottom X%", value = "5"),
                         numericInput("impute_floor", label="Impute Floor Intensity", value = "Enter value here"),
                         numericInput("missing_cutoff", label="%minimum  measured values in group to allow missing values to be imputed in measured range", value = 50, width = '100%'),
                         checkboxInput("checkbox_misaligned", label = "Misaligned Filter"),
@@ -239,6 +238,8 @@ shinyUI(
                         actionButton("adjust_intensity_cutoff", label = "Calc Intensity Cutoff", width = 300,
                                      style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
                         textOutput("text_impute_ptm"),
+                        br(),
+                        numericInput("bottom_x", label="Bottom X%", value = "5"),
                         circle = TRUE, status = "info", icon = icon("gear"), width = "500px", size = "sm",
                         tooltip = tooltipOptions(title = "More Imputation Options")
                         ),
@@ -1736,6 +1737,26 @@ shinyUI(
     
     tabPanel("Phos", value = "tp_phos",
              navbarPage("Phosphorylation:", id ="np_phos",
+                        tabPanel("Format Fasta", id="motif",
+                                 fluidRow(
+                                   shinyFilesButton('motif_fasta', label='Select Motif-X FASTA', title='Please select motif-x formated text file', multiple=FALSE,
+                                                    style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                                   br(),
+                                   textOutput("fasta"),
+                                   tags$head(tags$style("#fasta{color: blue; font-size: 16px; font-style: bold;}")),
+                                   br(),
+                                   selectInput("accession_split", label="Split character after accession:", 
+                                               choices = list("Space", "Bar"),
+                                               selected = "Bar"),
+                                   br(),
+                                   actionButton("parse_fasta", label = "Format fasta", width = 150,
+                                                style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),  
+                                   br(),
+                                   br(),
+                                   
+                                   rHandsontableOutput("fasta_example")
+                                 )
+                        ),
                         tabPanel("MotifX", id="motif",
                                  fluidRow(
                                    column(width=2, offset =0,
@@ -1743,17 +1764,11 @@ shinyUI(
                                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
                                                       selected = 1)
                                    ),
-                                   column(width=1, offset =0,  
-                                          textInput("protein_filter", label="Specific Protein", value ="", width = 150)
-                                   ),
-                                   column(width=2, offset =0,
-                                          shinyFilesButton('motif_fasta', label='Select Motif-X FASTA', title='Please select motif-x formated text file', multiple=FALSE,
-                                                           style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
-                                          textOutput("fasta"),
-                                          tags$head(tags$style("#fasta{color: blue; font-size: 16px; font-style: bold;}"))
-                                   ),
                                    column(width=2, offset =0,  
                                           numericInput("pval_motif", label="MotifX pval (x1e-5)", value =1, width = 150)
+                                   ),
+                                   column(width=3, offset =0,  
+                                          textInput("protein_filter", label="Specific Protein Filter Accession", value ="", width = 250)
                                    ),
                                    column(width=1, offset =0,
                                           actionButton("motif_show", label = "Send to MotifX", width = 150,

@@ -168,6 +168,7 @@ file_set <- function(){
   dpmsr_set$file$qc_dir <<- create_dir(str_c(dpmsr_set$file$data_dir,"/QC"))
   dpmsr_set$file$extra_prefix <<- str_c(dpmsr_set$file$extra_dir,dpmsr_set$x$file_prefix) 
   dpmsr_set$file$string <<- create_dir(str_c(dpmsr_set$file$data_dir,"/String"))
+  dpmsr_set$file$phos <<- create_dir(str_c(dpmsr_set$file$data_dir,"/Phos"))
   dpmsr_set$file$app_dir <<- create_dir(str_c(dpmsr_set$file$data_dir,"/Backup/App"))
   
   r_files <- list.files()

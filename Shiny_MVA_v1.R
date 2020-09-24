@@ -164,7 +164,7 @@ set_stat_groups <- function(session, input, output){
   updateTextInput(session, "stats_boxplot_title", value = str_c("Boxplot ", dpmsr_set$y$stats$groups$comp_name[input$mva_plot_comp]))
   updateSelectInput(session, "stats_select_data_comp", choices = dpmsr_set$y$stats$groups$comp_name, 
                     selected = dpmsr_set$y$stats$groups$comp_name[1])
-
+  updateSelectInput(session, "select_data_comp_motif", choices = dpmsr_set$y$stats$groups$comp_name, selected = dpmsr_set$y$stats$groups$comp_name[1])
 }
 
 
@@ -266,6 +266,7 @@ stat_calc2 <- function(session, input, output) {
     comp_N_imputed <- mutate_all(comp_N_imputed, function(x) as.numeric(x))
     comp_D_imputed <- mutate_all(comp_D_imputed, function(x) as.numeric(x))
     spqc_impute_data <- mutate_all(spqc_impute_data, function(x) as.numeric(x))
+    
     #--reduce peptide PD imputed column to only samples of comparison----------------------------------------------------------
     if(dpmsr_set$x$final_data_output == "Peptide"){
       df_impute_peptide <- cbind(comp_N_imputed, comp_D_imputed, spqc_impute_data)
@@ -275,7 +276,7 @@ stat_calc2 <- function(session, input, output) {
         df_impute_peptide[,2] <- NULL
       }
       colnames(df_impute_peptide) <- "PD_Detected_Peptides"
-      annotate_in$PD_Detected_Peptides <- df_impute_peptide
+      annotate_in$PD_Detected_Peptides <- df_impute_peptide$PD_Detected_Peptides
     }
     
     #--section for peptide to protein final data----------------------------------------------------------
@@ -454,10 +455,17 @@ stat_calc2 <- function(session, input, output) {
 #----------------------------------------------------------------------------------------
 # create final excel documents
 stats_Final_Excel <- function(session, input, output) {
+  cat(file=stderr(), "Creating Excel Output File...1", "\n")
   require(openxlsx)
     
     filename <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", input$final_stats_name)
     df <- dpmsr_set$data$final[[input$select_final_data_stats]]
+    
+    #testing
+    input_final_stats_name <<- input$final_stats_name
+    input_select_final_data_stats <<- input$select_final_data_stats
+    # filename <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", input_final_stats_name)
+    # df <- dpmsr_set$data$final[[input_select_final_data_stats]]
     
     #remove FC2 from df for excel
     #df <- df[,-grep(pattern="_FC2", colnames(df))]
@@ -466,17 +474,20 @@ stats_Final_Excel <- function(session, input, output) {
       df_raw <- dpmsr_set$data$finalraw
     }else{
       df_raw <- dpmsr_set$data$finalraw
+      #this may not be needed 
       #if PTM out need to reduce raw data frame for excel
-      if (as.logical(dpmsr_set$x$peptide_ptm_out)){
-        df_raw <- df_raw[grep(dpmsr_set$x$peptide_report_grep, df_raw$Modifications),]
-      }
+      #if (as.logical(dpmsr_set$x$peptide_ptm_out)){
+        #df_raw <- df_raw[grep(dpmsr_set$x$peptide_report_grep, df_raw$Modifications),]
+      #}
     }
     
     # save the option to save normalized table with raw
     #df2 <- cbind(df_raw, df[(dpmsr_set$y$info_columns_final+1):ncol(df)])
-    
+    cat(file=stderr(), "Creating Excel Output File...2", "\n")
     df2 <- df
     
+    
+    # subsets data for accession specific reports
     if (as.logical(dpmsr_set$x$accession_report_out)){
       df <-subset(df, Accession %in% dpmsr_set$x$accession_report_list )
       df2 <-subset(df2, Accession %in% dpmsr_set$x$accession_report_list )
@@ -486,7 +497,7 @@ stats_Final_Excel <- function(session, input, output) {
     
     wb <- createWorkbook()
     
-    
+    cat(file=stderr(), "Creating Excel Output File...3", "\n")
     #----------------------------------------
     
     if(site_user == "dpmsr" && (dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Protein")){
@@ -517,6 +528,9 @@ stats_Final_Excel <- function(session, input, output) {
       }else{
         raw_peptide <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_Peptide_to_Peptide_Raw.xlsx"))
       }
+      addWorksheet(wb, "Sample Info")
+      writeData(wb, sheet = nextsheet, dpmsr_set$protocol)
+      nextsheet <- nextsheet +1
       addWorksheet(wb, "Raw Peptide Data")
       writeData(wb, sheet = nextsheet, raw_peptide) 
       nextsheet <- nextsheet +1
@@ -533,7 +547,7 @@ stats_Final_Excel <- function(session, input, output) {
     z=1
     for(i in 1:as.numeric(dpmsr_set$y$stats$comp_number))  {
       comp_string <- dpmsr_set$y$stats$groups$comp_name[i]
-      filtered_df <<- dpmsr_set$data$stats[[comp_string]]
+      filtered_df <- dpmsr_set$data$stats[[comp_string]]
       cat(file=stderr(), str_c("Saving excel...", comp_string), "\n")
       addWorksheet(wb, comp_string)
       writeData(wb, sheet = nextsheet, filtered_df)
@@ -542,7 +556,7 @@ stats_Final_Excel <- function(session, input, output) {
     }
     cat(file=stderr(), "writting excel to disk...", "\n")
     saveWorkbook(wb, filename, overwrite = TRUE)
-    
+    cat(file=stderr(), "Creating Excel Output File...end", "\n")
 }
 
 # data table filter ------------------------------------------------------
@@ -728,7 +742,11 @@ onepeptide_data <- function(session, input, output) {
   peptide_position_lookup <- function(session, input, output, protein_accession)  {
     # create peptide lookup table
     if(dpmsr_set$x$final_data_output == "Protein"){
-      peptide_pos_lookup <- dpmsr_set$data$data_raw_peptide %>% dplyr::select(Sequence, Positions.in.Master.Proteins)
+      if(class(dpmsr_set$data$data_raw_peptide$Positions.in.Master.Proteins)=="NULL"){
+        peptide_pos_lookup <- try(dpmsr_set$data$data_raw_peptide %>% dplyr::select(Sequence, Positions.in.Proteins))
+      }else{
+        peptide_pos_lookup <- try(dpmsr_set$data$data_raw_peptide %>% dplyr::select(Sequence, Positions.in.Master.Proteins))
+      }
     }else{
       peptide_pos_lookup <- dpmsr_set$data$data_raw_isoform %>% dplyr::select(Sequence, Positions.in.Proteins)
     }

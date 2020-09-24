@@ -2,6 +2,11 @@
 apply_impute <- function(session, input, output){
   cat(file=stderr(), "apply_impute function...", "\n")
   
+  # save set of randome numbers to be used for impute, if reipute numbers the same
+  set.seed(123)
+  dpmsr_set$y$rand_impute <<- runif(200000, min=-1, max=1)
+  dpmsr_set$y$rand_count <<- 1
+  
   ncores <- (detectCores()/2)
   if (is.na(ncores)) {ncores <- 1}
   norm_list <- dpmsr_set$y$norm_list
@@ -67,7 +72,7 @@ impute_only <-  function(data_in, norm_name){
   } else if (dpmsr_set$x$impute_method== "Floor") {
     data_out[is.na(data_out)] <- dpmsr_set$x$area_floor
   } else if (dpmsr_set$x$impute_method == "Average/Group") {
-    data_out <- impute_average(data_out)
+    data_out <- impute_average_group(data_out)
   } else if (dpmsr_set$x$impute_method == "Minimium") {
     data_out <- impute_minimum(data_out)
   } else if (dpmsr_set$x$impute_method == "MLE") {
@@ -96,13 +101,11 @@ impute_multi <- function(data_in, distribution_in, info_columns){
   distribution_data <- log(distribution_data,2)
   #distribution_data[is.na(distribution_data)] <- 0.0
   
+  # reset rand_count every time it starts to impute a new normalization
+  rand_count <- 1
+  
   data_in <- log(data_in,2)
   #data_in[is.na(data_in)] <- 0.0
-
-  # save set of randome numbers to be used for impute, if reipute numbers the same
-  set.seed(123)
-  rand_impute <- runif(100000, min=-1, max=1)
-  rand_count <- 1
 
   for(i in 1:dpmsr_set$y$group_number){
     # calculate stats for each sample group
@@ -144,7 +147,7 @@ impute_multi <- function(data_in, distribution_in, info_columns){
             if (is.na(df[j,k])) {
               #nf <-  rnorm(1, 0, 1)
               #nf <- mean(runif(4, min=-1, max=1))
-              df[j,k] = df$average[j] + (rand_impute[rand_count] * findsd$sd[1])
+              df[j,k] = df$average[j] + (dpmsr_set$y$rand_impute[rand_count] * findsd$sd[1])
               rand_count <- rand_count + 1
             }
           }
@@ -189,6 +192,10 @@ impute_multi <- function(data_in, distribution_in, info_columns){
 # imputation of missing data
 impute_bottomx <- function(data_in, distribution_data, info_columns){
   cat(file=stderr(), "apply_bottomx function...", "\n")
+  
+  # reset rand_count every time it starts to impute a new normalization
+  rand_count <- 1
+  
   #Use all data for distribution or only ptm
   if (as.logical(dpmsr_set$x$peptide_ptm_impute)){
     distribution_data <- distribution_data[grep(dpmsr_set$x$peptide_impute_grep, distribution_data$Modifications),]
@@ -208,18 +215,14 @@ impute_bottomx <- function(data_in, distribution_data, info_columns){
   
   data_in <- log(data_in,2)
   test <- apply(is.na(data_in), 2, which)
-  
-  # save set of randome numbers to be used for impute, if reipute numbers the same
-  set.seed(321)
-  rand_impute <- runif(100000, min=0, max=1)
-  rand_count <- 1
-  
+
   for(n in names(test)){
-    for(l in (test[[n]]))
+    for(l in (test[[n]])){
       #data_in[[n]][l] <- mean(runif(4, bottomx_min, bottomx_max))
       # uses stored random numbers from -1 to 1
-      data_in[[n]][l] <- bottomx_min + (rand_impute[rand_count] * (bottomx_max-bottomx_min))
+      data_in[[n]][l] <- bottomx_min + (dpmsr_set$y$rand_impute[rand_count] * (bottomx_max-bottomx_min))
       rand_count <- rand_count +1
+  }
   }
   
   data_in <- data.frame(2^data_in)
@@ -254,8 +257,7 @@ impute_knn <- function(data_in){
 
 
 #--------------------------------------------------------------------------------
-#if less than half values exist all values go to area_floor
-impute_average <- function(data_in){
+impute_average_group <- function(data_in){
   data_in[data_in==0] <- NA
   for(i in 1:dpmsr_set$y$group_number) 
   {
@@ -264,31 +266,46 @@ impute_average <- function(data_in){
     df$sum <- rowSums(df, na.rm=TRUE)
     df$rep <- dpmsr_set$y$sample_groups$Count[i]  
     df$min <- dpmsr_set$y$sample_groups$Count[i]/2
-    df$missings <- rowSums(df[1:dpmsr_set$y$sample_groups$Count[i]] == "0")
     df$missings <- rowSums(is.na (df[1:dpmsr_set$y$sample_groups$Count[i]]))
     df$average <- df$sum / (df$rep - df$missings)
     
-    for (j in 1:nrow(data_in)){
+    for (j in 1:nrow(df)){
       for (k in 1:dpmsr_set$y$sample_groups$Count[i]){
-        if (is.na (df[j,k]) && df$missings[j] <= df$min[j]) { df[j,k] <- df$average[j]}
-        else if (df$missings[j] > df$min[j]) { df[j,k] = area_floor}
+        if (is.na (df[j,k]) ) { df[j,k] <- df$average[j]}
       }
     }
     assign(dpmsr_set$y$sample_groups$Group[i], df[1:dpmsr_set$y$sample_groups$Count[i]])
   }
-  data_out <- get(dpmsr_set$y$sample_groups$Group[i])
+  data_out <- get(dpmsr_set$y$sample_groups$Group[1])
   for(i in 2:dpmsr_set$y$group_number)  {data_out <- cbind(data_out, get(dpmsr_set$y$sample_groups$Group[i]))}
   return(data_out)
 }
 
 #--------------------------------------------------------------------------------
-# fix missings - by replicate group if more than half of the values exist, replace missings with average, if less than half values exist all values go to area_floor
+impute_average_global <- function(data_in){
+  data_in[data_in==0] <- NA
+  df <- data_in
+  df$average <- apply(df, 1, FUN = function(x) {mean(x[x > 0], na.rm=TRUE)})
+    for (j in 1:nrow(df)){
+      for (k in 1:dpmsr_set$y$sample_number){
+        if (is.na (df[j,k]) ) { df[j,k] <- df$average[j]}
+      }
+    }
+
+  data_out <- df[1:dpmsr_set$y$sample_number]
+  return(data_out)
+}
+
+
+
+#--------------------------------------------------------------------------------
+
 impute_minimum <- function(df){
   df[df==0] <- NA
-  df$minimum <- apply(df, 1, FUN = function(x) {min(x[x > 0])})
+  df$minimum <- apply(df, 1, FUN = function(x) {min(x[x > 0], na.rm=TRUE)})
   for (j in 1:nrow(df)){
     for (k in 1:dpmsr_set$y$sample_number){
-      if (df[j,k] == "0") {df[j,k] = df$minimum[j]}
+      if (is.na(df[j,k])) {df[j,k] = df$minimum[j]}
     }
   }
   return(df[1:dpmsr_set$y$sample_number])
@@ -304,51 +321,6 @@ impute_mle <- function(df){
   df_mle <- data.frame(df_mle)
   return(df_mle)
 }
-
-
-# data_in <- dpmsr_set$data$normalized$sl[(info_columns+1):ncol(dpmsr_set$data$normalized$sl)]
-# distribution_in <- data_in
-#--------------------------------------------------------------------------------
-# imputation of missing data
-impute_average_global <- function(data_in){
-  #Use all data for distribution or only ptm
-  df <- log(data_in,2)
-  df2 <- df
-  df$average <- apply(df, 1, FUN = function(x) {mean(x, na.rm=TRUE)})
-  df$missings <- rowSums(is.na(df))
-
-  df2$average <- apply(df2, 1, FUN = function(x) {mean(x, na.rm=TRUE)})
-  df2$sd <- apply(df2, 1, FUN = function(x) {sd(x, na.rm=TRUE)})
-  df2$bin <- ntile(df2$average, 20)  
-  sd_info <- subset(df2, !is.na(sd)) %>% group_by(bin) %>% summarize(min = min(average), max = max(average), sd = mean(sd))
-  for (x in 1:19){sd_info$max[x] <- sd_info$min[x+1]}
-  sd_info$max[nrow(sd_info)] <- 100
-  sd_info$min2 <- sd_info$min
-  sd_info$min2[1] <- 0
-  sd_info <- sd_info[-21,]
-  
-  # if the number of missing values <= minimum then will impute based on normal dist of measured values
-
-    find_rows <- which(df$missings > 0)
-    for (j in find_rows){
-      findsd <- sd_info %>% filter(df$average[j] >= min2, df$average[j]<= max)
-      for (k in 1:ncol(df)){
-        if (is.na(df[j,k])) {
-          #nf <-  rnorm(1, 0, 1)
-          nf <- mean(runif(4, min=-1, max=1))
-          df[j,k] = df$average[j] + (nf*findsd$sd[1])
-        }
-      }
-    }
-  
-  data_out <- df[1:ncol(data_in)]
-  data_out <- data.frame(2^data_out)
-    
-  return(data_out)
-}
-
-
-
 
 
 

@@ -79,7 +79,7 @@ shinyServer(function(input, output, session) {
                     filetypes=c('','dpmsr_set'), defaultPath='', defaultRoot='wd')
     
     shinyFileChoose(input,'motif_fasta', roots=volumes, session=session, 
-                     filetypes=c('','txt'), defaultPath='', defaultRoot='wd')
+                     filetypes=c('','fasta'), defaultPath='', defaultRoot='dd')
     
     shinyFileChoose(input,'test', roots=volumes, session=session, 
                     filetypes=c('' , 'xlsx', 'jpg', 'png'), defaultPath='', defaultRoot='wd')
@@ -134,8 +134,6 @@ shinyServer(function(input, output, session) {
     load_dpmsr_set(session, input, volumes)
     #reassign these to update volumes with path from design_file
     shinyFileChoose(input,'raw_files', roots=dpmsr_set$x$volumes, session=session,
-                    filetypes=c('','txt'), defaultPath='', defaultRoot='wd')
-    shinyFileChoose(input,'motif_fasta', roots=dpmsr_set$x$volumes, session=session, 
                     filetypes=c('','txt'), defaultPath='', defaultRoot='wd')
     set_sample_groups()
     updateTabsetPanel(session, "nlp1", selected = "tp_load_data")
@@ -922,6 +920,28 @@ observeEvent(input$data_show, {
 #        }
 #      })
 #      
+ 
+    
+    #-------------------------------------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------------------------------------
+    observeEvent(input$parse_fasta, {
+      showModal(modalDialog("Create sequence file for MotifX...", footer = NULL))  
+      create_phos_database(session, input, output)
+      
+      output$fasta_example<- renderRHandsontable({
+        rhandsontable(dpmsr_set$data$phos$background[1:10,], rowHeaders = NULL) %>%
+          hot_cols(colWidths = 80, halign = "htCenter" ) %>%
+          hot_col(col = "Accession", halign = "htCenter", colWidths = 200) %>%
+          hot_col(col = "Sequence", halign = "htLeft", colWidths = 800)
+      })
+      
+      removeModal()
+    }
+    )
+    
+    #-------------------------------------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------------------------------------
+    
     output$fasta <- renderText({
       if (req(typeof(input$motif_fasta)=="list")) {
         motif_path <- parseFilePaths(dpmsr_set$x$volumes, input$motif_fasta)

@@ -80,8 +80,7 @@ project_overview <- function(){
     df2$psm <- "All"
     df2$psm <- as.factor(df2$psm)
 
-    
-    g <- ggplot(df2, aes(psm, X2))
+    g <- ggplot(df2[df2$X2 < 100,], aes(psm, X2))
     g + geom_violin(fill="blue") + 
       labs(title="PSM Mass Accuracy", 
            x="PSM's",
