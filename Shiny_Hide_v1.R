@@ -559,10 +559,10 @@
    
    observe({
      if (input$checkbox_tmt){
-       hideTab(inputId = "nlp1", target = "tp6")
+       hideTab(inputId = "nlp1", target = "tp_impute")
        showTab(inputId = "nlp1", target = "tp_tmt")
      }else{
-       showTab(inputId = "nlp1", target = "tp6")
+       showTab(inputId = "nlp1", target = "tp_impute")
        hideTab(inputId = "nlp1", target = "tp_tmt")
      }
    })

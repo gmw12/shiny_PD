@@ -147,6 +147,7 @@ update_dpmsr_set_from_widgets <- function(session, input, output){
   
   observe({
     dpmsr_set$x$bottom_x <<- input$bottom_x
+    dpmsr_set$x$TMT_SPQC_bottom_x <<- input$TMT_SPQC_bottom_x
   })
   
   observe({

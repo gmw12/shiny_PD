@@ -157,14 +157,10 @@ set_stat_groups <- function(session, input, output){
   dpmsr_set$y$stats$groups <<- comp_groups
   dpmsr_set$y$stats$comp_number <<- input$comp_number
   
-  updatePickerInput(session, "stats_plot_comp", choices = dpmsr_set$y$stats$groups$comp_name)
-  updateSelectInput(session, "stats_oneprotein_plot_comp", choices = dpmsr_set$y$stats$groups$comp_name, selected = dpmsr_set$y$stats$groups$comp_name[1])
-  updateSelectInput(session, "stats_onepeptide_plot_comp", choices = dpmsr_set$y$stats$groups$comp_name, selected = dpmsr_set$y$stats$groups$comp_name[1])
+# update UI widgets after stat comparisons are selected
   updateTextInput(session, "stats_barplot_title", value = str_c("Barplot ", dpmsr_set$y$stats$groups$comp_name[input$mva_plot_comp]))
   updateTextInput(session, "stats_boxplot_title", value = str_c("Boxplot ", dpmsr_set$y$stats$groups$comp_name[input$mva_plot_comp]))
-  updateSelectInput(session, "stats_select_data_comp", choices = dpmsr_set$y$stats$groups$comp_name, 
-                    selected = dpmsr_set$y$stats$groups$comp_name[1])
-  updateSelectInput(session, "select_data_comp_motif", choices = dpmsr_set$y$stats$groups$comp_name, selected = dpmsr_set$y$stats$groups$comp_name[1])
+  update_comparisons(session, input, output)
 }
 
 
@@ -246,7 +242,7 @@ stat_calc2 <- function(session, input, output) {
   
   for(i in 1:nrow(dpmsr_set$y$stats$groups)) 
   {
-    #data_in <- dpmsr_set$data$impute$sltmm
+    #data_in <- dpmsr_set$data$impute$sl
     cat(file=stderr(), str_c("Calculating stats...", i, " of ", nrow(dpmsr_set$y$stats$groups)), "\n")
     data_in <- dpmsr_set$data$impute[[input$select_final_data_stats]]
     info_columns <- ncol(data_in) - dpmsr_set$y$sample_number
@@ -287,78 +283,84 @@ stat_calc2 <- function(session, input, output) {
       D_CV <- percentCV_gw(comp_D_data)
       minCV <- pmin(N_CV, D_CV)
       
-      df <- cbind(annotate_in, comp_N_data, comp_D_data, spqc_data, mf, N_CV, D_CV, minCV)
-      df_impute <- cbind(annotate_in, comp_N_imputed, comp_D_imputed, mf, N_CV, D_CV, minCV)
-      df_impute_summary <- cbind(annotate_in, comp_N_imputed, comp_D_imputed, spqc_impute_data, mf, N_CV, D_CV, minCV)
+      
+      # exclude TMT SPQC norm - can not have imputed peptide level information
+      if (as.logical(dpmsr_set$x$tmt_spqc_norm)){
+        df <- cbind(annotate_in, comp_N_data, comp_D_data, spqc_data)
+      }else{
+        df <- cbind(annotate_in, comp_N_data, comp_D_data, spqc_data, mf, N_CV, D_CV, minCV)
+        df_impute <- cbind(annotate_in, comp_N_imputed, comp_D_imputed, mf, N_CV, D_CV, minCV)
+        df_impute_summary <- cbind(annotate_in, comp_N_imputed, comp_D_imputed, spqc_impute_data, mf, N_CV, D_CV, minCV)
       
       
-      if(input$peptide_missing_filter){
-        df <- df[(df$mf >= input$peptide_missing_factor),]
-        df_impute <- df_impute[(df_impute$mf >= input$peptide_missing_factor),]  
-        df_impute_summary <- df_impute_summary[(df_impute_summary$mf >= input$peptide_missing_factor),]  
-      }
-  
-      if(input$peptide_cv_filter){
-        df <- df[(df$minCV <= input$peptide_cv_factor),]
-        df_impute <- df_impute[(df_impute$minCV <= input$peptide_cv_factor),]  
-        df_impute_summary <- df_impute_summary[(df_impute_summary$minCV <= input$peptide_cv_factor),]  
-      }
+        if(input$peptide_missing_filter){
+          df <- df[(df$mf >= input$peptide_missing_factor),]
+          df_impute <- df_impute[(df_impute$mf >= input$peptide_missing_factor),]  
+          df_impute_summary <- df_impute_summary[(df_impute_summary$mf >= input$peptide_missing_factor),]  
+        }
     
-      df$mf <- NULL
-      df_impute$mf <- NULL
-      df_impute_summary$mf <- NULL
-      df$N_CV <- NULL
-      df_impute$N_CV <- NULL
-      df_impute_summary$N_CV <- NULL
-      df$D_CV <- NULL
-      df_impute$D_CV <- NULL
-      df$D_CV <- NULL
-      df_impute_summary$D_CV <- NULL
-      df$minCV <- NULL
-      df_impute$minCV <- NULL
-      df_impute_summary$minCV <- NULL
+        if(input$peptide_cv_filter){
+          df <- df[(df$minCV <= input$peptide_cv_factor),]
+          df_impute <- df_impute[(df_impute$minCV <= input$peptide_cv_factor),]  
+          df_impute_summary <- df_impute_summary[(df_impute_summary$minCV <= input$peptide_cv_factor),]  
+        }
       
-      df_impute_summary <- df_impute_summary[(info_columns+1):ncol(df_impute_summary)] %>% mutate_all(as.character)
-      while (ncol(df_impute_summary)>1) {
-        df_impute_summary[,1] <- str_c(df_impute_summary[,1], ".", df_impute_summary[,2])
-        df_impute_summary[,2] <- NULL
+        df$mf <- NULL
+        df_impute$mf <- NULL
+        df_impute_summary$mf <- NULL
+        df$N_CV <- NULL
+        df_impute$N_CV <- NULL
+        df_impute_summary$N_CV <- NULL
+        df$D_CV <- NULL
+        df_impute$D_CV <- NULL
+        df$D_CV <- NULL
+        df_impute_summary$D_CV <- NULL
+        df$minCV <- NULL
+        df_impute$minCV <- NULL
+        df_impute_summary$minCV <- NULL
+        
+        df_impute_summary <- df_impute_summary[(info_columns+1):ncol(df_impute_summary)] %>% mutate_all(as.character)
+        while (ncol(df_impute_summary)>1) {
+          df_impute_summary[,1] <- str_c(df_impute_summary[,1], ".", df_impute_summary[,2])
+          df_impute_summary[,2] <- NULL
+        }
+        colnames(df_impute_summary) <- "PD_Detected_Peptides"
+        
+        df$PD_Detected_Peptides <- df_impute_summary
+        dpmsr_set$data$stats$peptide[[dpmsr_set$y$stats$groups$comp_name[i]]] <<- df
+        
+        df <- collapse_peptide_stats(df, info_columns)
+        df_impute <- collapse_peptide_stats(df_impute, info_columns)
+      
+        #xdf <<- df
+        #xdf_impute <<- df_impute
+        
+        test2 <- df_impute[4:ncol(df_impute)]
+        test2[test2==0] <- "-"
+        test2 <- test2 %>% mutate_all(as.character)
+        while (ncol(test2)>1) {
+          test2[,1] <- str_c(test2[,1], ".", test2[,2])
+          test2[,2] <- NULL
+        }
+        df <- add_column(df, test2[,1] , .after = "Peptides")
+        names(df)[4] <- "PD_Detected_Peptides"
+        
+        xdfimpute2 <<- df_impute
+        imputed_df <- df_impute[4:ncol(df_impute)]  
+        imputed_df[imputed_df>1] <- 1
+        comp_N_imputed <- imputed_df[1:dpmsr_set$y$stats$groups$N_count[i]]
+        comp_D_imputed <- imputed_df[(dpmsr_set$y$stats$groups$N_count[i]+1):(dpmsr_set$y$stats$groups$N_count[i]+dpmsr_set$y$stats$groups$D_count[i])]
+        
       }
-      colnames(df_impute_summary) <- "PD_Detected_Peptides"
       
-      df$PD_Detected_Peptides <- df_impute_summary
-      dpmsr_set$data$stats$peptide[[dpmsr_set$y$stats$groups$comp_name[i]]] <<- df
-      
-      df <- collapse_peptide_stats(df, info_columns)
-      df_impute <- collapse_peptide_stats(df_impute, info_columns)
-      
-      #xdf <<- df
-      #xdf_impute <<- df_impute
-      
-      test2 <- df_impute[4:ncol(df_impute)]
-      test2[test2==0] <- "-"
-      test2 <- test2 %>% mutate_all(as.character)
-      while (ncol(test2)>1) {
-        test2[,1] <- str_c(test2[,1], ".", test2[,2])
-        test2[,2] <- NULL
-      }
-      df <- add_column(df, test2[,1] , .after = "Peptides")
-      names(df)[4] <- "PD_Detected_Peptides"
-      
-      #xdf2 <<- df
-      #xdfimpute2 <<- df_impute
+      xdf2 <<- df
       
       annotate_in <- df[1:dpmsr_set$y$info_columns_final]
       data_in <- df[(dpmsr_set$y$info_columns_final+1):(ncol(df))]
       
-      imputed_df <- df_impute[4:ncol(df_impute)]  
-      imputed_df[imputed_df>1] <- 1
-      
       comp_N_data <- data_in[1:dpmsr_set$y$stats$groups$N_count[i]]
       comp_D_data <- data_in[(dpmsr_set$y$stats$groups$N_count[i]+1):(dpmsr_set$y$stats$groups$N_count[i]+dpmsr_set$y$stats$groups$D_count[i])]
       spqc_data <- data_in[(dpmsr_set$y$stats$groups$N_count[i]+dpmsr_set$y$stats$groups$D_count[i]+1):ncol(data_in)]
-      comp_N_imputed <- imputed_df[1:dpmsr_set$y$stats$groups$N_count[i]]
-      comp_D_imputed <- imputed_df[(dpmsr_set$y$stats$groups$N_count[i]+1):(dpmsr_set$y$stats$groups$N_count[i]+dpmsr_set$y$stats$groups$D_count[i])]
-
     }
     
     #--end of peptide to protein final data-----------------------------------------------
@@ -386,8 +388,11 @@ stat_calc2 <- function(session, input, output) {
     }
     #stat_df[ , comp_groups$limma_pval[i]] <- limma_gw(comp_N_data, comp_D_data, comp_groups$comp_name[i], plot_dir)
     #stat_df[ , comp_groups$exactTest[i]] <- exactTest_gw(comp_N_data, comp_D_data)
-    stat_df[ ,dpmsr_set$y$stats$groups$mf[i]] <- missing_factor_gw(comp_N_imputed, comp_D_imputed)
     
+    #only include if not TMT SPQC norm
+    if (!as.logical(dpmsr_set$x$tmt_spqc_norm)){
+      stat_df[ ,dpmsr_set$y$stats$groups$mf[i]] <- missing_factor_gw(comp_N_imputed, comp_D_imputed)
+    }
     
     # Create final tables--------------------------------------------------
     if(input$select_final_data_stats == "impute"){
@@ -407,7 +412,9 @@ stat_calc2 <- function(session, input, output) {
     data_table_cols <- ncol(data_table)
     
     data_table$pval <- ifelse(data_table[[dpmsr_set$y$stats$groups$pval[i]]]  <= input$pvalue_cutoff, 0, 1)
-    data_table$mf <- ifelse(data_table[[dpmsr_set$y$stats$groups$mf[i]]]  >= input$missing_factor, 0, 1)
+    if (!as.logical(dpmsr_set$x$tmt_spqc_norm)){
+      data_table$mf <- ifelse(data_table[[dpmsr_set$y$stats$groups$mf[i]]]  >= input$missing_factor, 0, 1)
+    }
     
     if(input$stats_spqc_cv_filter){
       data_table$spqc <- ifelse(data_table[[str_c(dpmsr_set$y$stats$comp_spqc, "_CV")]] <= input$stats_spqc_cv_filter_factor, 0, 1)

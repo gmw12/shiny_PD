@@ -271,10 +271,16 @@ shinyUI(
                numericInput("tmt_channels", label="TMT Channels", value = "Enter value here"),
                checkboxInput("checkbox_tmt_filter", label = "Filter peptides by stdev of average %CV"),
                numericInput("tmt_filter_sd", label="Stdev for filter", value = "Enter value here"),
+               br(),
+               numericInput("TMT_SPQC_bottom_x", label="Bottom X%", value = "5"),
                hr(),
                actionButton("tmt_irs_go", label = "Apply IRS Norm", width = 200,
+                            style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+               hr(),
+               actionButton("tmt_irs_qc", label = "Start Data QC", width = 200,
                             style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
                ),
+               
                column(width=5, offset =0,
                       br(),
                       br(),

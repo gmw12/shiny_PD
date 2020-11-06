@@ -24,6 +24,12 @@ load_dpmsr_set <- function(session, input, volumes){
   dpmsr_set$x$volumes <<- volumes
   dpmsr_set$x$design_name <<- design_data$datapath
   cat(file=stderr(), "dpmsr_set created...", "\n")
+  
+  #check design file for errors
+  if(any(duplicated(dpmsr_set$design$ID))) {
+    shinyalert("Oops!", "Duplicated ID's in Sample List File", type = "error")
+  }
+  
 }
 
 

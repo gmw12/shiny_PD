@@ -2,7 +2,7 @@
 apply_impute <- function(session, input, output){
   cat(file=stderr(), "apply_impute function...", "\n")
   
-  # save set of randome numbers to be used for impute, if reipute numbers the same
+  # save set of random numbers to be used for impute, if reipute numbers the same
   set.seed(123)
   dpmsr_set$y$rand_impute <<- runif(200000, min=-1, max=1)
   dpmsr_set$y$rand_count <<- 1
@@ -215,12 +215,13 @@ impute_bottomx <- function(data_in, distribution_data, info_columns){
   
   data_in <- log(data_in,2)
   test <- apply(is.na(data_in), 2, which)
+  test <- test[lapply(test,length)>0]
 
   for(n in names(test)){
     for(l in (test[[n]])){
       #data_in[[n]][l] <- mean(runif(4, bottomx_min, bottomx_max))
       # uses stored random numbers from -1 to 1
-      data_in[[n]][l] <- bottomx_min + (dpmsr_set$y$rand_impute[rand_count] * (bottomx_max-bottomx_min))
+      data_in[[n]][l] <- bottomx_min + (abs(as.numeric(dpmsr_set$y$rand_impute[rand_count])) * (bottomx_max-bottomx_min))
       rand_count <- rand_count +1
   }
   }

@@ -138,6 +138,8 @@ update_widget_norm <- function(session, input, output){
     updateNumericInput(session, "impute_floor", value = as.numeric(dpmsr_set$x$area_floor))
     
     updateNumericInput(session, "bottom_x", value = as.numeric(dpmsr_set$x$bottom_x))
+    if(class(dpmsr_set$x$TMT_SPQC_bottom_x)=="NULL") {dpmsr_set$x$TMT_SPQC_bottom_x <<- dpmsr_set$x$bottom_x}
+    updateNumericInput(session, "TMT_SPQC_bottom_x", value = as.numeric(dpmsr_set$x$TMT_SPQC_bottom_x))
     
     #if (as.logical(dpmsr_set$x$duke_misaligned)) {misaligned <- 1}else{misaligned<-0}
     updateCheckboxInput(session, "checkbox_misaligned", value = as.logical(dpmsr_set$x$duke_misaligned))
@@ -148,7 +150,6 @@ update_widget_norm <- function(session, input, output){
     
   }
   
-
 
   
   
@@ -283,6 +284,7 @@ update_widget_stats <- function(session, input, output){
   
   updateCheckboxInput(session, "peptide_cv_filter", value = as.logical(dpmsr_set$y$peptide_cv_filter))
   updateNumericInput(session, "peptide_cv_factor", value = as.numeric(dpmsr_set$y$peptide_cv_factor  ))
+  
 }
 
 
@@ -295,3 +297,25 @@ update_widget_all <- function(session, input, output){
   update_widget_stats(session, input, output)
   update_widget_post_processing(session, input, output)
 }
+
+
+#--All-----------------------------------------------------------------
+update_comparisons <- function(session, input, output){ 
+  updateSelectInput(session, "select_data_comp_motif", choices = dpmsr_set$y$stats$groups$comp_name)
+  updateSelectInput(session, "select_data_comp_wiki", choices = dpmsr_set$y$stats$groups$comp_name)
+  updateSelectInput(session, "select_data_comp_profile", choices = dpmsr_set$y$stats$groups$comp_name)
+  updateSelectInput(session, "select_data_comp_go", choices = dpmsr_set$y$stats$groups$comp_name)
+  updateSelectInput(session, "select_data_comp_string", choices = dpmsr_set$y$stats$groups$comp_name)
+  updateSelectInput(session, "select_data_comp_string_enrich", choices = dpmsr_set$y$stats$groups$comp_name)
+  updatePickerInput(session, "stats_plot_comp", choices = dpmsr_set$y$stats$groups$comp_name)
+  updateSelectInput(session, "stats_oneprotein_plot_comp", choices = dpmsr_set$y$stats$groups$comp_name, selected = dpmsr_set$y$stats$groups$comp_name[1])
+  updateSelectInput(session, "stats_onepeptide_plot_comp", choices = dpmsr_set$y$stats$groups$comp_name, selected = dpmsr_set$y$stats$groups$comp_name[1])
+  updateSelectInput(session, "stats_select_data_comp", choices = dpmsr_set$y$stats$groups$comp_name)
+  
+  
+}
+
+
+
+
+

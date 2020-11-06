@@ -7,6 +7,10 @@ tmt_spqc_prep <- function(){
 #-------------------------------------------------------------------------------------
 # TMT SPQC - normalize TMT, SL, IRS
 #-------------------------------------------------------------------------------------
+#data_in <- dpmsr_set$data$normalized$impute
+#dpmsr_set$y$state <- "Peptide" 
+#dpmsr_set$y$info_columns <- ncol(data_in) - dpmsr_set$y$sample_number
+
 tmt_spqc_normalize <- function(data_in){
   #Reset incase reanlayzing in same session
   if(dpmsr_set$x$raw_data_input == "Protein_Peptide" || dpmsr_set$x$raw_data_input == "Peptide")
@@ -22,13 +26,18 @@ tmt_spqc_normalize <- function(data_in){
   
 #---Step 1-2, split combined data into indiv sets, remove empty rows------------------------------------------------------------
   cat(file=stderr(), "TMT IRS step1,2...", "\n")
+  #sample list should be sorted on how final data should be organized
+  #data at this point was sorted, so resort design
+  dpmsr_set$design_tmt <- dpmsr_set$design
+  dpmsr_set$design_tmt$PD_Order <- seq(1:nrow(dpmsr_set$design))
+  
   for(i in 1:sets_tmt){
     #create design for each TMT set
-    irs_design <- dpmsr_set$design[dpmsr_set$design$Set==i,]
+    irs_design <- dpmsr_set$design_tmt[dpmsr_set$design_tmt$Set==i,]
     assign(str_c("TMT",i,"_design"), irs_design)
     #assign(str_c("Test",i,"_design"), irs_design, envir = .GlobalEnv)
     #create df for each TMT set
-    irs_set <- data_in[,(dpmsr_set$y$info_columns + dpmsr_set$design[dpmsr_set$design$Set==i,]$PD_Order)]
+    irs_set <- data_in[,(dpmsr_set$y$info_columns + dpmsr_set$design_tmt[dpmsr_set$design_tmt$Set==i,]$PD_Order)]
     irs_set <- cbind(data_in[1:dpmsr_set$y$info_columns], irs_set)
     #assign(str_c("Test_",i,"_Step1_data"), irs_set, envir = .GlobalEnv)
     assign(str_c("IRS_",i,"_Step1_data"), irs_set)
@@ -47,17 +56,39 @@ tmt_spqc_normalize <- function(data_in){
   
 #----------------------------------------------------------------------------------------------------    
   
-#---Step3, Impute missing values with random value from bottom 5% of measured values
+#---Step3, Impute missing values with random value from bottom X% of measured values
   cat(file=stderr(), "TMT IRS step3...", "\n")
+  
+  # save set of random numbers to be used for impute, if reipute numbers the same
+  set.seed(123)
+  dpmsr_set$y$rand_impute <<- runif(200000, min=-1, max=1)
+  # reset rand_count every time it starts to impute a new normalization
+  rand_count <- 1
+  
+  # data_dist <- as.vector(t(data_in[(dpmsr_set$y$info_columns+1):ncol(data_in)]))
+  # data_dist <- data_dist[!is.na(data_dist)]
+  # data_dist <- data_dist[data_dist>0]
+  # data_dist <- data.frame(data_dist)
+  # data_dist <- log2(data_dist)
+  # data_dist$bin <- ntile(data_dist, 20)  
+  # data_dist <- data_dist[data_dist$bin==1,]
+  # bottom5_max <- max(data_dist$data_dist)
+  # bottom5_min <- min(data_dist$data_dist)
+  
+  
+  #calc 100 bins for Bottom X%
   data_dist <- as.vector(t(data_in[(dpmsr_set$y$info_columns+1):ncol(data_in)]))
   data_dist <- data_dist[!is.na(data_dist)]
   data_dist <- data_dist[data_dist>0]
   data_dist <- data.frame(data_dist)
   data_dist <- log2(data_dist)
-  data_dist$bin <- ntile(data_dist, 20)  
-  data_dist <- data_dist[data_dist$bin==1,]
-  bottom5_max <- max(data_dist$data_dist)
-  bottom5_min <- min(data_dist$data_dist)
+  data_dist$bin <- ntile(data_dist, 100)  
+  bottomx_min <- min(data_dist[data_dist$bin==1,]$data_dist)
+  bottomx_max <- max(data_dist[data_dist$bin==as.numeric(dpmsr_set$x$TMT_SPQC_bottom_x),]$data_dist)
+  
+  
+  
+  
   
   for(i in 1:sets_tmt){
     irs_df_temp <- get(str_c("IRS_",i,"_Step2_data"))
@@ -65,11 +96,33 @@ tmt_spqc_normalize <- function(data_in){
     irs_df_temp <- irs_df_temp[(dpmsr_set$y$info_columns+1):ncol(irs_df_temp)]
     irs_df_temp <- log2(irs_df_temp)
   
-    for (j in 1:nrow(irs_df_temp)){
-      for (k in 1:ncol(irs_df_temp)){
-        if ( is.na(irs_df_temp[j,k])) {irs_df_temp[j,k] <- runif(1, bottom5_min, bottom5_max) } 
+    # replaced with direct impute and random seed
+    # for (j in 1:nrow(irs_df_temp)){
+    #   for (k in 1:ncol(irs_df_temp)){
+    #     if ( is.na(irs_df_temp[j,k])) {irs_df_temp[j,k] <- runif(1, bottom5_min, bottom5_max) } 
+    #   }
+    # }
+    
+    test <- apply(is.na(irs_df_temp), 2, which)
+    test <- test[lapply(test,length)>0]
+    
+    # testx <<- test
+    # irs_df_tempx <<- irs_df_temp
+    # bottomx_maxx <<- bottomx_max
+    # bottomx_minx <<- bottomx_min
+    # rand_countx <<- rand_count
+    
+    
+    for(n in names(test)){
+      for(l in (test[[n]])){
+        #data_in[[n]][l] <- mean(runif(4, bottomx_min, bottomx_max))
+        # uses stored random numbers from -1 to 1
+        rf <- abs(dpmsr_set$y$rand_impute[rand_count])
+        irs_df_temp[[n]][l] <- bottomx_min + (rf * (bottomx_max-bottomx_min))
+        rand_count <- rand_count + 1
       }
     }
+    
     irs_df_temp <- 2^irs_df_temp
     irs_df_temp <- cbind(irs_info, irs_df_temp)
     assign(str_c("IRS_",i,"_Step3_data"), irs_df_temp)
@@ -80,7 +133,7 @@ tmt_spqc_normalize <- function(data_in){
 
 #----------------------------------------------------------------------------------------------------  
 
-#---Step4------Filter data based on CV of SPQC if requested, collapse peptide to protein
+#---Step4------Filter data based on CV of SPQC if requested
   cat(file=stderr(), "TMT IRS step4...", "\n")
   for(i in 1:sets_tmt){
     if (as.logical(dpmsr_set$x$tmt_filter_peptide)){
@@ -140,7 +193,7 @@ tmt_spqc_normalize <- function(data_in){
         #bar_plot_TMT(protein_data, str_c("TMT", i, "_IRS_Step5"), dpmsr_set$file$TMT_dir, get(str_c("TMT",i,"_design")))
     }
     #set info column for protein data
-    dpmsr_set$y$info_columns<<-3
+    dpmsr_set$y$info_columns <<- 3
   }else{
     assign(str_c("IRS_",i,"_Step5_data"), get(str_c("IRS_",i,"_Step4_data")))
   }
@@ -226,7 +279,10 @@ tmt_spqc_normalize <- function(data_in){
     temp_data <- get(str_c("IRS_",i,"_Step6_data"))
     #temp_data <- get(str_c("IRS_",i,"_Step6_data"))[(dpmsr_set$y$info_columns+1):(dpmsr_set$y$info_columns+tmt_kit)]
     spqc_data <- get(str_c('SPQC',i,'_data'))
-    temp_data[(dpmsr_set$y$info_columns+1):(dpmsr_set$y$info_columns+tmt_kit)] <- temp_data[(dpmsr_set$y$info_columns+1):(dpmsr_set$y$info_columns+tmt_kit)]/spqc_data$fact
+    info_columns <- ncol(temp_data) - tmt_kit
+
+    temp_data[(info_columns+1):(info_columns+tmt_kit)] <- 
+      temp_data[(info_columns+1):(info_columns+tmt_kit)]/spqc_data$fact
     assign(str_c("IRS_",i,"_Step7_data"), temp_data)
     Simple_Excel(temp_data, str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Step7.xlsx", collapse = " "))
     #bar_plot_TMT(temp_data, str_c("TMT", i, "_IRS_Step7"), dpmsr_set$file$TMT_dir, get(str_c("TMT",i,"_design")))
@@ -240,7 +296,7 @@ tmt_spqc_normalize <- function(data_in){
   #recombine sets for output
   final_SL_IRS <- IRS_1_Step7_data
   for(i in 2:sets_tmt){
-    final_SL_IRS <- cbind(final_SL_IRS, get(str_c("IRS_",i,"_Step7_data"))[(dpmsr_set$y$info_columns+1):(dpmsr_set$y$info_columns+tmt_kit)] )
+    final_SL_IRS <- cbind(final_SL_IRS, get(str_c("IRS_",i,"_Step7_data"))[(info_columns+1):(info_columns+tmt_kit)] )
   }
   final_SL_IRS$Peptides <- peptide_count
   
@@ -252,8 +308,8 @@ tmt_spqc_normalize <- function(data_in){
   }
   set_original$reorder <- seq(1,(tmt_kit*sets_tmt))
   set_original <- set_original[order(set_original$PD_Order),]
-  final_info_columns <- final_SL_IRS[1:dpmsr_set$y$info_columns] 
-  final_SL_IRS<-final_SL_IRS[(dpmsr_set$y$info_columns+1):ncol(final_SL_IRS)] 
+  final_info_columns <- final_SL_IRS[1:info_columns] 
+  final_SL_IRS<-final_SL_IRS[(info_columns+1):ncol(final_SL_IRS)] 
   final_SL_IRS <- final_SL_IRS[ ,set_original$reorder]
   final_SL_IRS <- cbind(final_info_columns, final_SL_IRS)
   

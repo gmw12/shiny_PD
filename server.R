@@ -26,6 +26,10 @@ if(Sys.info()["sysname"]=="Darwin" ){
   #for titan_black VM
   volumes <- c(dd='/home/dpmsr/shared', wd='.', Home = fs::path_home(), getVolumes()())
   site_user <<- "dpmsr"
+}else if (Sys.info()["nodename"] == "titanshinyu20"){
+  #for titan_black VM
+  volumes <- c(dd='/home/dpmsr/shared', wd='.', Home = fs::path_home(), getVolumes()())
+  site_user <<- "dpmsr"
 }else{
   #for public website
   volumes <- c(dd='/data', wd='.', Home = fs::path_home(), getVolumes()())
@@ -318,6 +322,27 @@ shinyServer(function(input, output, session) {
       removeModal()
     })
     
+    
+    #------------------------------------------------------------------------------------------------------   
+    #------------------------------------------------------------------------------------------------------  
+    observeEvent(input$tmt_irs_qc, { 
+      cat(file=stderr(), "stat prep...", "\n")
+      showModal(modalDialog("Stat prep...", footer = NULL)) 
+      stat_prep()
+      removeModal()
+      cat(file=stderr(), "qc_apply", "\n")
+      showModal(modalDialog("QC stats...", footer = NULL)) 
+      qc_apply()
+      removeModal()
+      cat(file=stderr(), "qc - create_plots", "\n")
+      showModal(modalDialog("QC plots...", footer = NULL)) 
+      create_qc_plots()
+      qc_render(session, input, output)
+      update_widget_post_processing(session, input, output)
+      save_final_nostats()
+      removeModal()
+      updateTabsetPanel(session, "nlp1", selected = "tp_qc")
+    })   
 
 #------------------------------------------------------------------------------------------------------   
 #------------------------------------------------------------------------------------------------------  
@@ -438,6 +463,8 @@ observeEvent(input$data_show, {
       if(is.null(input$comp_spqc)){
         shinyalert("Oops!", "Please choose and SPQC group!", type = "error")
       }
+      #update all of the dropdown stat group choices that are downstream from this point
+      update_comparisons(session, input, output)
       removeModal()
     })  
     
@@ -786,12 +813,18 @@ observeEvent(input$data_show, {
       check_qc <- TRUE
       
       #test for all.samples v qc and adding qc
-      if(input$stats_onepeptide_plot_spqc & comp_number==length(dpmsr_set$y$stats$groups$comp_name)) {
+      # if(input$stats_onepeptide_plot_spqc & comp_number==length(dpmsr_set$y$stats$groups$comp_name)) {
+      #   cat(file=stderr(), "Reset SPQC", "\n")
+      #   updateCheckboxInput(session, "stats_onepeptide_plot_spqc",  value = FALSE)
+      #   check_qc <- FALSE
+      # }
+      
+      #test for SPQC group already in comparison, if so turn off and warn
+      if(input$stats_onepeptide_plot_spqc & grepl(dpmsr_set$y$stats$comp_spqc, dpmsr_set$y$stats$groups$comp_name[comp_number]) ) {
         cat(file=stderr(), "Reset SPQC", "\n")
         updateCheckboxInput(session, "stats_onepeptide_plot_spqc",  value = FALSE)
         check_qc <- FALSE
       }
-      
       
       if (length(comp_test)!=0 & check_qc){  
         

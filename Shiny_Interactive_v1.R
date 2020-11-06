@@ -405,7 +405,9 @@ interactive_heatmap <- function(session, input, output, df, namex, groupx, comp_
 interactive_stats_volcano <- function(session, input, output, i)
 {
   df <- dpmsr_set$data$stats[[dpmsr_set$y$stats$groups$comp_name[i]]]
-  df <- subset(df, df[ , dpmsr_set$y$stats$groups$mf[i]] >= input$missing_factor )
+  if(input$stats_spqc_cv_filter){
+    df <- subset(df, df[ , dpmsr_set$y$stats$groups$mf[i]] >= input$missing_factor )
+  }
   df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[i]))
   df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[i]))
   
