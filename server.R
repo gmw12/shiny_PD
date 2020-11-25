@@ -66,8 +66,10 @@ shinyServer(function(input, output, session) {
     }else if (Sys.info()["nodename"] == "titan_shiny"){
       #for titan_black VM
       volumes <- c(dd='/home/dpmsr/shared', wd='.', Home = fs::path_home(), getVolumes()())
-    }
-    else{
+    }else if (Sys.info()["nodename"] == "titanshinyu20"){
+      #for titan_black VM
+      volumes <- c(dd='/home/dpmsr/shared', wd='.', Home = fs::path_home(), getVolumes()())
+    }else{
       #for public website
       volumes <- c(dd='/data', wd='.', Home = fs::path_home(), getVolumes()())
     }

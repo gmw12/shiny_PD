@@ -9,6 +9,7 @@ apply_impute <- function(session, input, output){
   
   ncores <- (detectCores()/2)
   if (is.na(ncores)) {ncores <- 1}
+  if (ncores<1) {ncores <- 1}
   norm_list <- dpmsr_set$y$norm_list
   dpmsr_set$data$impute <<- mclapply(norm_list, impute_parallel, mc.cores = ncores)
   #need to complete TMM norms after imputation ()

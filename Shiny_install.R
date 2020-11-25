@@ -34,6 +34,8 @@ install.packages('ggraph', dependencies = TRUE)
 install.packages('imp4p', dependencies = TRUE)
 install.packages('Peptides', dependencies = TRUE)
 
+install.packages('flexdashboard', dependencies = TRUE)
+
 install.packages('devtools')
 require(devtools)
 install_github('omarwagih/rmotifx')
