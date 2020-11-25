@@ -30,6 +30,10 @@ if(Sys.info()["sysname"]=="Darwin" ){
   #for titan_black VM
   volumes <- c(dd='/home/dpmsr/shared', wd='.', Home = fs::path_home(), getVolumes()())
   site_user <<- "dpmsr"
+}else if (Sys.info()["nodename"] == "greg-GS63VR-7RF"){
+  #for greg linux laptop
+  volumes <- c(dd='/home/dpmsr/shared', wd='.', Home = fs::path_home(), getVolumes()())
+  site_user <<- "dpmsr"
 }else{
   #for public website
   volumes <- c(dd='/data', wd='.', Home = fs::path_home(), getVolumes()())
@@ -68,6 +72,9 @@ shinyServer(function(input, output, session) {
       volumes <- c(dd='/home/dpmsr/shared', wd='.', Home = fs::path_home(), getVolumes()())
     }else if (Sys.info()["nodename"] == "titanshinyu20"){
       #for titan_black VM
+      volumes <- c(dd='/home/dpmsr/shared', wd='.', Home = fs::path_home(), getVolumes()())
+    }else if (Sys.info()["nodename"] == "greg-GS63VR-7RF"){
+      #for greg linux laptop
       volumes <- c(dd='/home/dpmsr/shared', wd='.', Home = fs::path_home(), getVolumes()())
     }else{
       #for public website
