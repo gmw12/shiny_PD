@@ -531,7 +531,7 @@ observeEvent(input$data_show, {
       if( !is.null(dpmsr_set$data$final[[input$select_final_data_stats ]] )) {
       
         if(!is.null(input$stats_plot_comp)){
-
+   
             df <- dpmsr_set$data$final[[input$select_final_data_stats ]][(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)]
             
             comp_string <- input$stats_plot_comp

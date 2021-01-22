@@ -2,7 +2,7 @@
 #--------------------------------------------------------------------------------------
 stat_prep <- function(){
   ncores <- detectCores()
-  if (is.na(ncores)) {ncores <- 1}
+  if (is.na(ncores) | ncores < 1) {ncores <- 1}
   data_list <- dpmsr_set$data$impute
   dpmsr_set$data$final <<- mclapply(data_list, stat_prep_parallel, mc.cores = ncores)
   

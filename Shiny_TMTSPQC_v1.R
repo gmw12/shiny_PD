@@ -61,7 +61,7 @@ tmt_spqc_normalize <- function(data_in){
   
   # save set of random numbers to be used for impute, if reipute numbers the same
   set.seed(123)
-  dpmsr_set$y$rand_impute <<- runif(200000, min=-1, max=1)
+  dpmsr_set$y$rand_impute <<- runif(200000, min=0, max=1)
   # reset rand_count every time it starts to impute a new normalization
   rand_count <- 1
   
@@ -117,7 +117,7 @@ tmt_spqc_normalize <- function(data_in){
       for(l in (test[[n]])){
         #data_in[[n]][l] <- mean(runif(4, bottomx_min, bottomx_max))
         # uses stored random numbers from -1 to 1
-        rf <- abs(dpmsr_set$y$rand_impute[rand_count])
+        rf <- dpmsr_set$y$rand_impute[rand_count]
         irs_df_temp[[n]][l] <- bottomx_min + (rf * (bottomx_max-bottomx_min))
         rand_count <- rand_count + 1
       }
