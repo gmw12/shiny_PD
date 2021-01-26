@@ -64,6 +64,8 @@ run_string <- function(session, input, output){
   df <- dpmsr_set$string[[input_comp]]
   df <- subset(df, pvalue < input_pval)
   
+  cat(file=stderr(), str_c("length of dataframe...", nrow(df)), "\n")
+  
   cat(file=stderr(), "run string step 3", "\n")
   
   if (input$string_direction == "Up"){
@@ -84,11 +86,15 @@ run_string <- function(session, input, output){
     hits <- df$STRING_id
   }
   
+  cat(file=stderr(), str_c("number of hits searched...", length(hits)), "\n")
+  
   cat(file=stderr(), "run string step 5", "\n")
   #dpmsr_set$string$string_db$plot_network(hits)
   
   cat(file=stderr(), "run string step 6", "\n")
   string_file_name <- str_c(dpmsr_set$file$string, input_comp, ".png")
+  cat(file=stderr(), str_c("string file name... ", string_file_name ), "\n")
+  
   
   cat(file=stderr(), "run string step 7", "\n")
   #dpmsr_set$string$string_db$get_png(hits, required_score=NULL, network_flavor="evidence", file=string_file_name, payload_id=NULL)

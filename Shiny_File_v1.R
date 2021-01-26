@@ -123,6 +123,7 @@ save_data <- function(data_file){
 #----------------------------------------------------------------------------------------
 create_dir <- function(name){
   if(is_dir(name)) {
+    #added file delete, dir delete not working on customer shiny server
     do.call(file.remove, list(list.files(name, full.names = TRUE)))
     dir_delete(name)
     dir_create(name)
