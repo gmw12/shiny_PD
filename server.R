@@ -1470,22 +1470,28 @@ observeEvent(input$data_show, {
         showModal(modalDialog("Working...", footer = NULL))  
         load(file=input$customer_dpmsr_set$datapath, envir = .GlobalEnv)
         
-        #reload shiny 
+        #reload shiny
+        cat(file=stderr(), "update widgets", "\n")
         update_widget_all(session, input, output)
+        cat(file=stderr(), "update dpmsr_set from widgets", "\n")
         update_dpmsr_set_from_widgets(session, input)
         
         
         #reset file locations
+        cat(file=stderr(), "update file locations 1", "\n")
         dpmsr_set$file$data_dir <<- str_c("/data/ShinyData/", dpmsr_set$x$file_prefix)
         create_dir(dpmsr_set$file$data_dir)
+        cat(file=stderr(), "update file locations 2", "\n")
         dpmsr_set$file$output_dir <<- str_replace_all(dpmsr_set$file$data_dir, "/", "//")
         dpmsr_set$file$output_dir <<- str_c(dpmsr_set$file$output_dir, "//")
+        cat(file=stderr(), "update file locations 3", "\n")
         create_dir(dpmsr_set$file$output_dir)
+        cat(file=stderr(), "update file locations 4", "\n")
         dpmsr_set$file$string <<- str_c(dpmsr_set$file$output_dir, "String//")
         create_dir(dpmsr_set$file$string)
-        
+        cat(file=stderr(), "update file locations 5", "\n")
         create_dir(str_c(dpmsr_set$file$output_dir,dpmsr_set$data$stats$final_comp))
-        
+        cat(file=stderr(), "update file locations 6", "\n")
 
         
         

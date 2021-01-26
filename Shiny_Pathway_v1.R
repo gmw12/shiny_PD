@@ -22,6 +22,11 @@ set_pathway <- function(input, output, session){
   
   #listOrganisms()
   
+  if (!dir_exists(dpmsr_set$file$string)) {
+    dpmsr_set$file$string <<- create_dir(str_c(dpmsr_set$file$data_dir,"/String"))
+  }
+  
+  
   gmt_get <- function(tax_choice){
     if (tax_choice == "Human"){
       wp.gmt <- rWikiPathways::downloadPathwayArchive(organism="Homo sapiens", format = "gmt", destpath = dpmsr_set$file$string)
@@ -53,10 +58,15 @@ set_pathway <- function(input, output, session){
   #retired "ont"?
   #dpmsr_set$pathway$wp2gene <<- dpmsr_set$pathway$wp2gene %>% tidyr::separate(ont, c("name","version","wpid","org"), "%")
   
+  
+  
+  
   cat(file=stderr(), "Set Pathway...3" , "\n")
   #---ViseaGo/topGo Setup----------------------------
   dpmsr_set$pathway$Uniprot <<- ViSEAGO::Uniprot2GO()
 
+  cat(file=stderr(), "Set Pathway...4" , "\n")
+  
     if (tax_choice == "Human"){
       dpmsr_set$pathway$myGENE2GO <<- ViSEAGO::annotate(
         "human", dpmsr_set$pathway$Uniprot)
@@ -70,7 +80,7 @@ set_pathway <- function(input, output, session){
   #myGENE2GO<-ViSEAGO::annotate("human", Uniprot)
   
   
-  cat(file=stderr(), "Set Pathway...4" , "\n")
+  cat(file=stderr(), "Set Pathway...5" , "\n")
   
   
   
