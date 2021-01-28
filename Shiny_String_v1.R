@@ -127,7 +127,7 @@ run_string <- function(session, input, output){
 
 
   
-  # depreciated
+  # depreciated 
   # cat(file=stderr(), "run string step 8", "\n")
   # linkthis <- dpmsr_set$string$string_db$get_link(hits, required_score=NULL, network_flavor="evidence", payload_id=NULL)
   
