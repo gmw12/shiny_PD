@@ -189,7 +189,7 @@ interactive_pca2d <- function(session, input, output, df, namex, color_list, gro
   x_gr <- factor(unlist(test_this))
   summary(x_gr)
   df_out <- as.data.frame(x_pca$x)
-  df_out_test <<- df_out
+  #df_out_test <<- df_out
   df_xgr <- data.frame(x_gr)
   #df_xgr_test <<- df_xgr
   #df_xgr$x_gr <- as.character(df_xgr$x_gr)
@@ -199,7 +199,7 @@ interactive_pca2d <- function(session, input, output, df, namex, color_list, gro
   hover_data$`get(input$stats_pca2d_x)` <- as.numeric(hover_data$`get(input$stats_pca2d_x)`)
   hover_data$`get(input$stats_pca2d_y)` <- as.numeric(hover_data$`get(input$stats_pca2d_y)`)
   
-  hover_data_test <<- hover_data
+  #hover_data_test <<- hover_data
   
   create_stats_pca2d <- reactive({
     ggplot(df_out, aes(x=get(input$stats_pca2d_x), y=get(input$stats_pca2d_y), color=x_gr )) +
@@ -371,7 +371,8 @@ interactive_heatmap <- function(session, input, output, df, namex, groupx, comp_
     heatmap.2(df, Rowv=as.dendrogram(hr), Colv=as.dendrogram(hc), col=mycol, labCol=groupx, 
               scale="row", density.info="none", trace="none", RowSideColors=mycolhc, main = input$stats_heatmap_title,
               margins = c(10,10))
-    heatmap_filename <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", "erasemyheatmap.png")
+    #heatmap_filename <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", "erasemyheatmap.png")
+    heatmap_filename <- str_c("erasemyheatmap.png")
     png(filename=heatmap_filename, units="px", width = 1776, height = 1776)  
     heatmap.2(df, Rowv=as.dendrogram(hr), Colv=as.dendrogram(hc), col=mycol, labCol=groupx, 
               scale="row", density.info="none", trace="none", RowSideColors=mycolhc, main = input$stats_heatmap_title,
@@ -391,7 +392,8 @@ interactive_heatmap <- function(session, input, output, df, namex, groupx, comp_
       str_c("stats_heatmap_", comp_name, ".png", collapse = " ")
     },
     content = function(file){
-      heatmap_filename <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", "erasemyheatmap.png")
+      #heatmap_filename <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", "erasemyheatmap.png")
+      heatmap_filename <- str_c("erasemyheatmap.png")
       file.copy(heatmap_filename, file)
     }
   )

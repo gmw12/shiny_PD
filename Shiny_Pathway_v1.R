@@ -2,6 +2,7 @@
 set_pathway <- function(input, output, session){
   cat(file=stderr(), "Set Pathway...1" , "\n")
   tax_choice <- input$select_organism
+  cat(file=stderr(), str_c("Pathway tax choice...", tax_choice), "\n")
   
   #---Wiki Setup----------------------------
   db_get <- function(tax_choice)
@@ -79,8 +80,8 @@ set_pathway <- function(input, output, session){
 
   #myGENE2GO<-ViSEAGO::annotate("human", Uniprot)
   
-  
-  cat(file=stderr(), "Set Pathway...5" , "\n")
+  cat(file=stderr(), str_c("Uniprot download has ", nrow(dpmsr_set$pathway$Uniprot), " rows"), "\n")
+  cat(file=stderr(), "Set Pathway...complete" , "\n")
   
   
   

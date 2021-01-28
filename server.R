@@ -1278,34 +1278,40 @@ observeEvent(input$data_show, {
     #-------------------------------------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------------------------------------
     observeEvent(input$go_string, {
-      cat(file=stderr(), "go string triggered", "\n")
-      showModal(modalDialog("String Analysis...", footer = NULL))  
       
-      string_list <- run_string(session, input, output)
-      
-      cat(file=stderr(), "string list complete, create plot", "\n")
-      
-      output$string_plot <- renderImage({
-        list(src=string_list$string_file_name,  
-             contentType = 'image/png', width=1200, height=1200, alt="this is alt text")
-      }, deleteFile = FALSE)
-      
-
-      fullName <- string_list$string_file_name
-      output$download_string_plot <- downloadHandler(
-        filename = function(){
-          str_c(input$select_data_comp_string, ".png")
-        },
-        content = function(file){
-          file.copy(fullName, file)
-        }
-      )
-      
-      # depreciated
-      # cat(file=stderr(), "create string link", "\n")
-      # output$string_link <- renderText({string_list$linkthis})
-
-      removeModal()
+      if(!is.null("dpmsr_set$string")) {
+          cat(file=stderr(), "go string triggered", "\n")
+          showModal(modalDialog("String Analysis...", footer = NULL))  
+          
+          string_list <- run_string(session, input, output)
+          
+          cat(file=stderr(), "string list complete, create plot", "\n")
+          
+          output$string_plot <- renderImage({
+            list(src=string_list$string_file_name,  
+                 contentType = 'image/png', width=1200, height=1200, alt="this is alt text")
+          }, deleteFile = FALSE)
+          
+    
+          fullName <- string_list$string_file_name
+          output$download_string_plot <- downloadHandler(
+            filename = function(){
+              str_c(input$select_data_comp_string, ".png")
+            },
+            content = function(file){
+              file.copy(fullName, file)
+            }
+          )
+          
+          # depreciated
+          # cat(file=stderr(), "create string link", "\n")
+          # output$string_link <- renderText({string_list$linkthis})
+    
+          removeModal()
+          
+      }else{
+        shinyalert("Oops!", "Need to run String Setup first...", type = "error")
+      }    
     }
     ) 
     
@@ -1316,40 +1322,46 @@ observeEvent(input$data_show, {
     #-------------------------------------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------------------------------------
     observeEvent(input$go_string_enrich, {
-      showModal(modalDialog("Working...", footer = NULL))  
       
-      string_result <- run_string_enrich(input, output)
+      if(!is.null("dpmsr_set$string")) {
+          showModal(modalDialog("Working...", footer = NULL))  
+          string_result <- run_string_enrich(input, output)
+          
+          string_result <- dplyr::rename(string_result, genes = number_of_genes)
+          string_result <- dplyr::rename(string_result, genes_background = number_of_genes_in_background)
+          
+          output$string_table<- renderRHandsontable({
+            rhandsontable(string_result, rowHeaders = NULL, readOnly = TRUE) %>%
+              hot_cols(colWidths = 80, halign = "htCenter" ) %>%
+              hot_col(col = "term", halign = "htCenter", colWidths = 100) %>%
+              hot_col(col = "genes_background", halign = "htCenter", colWidths = 100) %>%
+              hot_col(col = "preferredNames",  halign = "htLeft", colWidths = 200) %>%
+              hot_col(col = "inputGenes", halign = "htCenter", colWidths = 200) %>%
+              hot_col(col = "p_value", halign = "htCenter", colWidths = 180, format = '0.0000000000000') %>% 
+              hot_col(col = "fdr", halign = "htCenter", colWidths = 180, format = '0.0000000000000') %>% 
+              hot_col(col = "description",  halign = "htLeft", colWidths = 400)
+          })
+          removeModal()
+          
+    
+          
+          fullName <- str_c(dpmsr_set$file$string, input$select_data_comp_string_enrich, "_", input$select_string_enrich, ".xlsx", collapse = " ")
+          Simple_Excel(string_result, fullName)
+          
+          output$download_string_enrich_table <- downloadHandler(
+            filename = function(){
+              str_c(input$select_data_comp_string_enrich, "_", input$select_string_enrich, ".xlsx", collapse = " ")
+            },
+            content = function(file){
+              file.copy(fullName, file)
+            }
+          )
       
-      string_result <- dplyr::rename(string_result, genes = number_of_genes)
-      string_result <- dplyr::rename(string_result, genes_background = number_of_genes_in_background)
       
-      output$string_table<- renderRHandsontable({
-        rhandsontable(string_result, rowHeaders = NULL, readOnly = TRUE) %>%
-          hot_cols(colWidths = 80, halign = "htCenter" ) %>%
-          hot_col(col = "term", halign = "htCenter", colWidths = 100) %>%
-          hot_col(col = "genes_background", halign = "htCenter", colWidths = 100) %>%
-          hot_col(col = "preferredNames",  halign = "htLeft", colWidths = 200) %>%
-          hot_col(col = "inputGenes", halign = "htCenter", colWidths = 200) %>%
-          hot_col(col = "p_value", halign = "htCenter", colWidths = 180, format = '0.0000000000000') %>% 
-          hot_col(col = "fdr", halign = "htCenter", colWidths = 180, format = '0.0000000000000') %>% 
-          hot_col(col = "description",  halign = "htLeft", colWidths = 400)
-      })
-      removeModal()
-      
-
-      
-      fullName <- str_c(dpmsr_set$file$string, input$select_data_comp_string_enrich, "_", input$select_string_enrich, ".xlsx", collapse = " ")
-      Simple_Excel(string_result, fullName)
-      
-      output$download_string_enrich_table <- downloadHandler(
-        filename = function(){
-          str_c(input$select_data_comp_string_enrich, "_", input$select_string_enrich, ".xlsx", collapse = " ")
-        },
-        content = function(file){
-          file.copy(fullName, file)
-        }
-      )
-      
+      }else{
+        
+        shinyalert("Oops!", "Need to run String Setup first...", type = "error")
+      }
       
     }
     )
@@ -1480,6 +1492,7 @@ observeEvent(input$data_show, {
         #reset file locations
         cat(file=stderr(), "update file locations 1", "\n")
         dpmsr_set$file$data_dir <<- str_c("/data/ShinyData/", dpmsr_set$x$file_prefix)
+        unlink(dpmsr_set$file$data_dir, recursive = TRUE)  
         create_dir(dpmsr_set$file$data_dir)
         cat(file=stderr(), "update file locations 2", "\n")
         dpmsr_set$file$output_dir <<- str_replace_all(dpmsr_set$file$data_dir, "/", "//")

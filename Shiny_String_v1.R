@@ -2,7 +2,7 @@ setup_string <- function(session, input, output){
   
   dpmsr_set$string$string_db <<- NULL
   tax_choice <- input$select_organism
-  
+  cat(file=stderr(), str_c("organism...", tax_choice), "\n")
   #string_species <- get_STRING_species(version=10)
   
   if (version$major < 4){
@@ -11,6 +11,7 @@ setup_string <- function(session, input, output){
       string_version <- "11.0"
     }
   
+  cat(file=stderr(), str_c("string version...", string_version), "\n")
   
   if (site_user == "dpmsr"){
     string_input_dir <- ""
@@ -18,7 +19,7 @@ setup_string <- function(session, input, output){
     string_input_dir <- "/data/ShinyData"
   }
   
-  
+  cat(file=stderr(), str_c("string input dir...", string_input_dir), "\n")
   
   if(input$select_organism=="Human"){
           dpmsr_set$string$string_db <<- STRINGdb$new(version=string_version, species=9606,
@@ -30,6 +31,8 @@ setup_string <- function(session, input, output){
                                                  score_threshold=0, input_directory=string_input_dir)
   } 
   
+  cat(file=stderr(), str_c("stringdb has object created"), "\n")
+  
   for (i in 1:dpmsr_set$x$comp_number){
     comp_name <- dpmsr_set$y$stats$groups$comp_name[i]
     data_in <- dpmsr_set$data$stats[[comp_name]]
@@ -40,11 +43,13 @@ setup_string <- function(session, input, output){
     df$logFC <- as.numeric(df$logFC)
     df$pvalue <- as.numeric(df$pvalue)
     df$logFC <- log(df$logFC, 2)
-    assign(str_c("dpmsr_set$string$comp", i), df, envir=.GlobalEnv)
+    #assign(str_c("dpmsr_set$string$comp", i), df, envir=.GlobalEnv)
     dpmsr_set$string[[comp_name]]  <<- dpmsr_set$string$string_db$map(df, "Uniprot", removeUnmappedRows = TRUE )
+    cat(file=stderr(), str_c("data for ", comp_name, " has ", nrow(df), " lines"), "\n")
   }
   
   backgroundV <- dpmsr_set$string[[dpmsr_set$y$stats$groups$comp_name[1] ]]$STRING_id 
+  cat(file=stderr(), str_c("background data has ", nrow(df), " lines"), "\n")
   dpmsr_set$string$string_db$set_background(backgroundV)
   cat(file=stderr(), "function setup_string complete...", "\n")
 }  
@@ -77,11 +82,12 @@ run_string <- function(session, input, output){
   }
   
   df <- df[order(-df$logFC),]
-
+  
+  cat(file=stderr(), str_c("length of dataframe...", nrow(df)), "\n")
   cat(file=stderr(), "run string step 4", "\n")
   
-  if (nrow(df) > input$protein_number){
-    hits <- df$STRING_id[1:input$protein_number]
+  if (nrow(df) > as.numeric(input$protein_number)){
+    hits <- df$STRING_id[1:as.numeric(input$protein_number)]
   }else{
     hits <- df$STRING_id
   }
@@ -101,11 +107,25 @@ run_string <- function(session, input, output){
   
   #save string png
   cat(file=stderr(), "run string step 8", "\n")
-  png(filename=string_file_name, units="px", width = 1200, height = 1200)
-  dpmsr_set$string$string_db$plot_network(hits, add_link = TRUE, add_summary = TRUE)
-  dev.off()
   
-  
+  # string_plot <- try(dpmsr_set$string$string_db$plot_network(hits, add_link = TRUE, add_summary = TRUE), silent = TRUE)
+  # cat(file=stderr(), "run string step 9 - plot object created", "\n")
+  # 
+  # if ( string_plot != "try-error"){
+  #   png(filename=string_file_name, units="px", width = 1200, height = 1200)
+  #   string_plot
+  #   dev.off()
+  #   cat(file=stderr(), "run string step 20 - saved plot", "\n")
+  # }else{
+  #   shinyalert("Oops!", "StringDB server failed to return data...", type = "error")
+  # }
+
+    png(filename=string_file_name, units="px", width = 1200, height = 1200)
+    dpmsr_set$string$string_db$plot_network(hits, add_link = TRUE, add_summary = TRUE)
+    dev.off()
+    cat(file=stderr(), "run string step 9 - saved plot", "\n")
+
+
   
   # depreciated
   # cat(file=stderr(), "run string step 8", "\n")
