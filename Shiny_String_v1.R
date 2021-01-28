@@ -125,7 +125,6 @@ run_string <- function(session, input, output){
     dev.off()
     cat(file=stderr(), "run string step 9 - saved plot", "\n")
 
-
   
   # depreciated 
   # cat(file=stderr(), "run string step 8", "\n")
