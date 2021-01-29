@@ -31,7 +31,7 @@ setup_string <- function(session, input, output){
                                                  score_threshold=0, input_directory=string_input_dir)
   } 
   
-  cat(file=stderr(), str_c("stringdb has object created"), "\n")
+  cat(file=stderr(), str_c("stringdb object created"), "\n")
   
   for (i in 1:dpmsr_set$x$comp_number){
     comp_name <- dpmsr_set$y$stats$groups$comp_name[i]

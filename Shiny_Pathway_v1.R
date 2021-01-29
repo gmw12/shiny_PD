@@ -80,7 +80,7 @@ set_pathway <- function(input, output, session){
 
   #myGENE2GO<-ViSEAGO::annotate("human", Uniprot)
   
-  cat(file=stderr(), str_c("Uniprot download has ", nrow(dpmsr_set$pathway$Uniprot), " rows"), "\n")
+  cat(file=stderr(), str_c("Uniprot/ViSEAGO download has ", nrow(dpmsr_set$pathway$myGENE2GO@MF), " entries"), "\n")
   cat(file=stderr(), "Set Pathway...complete" , "\n")
   
   

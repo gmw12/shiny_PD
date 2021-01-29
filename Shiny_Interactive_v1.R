@@ -354,6 +354,12 @@ interactive_cluster <- function(session, input, output, df, namex, comp_name)
 
 interactive_heatmap <- function(session, input, output, df, namex, groupx, comp_name)
 {
+  if (site_user == "dpmsr"){
+    heatmap_filename <- "erasemyheatmap.png"
+  }else{
+    heatmap_filename <- "/data/ShinyData/erasemyheatmap.png"
+  }
+
   colnames(df) <- namex
   df <- log2(df)
   df <- data.matrix(df)
@@ -372,7 +378,6 @@ interactive_heatmap <- function(session, input, output, df, namex, groupx, comp_
               scale="row", density.info="none", trace="none", RowSideColors=mycolhc, main = input$stats_heatmap_title,
               margins = c(10,10))
     #heatmap_filename <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", "erasemyheatmap.png")
-    heatmap_filename <- str_c("erasemyheatmap.png")
     png(filename=heatmap_filename, units="px", width = 1776, height = 1776)  
     heatmap.2(df, Rowv=as.dendrogram(hr), Colv=as.dendrogram(hc), col=mycol, labCol=groupx, 
               scale="row", density.info="none", trace="none", RowSideColors=mycolhc, main = input$stats_heatmap_title,
@@ -393,12 +398,11 @@ interactive_heatmap <- function(session, input, output, df, namex, groupx, comp_
     },
     content = function(file){
       #heatmap_filename <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", "erasemyheatmap.png")
-      heatmap_filename <- str_c("erasemyheatmap.png")
       file.copy(heatmap_filename, file)
     }
   )
   
-  
+  file_delete(heatmap_filename)
 }
 
 #------------------------------------------------------------------------------------------------------------------------
