@@ -1,6 +1,6 @@
 
 install.packages('tidyr', dependencies = TRUE)
-
+install.packages('httr', dependencies = TRUE)
 
 install.packages('tidyverse', dependencies = TRUE)
 install.packages('dplyr', dependencies = TRUE)

@@ -1279,7 +1279,7 @@ observeEvent(input$data_show, {
     #-------------------------------------------------------------------------------------------------------------
     observeEvent(input$go_string, {
       
-      if(!is.null("dpmsr_set$string")) {
+      if(length(dpmsr_set$string) > dpmsr_set$x$comp_number) {
           cat(file=stderr(), "go string triggered", "\n")
           showModal(modalDialog("String Analysis...", footer = NULL))  
           
@@ -1304,9 +1304,14 @@ observeEvent(input$data_show, {
           )
           
           # depreciated
-          # cat(file=stderr(), "create string link", "\n")
-          # output$string_link <- renderText({string_list$linkthis})
-    
+           cat(file=stderr(), "create string link", "\n")
+           #output$string_link <- renderText({dpmsr_set$string$link_network})
+           #output$string_link <- renderText({string_list$linkthis})
+           url <- a(dpmsr_set$string$link_network, href= dpmsr_set$string$link_network, target="_blank")
+           output$string_link <- renderUI({
+             tagList("URL link: ", url)
+             })
+           
           removeModal()
           
       }else{
@@ -1490,8 +1495,10 @@ observeEvent(input$data_show, {
         
         
         #reset file locations
+        tmp_dir <- format(Sys.time(), "%Y%m%d%H%M%S")
         cat(file=stderr(), "update file locations 1", "\n")
-        dpmsr_set$file$data_dir <<- str_c("/data/ShinyData/", dpmsr_set$x$file_prefix)
+        #dpmsr_set$file$data_dir <<- dirname(dpmsr_file$datapath)
+        dpmsr_set$file$data_dir <<- str_c("/data/ShinyData/", tmp_dir, "/", dpmsr_set$x$file_prefix)
         unlink(dpmsr_set$file$data_dir, recursive = TRUE)  
         create_dir(dpmsr_set$file$data_dir)
         cat(file=stderr(), "update file locations 2", "\n")
@@ -1519,7 +1526,15 @@ observeEvent(input$data_show, {
     })  
     
     
-    
+    # This code will be run after the client has disconnected
+    session$onSessionEnded(function() {
+      if (site_user != "dpmsr"){
+        name <- dpmsr_set$file$data_dir
+        do.call(file.remove, list(list.files(name, full.names = TRUE)))
+        dir_delete(name)
+        rm(list = ls(envir = .GlobalEnv), pos = .GlobalEnv, inherits = FALSE)
+      }
+    })
     
     
     

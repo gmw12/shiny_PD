@@ -83,7 +83,43 @@ set_pathway <- function(input, output, session){
   cat(file=stderr(), str_c("Uniprot/ViSEAGO download has ", nrow(dpmsr_set$pathway$myGENE2GO@MF), " entries"), "\n")
   cat(file=stderr(), "Set Pathway...complete" , "\n")
   
+  ###------------------------------------------------------
   
+  cat(file=stderr(), "Setup String..." , "\n")
+  
+  
+  dpmsr_set$string$string_db <<- NULL
+  tax_choice <- input$select_organism
+  cat(file=stderr(), str_c("organism...", tax_choice), "\n")
+  #string_species <- get_STRING_species(version=10)
+  
+  if (version$major < 4){
+    string_version <- "10"
+  }else{
+    string_version <- "11.0"
+  }
+  
+  cat(file=stderr(), str_c("string version...", string_version), "\n")
+  
+  if (site_user == "dpmsr"){
+    string_input_dir <- ""
+  }else{
+    string_input_dir <- "/data/ShinyData"
+  }
+  
+  cat(file=stderr(), str_c("string input dir...", string_input_dir), "\n")
+  
+  if(input$select_organism=="Human"){
+    dpmsr_set$string$string_db <<- STRINGdb$new(version=string_version, species=9606,
+                                                score_threshold=0, input_directory=string_input_dir)
+  }
+  
+  if(input$select_organism=="Mouse"){
+    dpmsr_set$string$string_db <<- STRINGdb$new( version=string_version, species=10090,
+                                                 score_threshold=0, input_directory=string_input_dir)
+  } 
+  
+  cat(file=stderr(), str_c("stringdb object created"), "\n")
   
   
   

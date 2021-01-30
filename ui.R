@@ -1500,7 +1500,7 @@ shinyUI(
                  tags$h1("Select organism for pathway analysis/enrichment..."),
                  hr(),
                  selectInput("select_organism", label = "organism", 
-                             choices = list("Human", "Mouse", "Rat", "Danio", "Arabidopsis", "Ecoli"), 
+                             choices = list("Human", "Mouse"), #, "Rat", "Danio", "Arabidopsis", "Ecoli"), 
                              selected = "Human"),
                  br(),
                  actionButton("set_pathway", label = "Set Pathway", width = 300, 
@@ -1679,8 +1679,8 @@ shinyUI(
                    ),
                    column(width=1, offset =0,
                           selectInput("protein_number", label = "Max #Proteins", 
-                                      choices = list(10, 50, 100, 150, 200, 250, 300, 350, 400), 
-                                      selected = 200)
+                                      choices = list(10, 25, 50, 75, 100), #150, 200, 250, 300, 350, 400), 
+                                      selected = 100)
                    ),                   
                    column(width=2, offset =0,
                           actionButton("go_string", label = "String Analysis", width = 150,
@@ -1689,13 +1689,15 @@ shinyUI(
                  ),
                  fluidRow(
                    hr(),
-                   # string link depreciated - save incase comes back
-                   # tags$head(tags$style("#string_link{color: blue;
-                   #               font-size: 12px;
-                   #                }"
-                   # )
-                   # ),
-                   # textOutput("string_link"),
+                    #string link depreciated - save incase comes back
+                    tags$head(tags$style("#string_link{color: blue;
+                                  font-size: 12px;
+                                   }"
+                    )
+                    ),
+                   #textOutput("string_link"),
+                   uiOutput("string_link"),
+                   br(),
                    downloadButton('download_string_plot'),
                    plotOutput("string_plot")  
                    #rHandsontableOutput("string_table")
@@ -1712,11 +1714,11 @@ shinyUI(
                    column(width=3, offset =0,  
                           radioButtons("string_enrich_direction", label="Fold Change Direction", choices = list("Up", "Down", "UpDown"),  selected = "Up", width = 200)
                    ),
-                   column(width=1, offset =0,
-                          selectInput("select_string_enrich", label = "Enrichment", 
-                                      choices = list("Process", "Component", "Function", "KEGG", "Pfam", "InterPro"), 
-                                      selected = "Process")
-                   ),
+                   # column(width=1, offset =0,
+                   #        selectInput("select_string_enrich", label = "Enrichment", 
+                   #                    choices = list("Process", "Component", "Function", "KEGG", "Pfam", "InterPro"), 
+                   #                    selected = "Process")
+                   # ),
                    column(width=2, offset =0,
                           actionButton("go_string_enrich", label = "String Enrichment", width = 150,
                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
