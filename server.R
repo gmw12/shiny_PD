@@ -1518,10 +1518,7 @@ observeEvent(input$data_show, {
         create_dir(str_c(dpmsr_set$file$output_dir,dpmsr_set$data$stats$final_comp))
         cat(file=stderr(), str_c("output_dir/final =", str_c(dpmsr_set$file$output_dir,dpmsr_set$data$stats$final_comp)), "\n")
         
-        cat(file=stderr(), "update file locations 6", "\n")
-
-        
-        
+        cat(file=stderr(), "update file locations... end", "\n")
         
         removeModal()
         updateTabsetPanel(session, "nlp1", selected = "tp_stats")

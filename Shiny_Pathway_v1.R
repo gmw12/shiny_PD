@@ -101,22 +101,14 @@ set_pathway <- function(input, output, session){
   
   cat(file=stderr(), str_c("string version...", string_version), "\n")
   
-  if (site_user == "dpmsr"){
-    string_input_dir <- ""
-  }else{
-    string_input_dir <- "/data/ShinyData"
-  }
-  
-  cat(file=stderr(), str_c("string input dir...", string_input_dir), "\n")
-  
   if(input$select_organism=="Human"){
     dpmsr_set$string$string_db <<- STRINGdb$new(version=string_version, species=9606,
-                                                score_threshold=0, input_directory=string_input_dir)
+                                                score_threshold=0, input_directory=dpmsr_set$file$string)
   }
   
   if(input$select_organism=="Mouse"){
     dpmsr_set$string$string_db <<- STRINGdb$new( version=string_version, species=10090,
-                                                 score_threshold=0, input_directory=string_input_dir)
+                                                 score_threshold=0, input_directory=dpmsr_set$file$string)
   } 
   
   cat(file=stderr(), str_c("stringdb object created"), "\n")
