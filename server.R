@@ -1500,7 +1500,7 @@ observeEvent(input$data_show, {
         #dpmsr_set$file$data_dir <<- dirname(dpmsr_file$datapath)
         
         dpmsr_set$file$tmp_dir <<- str_c("/data/ShinyData/", tmp_dir)
-        dpmsr_set$file$data_dir <<- str_c(dpmsr_set$file$data_dir, "/", dpmsr_set$x$file_prefix)
+        dpmsr_set$file$data_dir <<- str_c(dpmsr_set$file$tmp_dir, "/", dpmsr_set$x$file_prefix)
         create_dir(dpmsr_set$file$data_dir)
         
         cat(file=stderr(), str_c("data_dir =", dpmsr_set$file$data_dir), "\n")
