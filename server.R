@@ -1498,19 +1498,26 @@ observeEvent(input$data_show, {
         tmp_dir <- format(Sys.time(), "%Y%m%d%H%M%S")
         cat(file=stderr(), "update file locations 1", "\n")
         #dpmsr_set$file$data_dir <<- dirname(dpmsr_file$datapath)
+        
         dpmsr_set$file$data_dir <<- str_c("/data/ShinyData/", tmp_dir, "/", dpmsr_set$x$file_prefix)
         unlink(dpmsr_set$file$data_dir, recursive = TRUE)  
         create_dir(dpmsr_set$file$data_dir)
-        cat(file=stderr(), "update file locations 2", "\n")
+        
+        cat(file=stderr(), str_c("data_dir =", dpmsr_set$file$data_dir), "\n")
+        
         dpmsr_set$file$output_dir <<- str_replace_all(dpmsr_set$file$data_dir, "/", "//")
         dpmsr_set$file$output_dir <<- str_c(dpmsr_set$file$output_dir, "//")
-        cat(file=stderr(), "update file locations 3", "\n")
         create_dir(dpmsr_set$file$output_dir)
-        cat(file=stderr(), "update file locations 4", "\n")
+        cat(file=stderr(), str_c("output_dir =", dpmsr_set$file$output_dir), "\n")
+        
+
         dpmsr_set$file$string <<- str_c(dpmsr_set$file$output_dir, "String//")
         create_dir(dpmsr_set$file$string)
-        cat(file=stderr(), "update file locations 5", "\n")
+        cat(file=stderr(), str_c("string =", dpmsr_set$file$string), "\n")
+        
         create_dir(str_c(dpmsr_set$file$output_dir,dpmsr_set$data$stats$final_comp))
+        cat(file=stderr(), str_c("output_dir/final =", str_c(dpmsr_set$file$output_dir,dpmsr_set$data$stats$final_comp)), "\n")
+        
         cat(file=stderr(), "update file locations 6", "\n")
 
         

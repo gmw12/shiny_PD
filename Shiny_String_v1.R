@@ -25,6 +25,9 @@ setup_string <- function(session, input, output){
 #-------------------------------------------------------------------
   
 run_string <- function(session, input, output){
+  require(httr)
+  require(png)
+  
   cat(file=stderr(), "run string step 1", "\n")
   input_fc_up <- log(input$foldchange_cutoff, 2)
   input_fc_down <- log(1/input$foldchange_cutoff, 2)
@@ -75,7 +78,7 @@ run_string <- function(session, input, output){
   
   
   cat(file=stderr(), "run string step 7", "\n")
-  require(httr)
+
   string_api <- str_c("https://string-db.org/api/highres_image/network?identifiers=",
                         hit_list,
                         "&species=", dpmsr_set$string$string_db$species, 
