@@ -1499,7 +1499,8 @@ observeEvent(input$data_show, {
         cat(file=stderr(), "update file locations 1", "\n")
         #dpmsr_set$file$data_dir <<- dirname(dpmsr_file$datapath)
         
-        dpmsr_set$file$data_dir <<- str_c("/data/ShinyData/", tmp_dir, "/", dpmsr_set$x$file_prefix)
+        dpmsr_set$file$tmp_dir <<- str_c("/data/ShinyData/", tmp_dir)
+        dpmsr_set$file$data_dir <<- str_c(dpmsr_set$file$data_dir, "/", dpmsr_set$x$file_prefix)
         create_dir(dpmsr_set$file$data_dir)
         
         cat(file=stderr(), str_c("data_dir =", dpmsr_set$file$data_dir), "\n")
@@ -1532,11 +1533,17 @@ observeEvent(input$data_show, {
     # This code will be run after the client has disconnected
     session$onSessionEnded(function() {
       if (site_user != "dpmsr"){
-        cat(file=stderr(), "Running session end", "\n")
-        # name <- dpmsr_set$file$data_dir
-        # do.call(file.remove, list(list.files(name, full.names = TRUE)))
-        # dir_delete(name)
-        # rm(list = ls(envir = .GlobalEnv), pos = .GlobalEnv, inherits = FALSE)
+        cat(file=stderr(), "Running session end...", "\n")
+        name <- dpmsr_set$file$tmp_dir
+        cat(file=stderr(), str_c("Temp dir ", name,  " exists? ", dir.exists(name)), "\n")
+        #do.call(file.remove, list(list.files(name, full.names = TRUE)))
+        #dir_delete(name)
+        system(str_c("rm -R ", name))
+        cat(file=stderr(), str_c("Deleting ", name,  " still exists? ", dir.exists(name)), "\n")
+        
+        cat(file=stderr(), str_c("DPMSR exists? ", !is.null(dpmsr_set)), "\n")
+        rm(list = ls(envir = .GlobalEnv), pos = .GlobalEnv, inherits = FALSE)
+        cat(file=stderr(), str_c("Deleting DPMSR, confirm erase? ", is.null(dpmsr_set)), "\n")
       }
     })
     
