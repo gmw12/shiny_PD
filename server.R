@@ -1541,9 +1541,9 @@ observeEvent(input$data_show, {
         system(str_c("rm -R ", name))
         cat(file=stderr(), str_c("Deleting ", name,  " still exists? ", dir.exists(name)), "\n")
         
-        cat(file=stderr(), str_c("DPMSR exists? ", !is.null(dpmsr_set)), "\n")
+        cat(file=stderr(), str_c("DPMSR exists? ", exists('dpmsr_set')), "\n")
         rm(list = ls(envir = .GlobalEnv), pos = .GlobalEnv, inherits = FALSE)
-        cat(file=stderr(), str_c("Deleting DPMSR, confirm erase? ", is.null(dpmsr_set)), "\n")
+        cat(file=stderr(), str_c("Deleting DPMSR, confirm erase? ", exists('dpmsr_set')), "\n")
       }
     })
     
