@@ -1500,7 +1500,6 @@ observeEvent(input$data_show, {
         #dpmsr_set$file$data_dir <<- dirname(dpmsr_file$datapath)
         
         dpmsr_set$file$data_dir <<- str_c("/data/ShinyData/", tmp_dir, "/", dpmsr_set$x$file_prefix)
-        unlink(dpmsr_set$file$data_dir, recursive = TRUE)  
         create_dir(dpmsr_set$file$data_dir)
         
         cat(file=stderr(), str_c("data_dir =", dpmsr_set$file$data_dir), "\n")
@@ -1533,10 +1532,11 @@ observeEvent(input$data_show, {
     # This code will be run after the client has disconnected
     session$onSessionEnded(function() {
       if (site_user != "dpmsr"){
-        name <- dpmsr_set$file$data_dir
-        do.call(file.remove, list(list.files(name, full.names = TRUE)))
-        dir_delete(name)
-        rm(list = ls(envir = .GlobalEnv), pos = .GlobalEnv, inherits = FALSE)
+        cat(file=stderr(), "Running session end", "\n")
+        # name <- dpmsr_set$file$data_dir
+        # do.call(file.remove, list(list.files(name, full.names = TRUE)))
+        # dir_delete(name)
+        # rm(list = ls(envir = .GlobalEnv), pos = .GlobalEnv, inherits = FALSE)
       }
     })
     

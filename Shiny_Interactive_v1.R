@@ -357,7 +357,7 @@ interactive_heatmap <- function(session, input, output, df, namex, groupx, comp_
   if (site_user == "dpmsr"){
     heatmap_filename <- "erasemyheatmap.png"
   }else{
-    heatmap_filename <- "/data/ShinyData/erasemyheatmap.png"
+    heatmap_filename <- str_c(dpmsr_set$file$data_dir, "/erasemyheatmap.png")
   }
 
   colnames(df) <- namex
@@ -402,7 +402,10 @@ interactive_heatmap <- function(session, input, output, df, namex, groupx, comp_
     }
   )
   
+
   file_delete(heatmap_filename)
+  cat(file=stderr(), str_c("deleting temp heatmap file ", file.exists(heatmap_filename)), "\n")
+  
 }
 
 #------------------------------------------------------------------------------------------------------------------------
