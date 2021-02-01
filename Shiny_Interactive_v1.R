@@ -402,8 +402,8 @@ interactive_heatmap <- function(session, input, output, df, namex, groupx, comp_
     }
   )
   
-
-  file_delete(heatmap_filename)
+  cat(file=stderr(), str_c("heatmap file exists? ", heatmap_filename, "   ", file.exists(heatmap_filename)), "\n")
+  try(file_delete(heatmap_filename), silent = TRUE)
   cat(file=stderr(), str_c("deleting temp heatmap file ", file.exists(heatmap_filename)), "\n")
   
 }
