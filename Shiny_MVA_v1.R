@@ -507,18 +507,20 @@ stats_Final_Excel <- function(session, input, output) {
     cat(file=stderr(), "Creating Excel Output File...3", "\n")
     #----------------------------------------
     
-    if(site_user == "dpmsr" && (dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Protein")){
+    if(site_user == "dpmsr" && dpmsr_set$x$raw_data_input != "Protein"){
   
-      raw_protein <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_Protein_to_Protein_Raw.xlsx"))
-      raw_peptide <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_ProteinPeptide_to_Peptide_Raw.xlsx"))
-      
-      if(as.logical(dpmsr_set$x$peptide_isoform) && dpmsr_set$x$raw_data_input=="Peptide"){
-        raw_peptide <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_Isoform_to_Isoform_Raw.xlsx"))
+     #raw_protein <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_Protein_to_Protein_Raw.xlsx"))
+     #raw_peptide <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_ProteinPeptide_to_Peptide_Raw.xlsx"))
+     #raw_peptide <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_Isoform_to_Isoform_Raw.xlsx"))
+     #raw_peptide <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_Peptide_to_Peptide_Raw.xlsx"))
+  
+    if(as.logical(dpmsr_set$x$peptide_isoform) ){
+        raw_peptide <- dpmsr_set$data$data_peptide_isoform_start
+      }else{
+        raw_peptide <- dpmsr_set$data$data_peptide_start
       }
-      
-      if(!as.logical(dpmsr_set$x$peptide_isoform) && dpmsr_set$x$raw_data_input=="Peptide"){
-        raw_peptide <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_Peptide_to_Peptide_Raw.xlsx"))
-      }
+
+      peptide_impute <- dpmsr_set$data$impute$impute
       
       addWorksheet(wb, "Sample Info")
       writeData(wb, sheet = nextsheet, dpmsr_set$protocol)
@@ -526,23 +528,25 @@ stats_Final_Excel <- function(session, input, output) {
       addWorksheet(wb, "Raw Peptide Data")
       writeData(wb, sheet = nextsheet, raw_peptide)
       nextsheet <- nextsheet +1
-      addWorksheet(wb, "Raw Protein Data")
-      writeData(wb, sheet = nextsheet, raw_protein) 
-      nextsheet <- nextsheet +1
-    }else if (dpmsr_set$x$raw_data_input=="Peptide"){
-      if(as.logical(dpmsr_set$x$peptide_isoform)){
-        raw_peptide <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_Isoform_to_Isoform_Raw.xlsx"))
-      }else{
-        raw_peptide <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_Peptide_to_Peptide_Raw.xlsx"))
-      }
-      addWorksheet(wb, "Sample Info")
-      writeData(wb, sheet = nextsheet, dpmsr_set$protocol)
-      nextsheet <- nextsheet +1
-      addWorksheet(wb, "Raw Peptide Data")
-      writeData(wb, sheet = nextsheet, raw_peptide) 
+      addWorksheet(wb, "Imputed Peptide Data")
+      writeData(wb, sheet = nextsheet, peptide_impute) 
       nextsheet <- nextsheet +1
     }
     
+    if(site_user == "dpmsr" && dpmsr_set$x$raw_data_input == "Protein"){
+      raw_protein <- pmsr_set$data$data_protein_start
+      protein_impute <- dpmsr_set$data$impute$impute
+      
+      addWorksheet(wb, "Sample Info")
+      writeData(wb, sheet = nextsheet, dpmsr_set$protocol)
+      nextsheet <- nextsheet +1
+      addWorksheet(wb, "Raw Protein Data")
+      writeData(wb, sheet = nextsheet, raw_protein)
+      nextsheet <- nextsheet +1
+      addWorksheet(wb, "Imputed Protein Data")
+      writeData(wb, sheet = nextsheet, protein_impute) 
+      nextsheet <- nextsheet +1
+    }
     #----------------------------------------
     
     

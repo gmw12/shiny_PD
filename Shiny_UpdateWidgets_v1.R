@@ -232,7 +232,7 @@ update_widget_post_processing <- function(session, input, output){
   updatePickerInput(session, "comp_10D", choices = dpmsr_set$y$uniquegroups, selected= "-")
   updatePickerInput(session, "comp_11D", choices = dpmsr_set$y$uniquegroups, selected= "-")
   updatePickerInput(session, "comp_12D", choices = dpmsr_set$y$uniquegroups, selected= "-")  
-  updatePickerInput(session, "comp_spqc", choices = dpmsr_set$y$uniquegroups, selected= "-")  
+  updatePickerInput(session, "comp_spqc", choices = c(dpmsr_set$y$uniquegroups, "None"), selected= "-")  
   
   # update what was previously selected
   try((

@@ -1435,6 +1435,9 @@ observeEvent(input$data_show, {
       dpmsr_set$file$qc_dir <<- str_c(dpmsr_set$file$output_dir, "QC//")
       dpmsr_set$file$string <<- str_c(dpmsr_set$file$output_dir, "String//")
       dpmsr_set$file$extra_prefix2 <<- str_c(dpmsr_set$file$extra_dir, dpmsr_set$x$file_prefix)
+      #create dir for excel reports
+      create_dir(str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp))
+      
       #reload shiny 
       update_widget_all(session, input, output)
       update_dpmsr_set_from_widgets(session, input)

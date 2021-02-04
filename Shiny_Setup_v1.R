@@ -7,7 +7,7 @@ load_dpmsr_set <- function(session, input, volumes){
   #new_path <- str_c(".", new_path)
   volumes["wd"] <- new_path
   design<-read_excel(design_data$datapath, sheet="SampleList")
-  protocol<-read_excel(design_data$datapath, sheet="Protocol", skip = 13)
+  protocol<-read_excel(design_data$datapath, sheet="Protocol", skip = 0)
   dpmsr_set <<- list(design = design)
   dpmsr_set$protocol <<- protocol
   temp_list<-list()
