@@ -3,6 +3,10 @@ tmt_spqc_prep <- function(){
   dpmsr_set$file$TMT_dir <<- create_dir(str_c(dpmsr_set$file$data_dir,"/TMT_IRS"))
   bar_plot_TMT(dpmsr_set$data$normalized$sl, str_c("TMT_IRS_Step0"), dpmsr_set$file$TMT_dir, dpmsr_set$design)
   
+  # save set of random numbers to be used for impute, if reimpute numbers the same
+  set.seed(123)
+  dpmsr_set$y$rand_impute <<- runif(200000, min=0, max=1)
+  
 }
 #-------------------------------------------------------------------------------------
 # TMT SPQC - normalize TMT, SL, IRS
@@ -59,9 +63,7 @@ tmt_spqc_normalize <- function(data_in){
 #---Step3, Impute missing values with random value from bottom X% of measured values
   cat(file=stderr(), "TMT IRS step3...", "\n")
   
-  # save set of random numbers to be used for impute, if reipute numbers the same
-  set.seed(123)
-  dpmsr_set$y$rand_impute <<- runif(200000, min=0, max=1)
+  debug_rand_imput <<- dpmsr_set$y$rand_impute
   # reset rand_count every time it starts to impute a new normalization
   rand_count <- 1
   
@@ -75,7 +77,7 @@ tmt_spqc_normalize <- function(data_in){
   # bottom5_max <- max(data_dist$data_dist)
   # bottom5_min <- min(data_dist$data_dist)
   
-  
+  cat(file=stderr(), "TMT IRS step3...1", "\n")
   #calc 100 bins for Bottom X%
   data_dist <- as.vector(t(data_in[(dpmsr_set$y$info_columns+1):ncol(data_in)]))
   data_dist <- data_dist[!is.na(data_dist)]
@@ -86,11 +88,12 @@ tmt_spqc_normalize <- function(data_in){
   bottomx_min <- min(data_dist[data_dist$bin==1,]$data_dist)
   bottomx_max <- max(data_dist[data_dist$bin==as.numeric(dpmsr_set$x$TMT_SPQC_bottom_x),]$data_dist)
   
-  
+  cat(file=stderr(), "TMT IRS step3...2", "\n")
   
   
   
   for(i in 1:sets_tmt){
+    cat(file=stderr(), str_c("TMT IRS step3...3  set-", i), "\n")
     irs_df_temp <- get(str_c("IRS_",i,"_Step2_data"))
     irs_info <- irs_df_temp[1:dpmsr_set$y$info_columns]
     irs_df_temp <- irs_df_temp[(dpmsr_set$y$info_columns+1):ncol(irs_df_temp)]
@@ -103,14 +106,18 @@ tmt_spqc_normalize <- function(data_in){
     #   }
     # }
     
+    cat(file=stderr(), str_c("TMT IRS step3...3a  set-", i), "\n")
     test <- apply(is.na(irs_df_temp), 2, which)
     test <- test[lapply(test,length)>0]
     
-    # testx <<- test
-    # irs_df_tempx <<- irs_df_temp
-    # bottomx_maxx <<- bottomx_max
-    # bottomx_minx <<- bottomx_min
-    # rand_countx <<- rand_count
+    
+    cat(file=stderr(), str_c("TMT IRS step3...3b  set-", i), "\n")
+    
+    debug_test <<- test
+    debug_irs_df_temp <<- irs_df_temp
+    debug_bottomx_max <<- bottomx_max
+    debug_bottomx_min <<- bottomx_min
+    debug_rand_count <<- rand_count
     
     
     for(n in names(test)){
@@ -118,10 +125,16 @@ tmt_spqc_normalize <- function(data_in){
         #data_in[[n]][l] <- mean(runif(4, bottomx_min, bottomx_max))
         # uses stored random numbers from -1 to 1
         rf <- dpmsr_set$y$rand_impute[rand_count]
+        debug_rf <<- rf
+        debug_l <<- l
+        debug_n <<- n
         irs_df_temp[[n]][l] <- bottomx_min + (rf * (bottomx_max-bottomx_min))
         rand_count <- rand_count + 1
+        debug_rand_count <<- rand_count
       }
     }
+    
+    cat(file=stderr(), str_c("TMT IRS step3...3c  set-", i), "\n")
     
     irs_df_temp <- 2^irs_df_temp
     irs_df_temp <- cbind(irs_info, irs_df_temp)
@@ -130,7 +143,7 @@ tmt_spqc_normalize <- function(data_in){
     #bar_plot_TMT(irs_set, str_c("TMT", i, "_IRS_Step3"), dpmsr_set$file$TMT_dir,irs_design)
 }
 
-
+  cat(file=stderr(), "TMT IRS step3...end", "\n")
 #----------------------------------------------------------------------------------------------------  
 
 #---Step4------Filter data based on CV of SPQC if requested
