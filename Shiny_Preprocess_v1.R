@@ -112,9 +112,19 @@ order_columns <- function(df){
 }
 
 
-
-
-
+#----------------------------------------------------------------------------------------
+check_sample_id <- function() {
+  sample_ids <- dpmsr_set$design[order(dpmsr_set$design$PD_Order),]
+  sample_ids <- sample_ids$ID
+  test_data <- colnames(dpmsr_set$data$data_raw_peptide %>% dplyr::select(contains("Abundance.F")))
+  for (i in 1:length(sample_ids)){
+    confirm_id <- grep(sample_ids[i], test_data[i])
+    if(!confirm_id){
+      shinyalert("Oops!", "Sample ID order does not match samlple list!", type = "error")
+    }
+  }
+  cat(file=stderr(), "Sample list check complete" , "\n")
+  }
 
 
 

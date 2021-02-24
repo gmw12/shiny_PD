@@ -180,9 +180,8 @@ shinyServer(function(input, output, session) {
     updateTabsetPanel(session, "nlp1", selected = "tp_overview")
     cat(file=stderr(), "order data", "\n")
     preprocess_order()
-    
+    check_sample_id()
 
-    
     removeModal()
   })
 
