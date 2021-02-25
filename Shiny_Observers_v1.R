@@ -35,6 +35,9 @@ update_dpmsr_set_from_widgets <- function(session, input, output){
     if (input$checkbox_isoform){dpmsr_set$x$peptide_isoform <<- TRUE}else{dpmsr_set$x$peptide_isoform <<- FALSE}
   })
   
+  observe({
+    if (input$checkbox_tmt){dpmsr_set$x$tmt_spqc_norm <<- TRUE}else{dpmsr_set$x$tmt_spqc_norm <<- FALSE}
+  })
 
   observe({
     dpmsr_set$x$file_prefix <<-  input$fileprefix

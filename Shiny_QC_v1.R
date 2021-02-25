@@ -2,6 +2,7 @@
 
 #-----------------------------------------------------------------------------------------
 qc_apply <- function(){
+  cat(file=stderr(), "qc_apply...1", "\n")
   #set up tables for collection of QC Spike Data, and %CV's, and total CV's
   dpmsr_set$data$qc_spike <<- data.frame(dpmsr_set$design$"QC Spike Level")
   colnames(dpmsr_set$data$qc_spike)[1] <<- "SpikeLevel"
@@ -9,18 +10,21 @@ qc_apply <- function(){
   colnames(dpmsr_set$data$summary_cv)[1] <<- "Group"
   dpmsr_set$data$total_cv <<- data.frame(dpmsr_set$data$final$impute$Accession )
   colnames(dpmsr_set$data$total_cv)[1] <<- "Accession"
-
+  
+  cat(file=stderr(), "qc_apply...2", "\n")
   for(df_name in names(dpmsr_set$data$final)){
     cv_stats(dpmsr_set$data$final[[df_name]], df_name)
     qc_spike(dpmsr_set$data$final[[df_name]], df_name)
   }
-
+  
+  cat(file=stderr(), "qc_apply...3", "\n")
   colnames(dpmsr_set$data$summary_cv) <<- c("Group",names(dpmsr_set$data$final))
   rownames(dpmsr_set$data$summary_cv) <<- NULL
   dpmsr_set$data$qc_spike_final <<- qc_spike_final(dpmsr_set$data$qc_spike)
   cv_grouped_plot()
   qc_spike_plot()
   if (as.logical(dpmsr_set$x$adh_spike)) {try(adh_spike(), silent=TRUE)}
+  cat(file=stderr(), "qc_apply...end", "\n")
 }
 
 #-----------------------------------------------------------------------------------------
