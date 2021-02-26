@@ -1,10 +1,11 @@
 #----------------------------------------------------------------------------------------
 preprocess_order <- function(){
   # data stat info
-  
+  cat(file=stderr(), "preprocess_order()...1", "\n")
   dpmsr_set$y$total_columns <<- ncol(dpmsr_set$data$data_peptide_start)
   dpmsr_set$y$info_columns <<- dpmsr_set$y$total_columns - dpmsr_set$y$sample_number
   
+  cat(file=stderr(), "preprocess_order()...2", "\n")
   if ((dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Peptide") 
       && dpmsr_set$x$final_data_output == "Protein"){
     dpmsr_set$y$info_columns_final <<- 3  #reference collapse peptide function in transform
@@ -12,24 +13,26 @@ preprocess_order <- function(){
     dpmsr_set$y$info_columns_final <<- dpmsr_set$y$info_columns
   }
   
+  cat(file=stderr(), "preprocess_order()...3", "\n")
   if (dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Peptide") {
     df <- order_columns(dpmsr_set$data$data_peptide_start)
     colnames(df)[(dpmsr_set$y$info_columns+1):ncol(df)] <- dpmsr_set$design$Header1
     dpmsr_set$data$data_peptide_start <<- df
   } 
   
+  cat(file=stderr(), "preprocess_order()...4", "\n")
   if (dpmsr_set$x$raw_data_input=="Protein") {
     df <- order_columns(dpmsr_set$data$data_protein_start)
     colnames(df)[(dpmsr_set$y$info_columns+1):ncol(df)] <- dpmsr_set$design$Header1
     dpmsr_set$data$data_protein_start <<- df
   } 
-  
+  cat(file=stderr(), "preprocess_order()...5", "\n")
   if (as.logical(dpmsr_set$x$peptide_isoform)) {
     df <- order_columns(dpmsr_set$data$data_peptide_isoform_start)
     colnames(df)[(dpmsr_set$y$info_columns+1):ncol(df)] <- dpmsr_set$design$Header1
     dpmsr_set$data$data_peptide_isoform_start <<- df
   } 
-  
+  cat(file=stderr(), "preprocess_order()...end", "\n")
 }
 
 #----------------------------------------------------------------------------------------
@@ -114,16 +117,19 @@ order_columns <- function(df){
 
 #----------------------------------------------------------------------------------------
 check_sample_id <- function() {
+  cat(file=stderr(), "check_sample_id...1", "\n")
   sample_ids <- dpmsr_set$design[order(dpmsr_set$design$PD_Order),]
   sample_ids <- sample_ids$ID
+  sample_ids <- gsub("_.+", "", sample_ids)
   test_data <- colnames(dpmsr_set$data$data_raw_peptide %>% dplyr::select(contains("Abundance.F")))
+  cat(file=stderr(), "check_sample_id...2", "\n")
   for (i in 1:length(sample_ids)){
-    confirm_id <- grep(sample_ids[i], test_data[i])
+    confirm_id <- grepl(sample_ids[i], test_data[i])
     if(!confirm_id){
       shinyalert("Oops!", "Sample ID order does not match samlple list!", type = "error")
     }
   }
-  cat(file=stderr(), "Sample list check complete" , "\n")
+  cat(file=stderr(), "check_sample_id...end", "\n")
   }
 
 

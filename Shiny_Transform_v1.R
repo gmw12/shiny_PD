@@ -37,9 +37,13 @@ protein_to_peptide <- function(){
   }
   
   peptide_final <- peptide_final[order(peptide_final$Master.Protein.Accessions, peptide_final$Sequence),]
-  peptide_out <- peptide_final %>% dplyr::select(Confidence, Master.Protein.Accessions, Master.Protein.Descriptions, Sequence, Modifications,
-                                                 RT.in.min.by.Search.Engine.Mascot, mz.in.Da.by.Search.Engine.Mascot, Charge.by.Search.Engine.Mascot, 
-                                                 Ions.Score.by.Search.Engine.Mascot, contains("Percolator.q.Value"), contains("Abundance.F"))
+  peptide_out <- peptide_final %>% dplyr::select(Confidence, Master.Protein.Accessions, Master.Protein.Descriptions, 
+                                                 Sequence, Modifications,
+                                                 contains('RT.in.min.by.Search.Engine.'), 
+                                                 contains('mz.in.Da.by.Search.Engine.'), 
+                                                 contains('Charge.by.Search.Engine.'), 
+                                                 contains('Ions.Score.by.Search.Engine.'),
+                                                 contains("Percolator.q.Value"), contains("Abundance.F"))
   colnames(peptide_out)[1:10] <- c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Retention.Time","Da","mz", "Ion.Score", "q-Value")
   peptide_out <- subset(peptide_out, Accession %in% master_accessions )
   Simple_Excel(peptide_out, str_c(dpmsr_set$file$extra_prefix,"_ProteinPeptide_to_Peptide_Raw.xlsx", collapse = " "))
@@ -63,8 +67,11 @@ return(protein_out)
 #----------------------------------------------------------------------------------------
 peptide_to_peptide <- function(){
   peptide_groups <- dpmsr_set$data$data_raw_peptide
-  peptide_out <- peptide_groups %>% dplyr::select(Confidence, Master.Protein.Accessions, Master.Protein.Descriptions, Sequence, Modifications,
-                                                 RT.in.min.by.Search.Engine.Mascot, Ions.Score.by.Search.Engine.Mascot, contains("Percolator.q.Value"), contains("Abundance.F"))
+  peptide_out <- peptide_groups %>% dplyr::select(Confidence, Master.Protein.Accessions, Master.Protein.Descriptions, 
+                                                Sequence, Modifications,
+                                                contains('RT.in.min.by.Search.Engine.'), 
+                                                contains('Ions.Score.by.Search.Engine.'), 
+                                                contains("Percolator.q.Value"), contains("Abundance.F"))
   colnames(peptide_out)[1:8] <- c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Retention.Time", "Ion.Score", "q-Value")
   peptide_out <- subset(peptide_out, Confidence %in% ("High"))
   Simple_Excel(peptide_out, str_c(dpmsr_set$file$extra_prefix,"_Peptide_to_Peptide_Raw.xlsx", collapse = " "))
@@ -75,8 +82,11 @@ peptide_to_peptide <- function(){
 #----------------------------------------------------------------------------------------
 isoform_to_isoform <- function(){
   peptide_groups <- dpmsr_set$data$data_raw_isoform
-  peptide_out <- peptide_groups %>% dplyr::select(contains("Confidence.by"), Master.Protein.Accessions, Master.Protein.Descriptions, Sequence, Modifications,
-                                                  Top.Apex.RT.in.min, Ions.Score.by.Search.Engine.Mascot, contains("Percolator.q.Value"), contains("Abundance.F"))
+  peptide_out <- peptide_groups %>% dplyr::select(contains("Confidence.by"), Master.Protein.Accessions, 
+                                                  Master.Protein.Descriptions, Sequence, Modifications,
+                                                  Top.Apex.RT.in.min, 
+                                                  contains('Ions.Score.by.Search.Engine.'), 
+                                                  contains("Percolator.q.Value"), contains("Abundance.F"))
   colnames(peptide_out)[1:8] <- c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Retention.Time", "Ion.Score", "q-Value")
   peptide_out <- subset(peptide_out, Confidence %in% ("High"))
   Simple_Excel(peptide_out, str_c(dpmsr_set$file$extra_prefix,"_Isoform_to_Isoform_Raw.xlsx", collapse = " "))

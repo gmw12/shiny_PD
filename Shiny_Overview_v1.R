@@ -90,7 +90,8 @@ project_overview <- function(){
 
 
     #--RT--------------------------------------    
-    df2 <- data.frame(df_peptide$RT.in.min.by.Search.Engine.Mascot)
+    #df2 <- data.frame(df_peptide$RT.in.min.by.Search.Engine.Mascot)
+    df2 <- df_peptide %>% dplyr::select(contains( 'RT.in.min.by.Search.Engine.'))
     colnames(df2) <- c("RT")
     
     g <- ggplot(df2, aes(x=RT))
@@ -126,7 +127,8 @@ project_overview <- function(){
     
     
     #--MZ--------------------------------------     
-    df2 <- data.frame(df_peptide$mz.in.Da.by.Search.Engine.Mascot)
+    #df2 <- data.frame(df_peptide$mz.in.Da.by.Search.Engine.Mascot)
+    df2 <- df_peptide %>% dplyr::select(contains( 'mz.in.Da.by.Search.Engine.'))
     colnames(df2) <- "Mass"
     g <- ggplot(df2, aes(x=Mass))
     g + geom_density(fill="darkred") + theme_classic() +
@@ -136,9 +138,11 @@ project_overview <- function(){
       theme(plot.title = element_text(hjust = 0.5))  
     file_name <- str_c(dpmsr_set$file$qc_dir, "Peptide_MZ.png")
     ggsave(file_name, width=5, height=3)
-    
+   
+     
  #--Charge----------------------------------------------------------   
-    df3 <- data.frame(df_peptide$Charge.by.Search.Engine.Mascot)
+    #df3 <- data.frame(df_peptide$Charge.by.Search.Engine.Mascot)
+    df3 <- df_peptide %>% dplyr::select(contains( 'Charge.by.Search.Engine.'))
     df3$count <- 1
     colnames(df3) <- c("Charge", "Count")
     df3 <- df3 %>% group_by(Charge) %>% summarise_all(list(sum))
