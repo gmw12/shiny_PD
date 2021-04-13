@@ -25,14 +25,38 @@ load_dpmsr_set <- function(session, input, volumes){
   dpmsr_set$x$design_name <<- design_data$datapath
   cat(file=stderr(), "dpmsr_set created...", "\n")
   
+
   #check design file for errors
   if(any(duplicated(dpmsr_set$design$ID))) {
     shinyalert("Oops!", "Duplicated ID's in Sample List File", type = "error")
   }
+  cat(file=stderr(), "dpmsr_set checked for duplicate ID's...", "\n")
+
+  
+  #check if comparisons too long
+  if(check_comp_name_length() ) {
+    shinyalert("Oops!", "Comparison names too long for excel sheet names", type = "error")
+  } 
+  cat(file=stderr(), "dpmsr_set checked for comparison names too long", "\n")
   
 }
 
 
+#------------------------
+
+check_comp_name_length <- function(){
+  names <- unique(dpmsr_set$design$Group)
+  names_len <- sort(nchar(names), decreasing = TRUE)
+  longest_comp <- names_len[1] + names_len[2]
+  if (longest_comp > 27) {
+    return(TRUE)
+  }else {
+      return(FALSE)
+    }
+}
+
+
+#------------------------
 #create initial dpmsr_set S3 data class
 dpmsr_set_create <- function(design){
   dpmsr_set <<- list(design=design)
