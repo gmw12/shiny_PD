@@ -1,5 +1,6 @@
 #library(tcltk)
 cat(file=stderr(), "load libraries", "\n")
+library(cluster)    # clustering algorithms
 library(tidyr)
 library(grid)
 library(tidyverse)
@@ -25,7 +26,6 @@ library(MASS)
 library(pcaMethods)
 library(vsn)
 library(robustbase)
-library(cluster)    # clustering algorithms
 library(factoextra) # clustering algorithms & visualization
 library(shiny)
 library(shinyWidgets)
