@@ -529,7 +529,6 @@ shinyUI(
              ) #end of qc navbarpage
           ), #end of qc tabpanel
     
-   
     
     tabPanel("Load Data", value = "tp_customer_load", align="center",
              hr(),
