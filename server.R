@@ -1492,7 +1492,10 @@ observeEvent(input$data_show, {
         
         #reload shiny
         cat(file=stderr(), "update widgets", "\n")
+        cat(file=stderr(), str_c("load file locations:  ", input$customer_dpmsr_set$datapath), "\n")
         update_widget_all(session, input, output)
+        
+        
         cat(file=stderr(), "update dpmsr_set from widgets", "\n")
         update_dpmsr_set_from_widgets(session, input)
         
