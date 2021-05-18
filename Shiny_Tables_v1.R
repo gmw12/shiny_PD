@@ -12,7 +12,6 @@ protein_table <- function(session, input, output, filter_df){
   mf_cols <- colnames(filter_df %>% dplyr::select(contains("MF") ) )
   stat_col <- ncol(filter_df) -1
   
-  
  stats_DT <-  DT::datatable(filter_df,
                                rownames = FALSE,
                                extensions = c("FixedColumns"), #, "Buttons"),
