@@ -186,9 +186,9 @@ file_set <- function(){
 
 #----------------------------------------------------------------------------------------
 # create final excel documents
-save_object <- function(df) {
+save_object <- function(df, file_cust_name) {
   dpmsr_set <- df
-  save(dpmsr_set, file=str_c(dpmsr_set$file$output_dir, input$dpmsr_set_name_customer, ".dpmsr_set"))
+  save(dpmsr_set, file=file_cust_name)
 }
 
 
