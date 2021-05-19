@@ -1411,7 +1411,8 @@ observeEvent(input$data_show, {
       df$protocol <- NULL
       df$data$norm_data <- NULL
       
-      save(df, file=str_c(dpmsr_set$file$output_dir, input$dpmsr_set_name_customer, ".dpmsr_set"))
+      save_object(df)
+      #save(df, file=str_c(dpmsr_set$file$output_dir, input$dpmsr_set_name_customer, ".dpmsr_set"))
     })     
     
     
