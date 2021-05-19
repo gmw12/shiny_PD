@@ -1,4 +1,4 @@
-options(shiny.maxRequestSize=500*1024^2)
+options(shiny.maxRequestSize=1000*1024^2)
 
 source("Shiny_Startup_v1.R")
 
@@ -1489,12 +1489,12 @@ observeEvent(input$data_show, {
       
       if (fileUploaded){
         showModal(modalDialog("Working...", footer = NULL))  
+        cat(file=stderr(), str_c("load file location:  ", input$customer_dpmsr_set$datapath), "\n")
         load(file=input$customer_dpmsr_set$datapath, envir = .GlobalEnv)
         
         #reload shiny
         cat(file=stderr(), "update widgets", "\n")
-        cat(file=stderr(), "update widgets-test", "\n")
-        cat(file=stderr(), str_c("load file locations:  ", input$customer_dpmsr_set$datapath), "\n")
+        cat(file=stderr(), "test", "\n")
         
         update_widget_all(session, input, output)
         
