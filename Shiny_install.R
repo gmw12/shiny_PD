@@ -1,62 +1,41 @@
 
-install.packages('tidyr', dependencies = TRUE)
-install.packages('httr', dependencies = TRUE)
-install.packages('png', dependencies = TRUE)
 
-install.packages('tidyverse', dependencies = TRUE)
-install.packages('dplyr', dependencies = TRUE)
-install.packages('fs', dependencies = TRUE)
-install.packages('effsize', dependencies = TRUE)
-install.packages('colourpicker', dependencies = TRUE)
+package_list <- c('devtools', 'tidy', 'httr', 'png', 'tidyverse', 'dplyr', 'fs', 'effsize',
+                  'colourpicker', 'tibble', 'stringr', 'readxl', 'randomcoloR', 'gplots',
+                  'ggpubr', 'rgl', 'pca3d', 'robustbase', 'cluster', 'factoextra',
+                  'igraph', 'shiny', 'shinyWidgets', 'shinyFiles', 'rhandsontable', 
+                  'shinyjs', 'shinyalert', 'DT', 'ggraph', 'imp4p', 'Peptides',
+                  'flexdashboard', 'openxlsx', 'stringi', 'jsonlite', 'remotes', 'BiocManager')
 
-install.packages('tibble', dependencies = TRUE)
-install.packages('stringr', dependencies = TRUE)
-install.packages('readxl', dependencies = TRUE)
-install.packages('randomcoloR', dependencies = TRUE)
-install.packages('gplots', dependencies = TRUE) 
-install.packages('ggpubr', dependencies = TRUE)
 
-install.packages('rgl', dependencies = TRUE)
-install.packages('pca3d', dependencies = TRUE)
-install.packages('robustbase', dependencies = TRUE)
-install.packages('cluster', dependencies = TRUE)    # clustering algorithms
-install.packages('factoextra', dependencies = TRUE) # clustering algorithms & visualization
-install.packages('igraph', dependencies = TRUE)
+biocmanager_list = c('impute', 'ViSEAGO', 'topGO', 'clusterProfiler', 'GSEABase', 'rWikiPathways', 
+                     'STRINGdb', 'limma', 'edgeR', 'pcaMethods', 'gridExtra', 'MASS', 'vsn',
+                     'preprocessCore', 'org.Hs.eg.db', 'org.Mm.eg.db')
 
-install.packages('shiny', dependencies = TRUE)
-install.packages('shinyWidgets', dependencies = TRUE)
-install.packages('shinyFiles', dependencies = TRUE)
-install.packages('rhandsontable', dependencies = TRUE)
-install.packages('shinyjs', dependencies = TRUE)
-install.packages('shinyalert', dependencies = TRUE)
-install.packages('DT', dependencies = TRUE)
-install.packages('ggraph', dependencies = TRUE)
 
-install.packages('imp4p', dependencies = TRUE)
-install.packages('Peptides', dependencies = TRUE)
+devtools::install_github('omarwagih/rmotifx')
 
-install.packages('flexdashboard', dependencies = TRUE)
-
-install.packages('devtools')
-require(devtools)
-install_github('omarwagih/rmotifx')
-
-install.packages("remotes")
 remotes::install_github("jmwozniak/PTMphinder")
 
-if (!requireNamespace("BiocManager", quietly = TRUE))
-  install.packages("BiocManager")
+# loop to install require packages
+for (pack in package_list){
+  print(pack)
+  if(pack %in% rownames(installed.packages())) {   
+    print("not installing")
+  }else{
+    print("installing")
+    install.packages(pack, dependencies = TRUE, lib="/home/dpmsr/R/library") 
+  }
+}
 
-BiocManager::install('ViSEAGO', dependencies = TRUE)
-BiocManager::install('topGO', dependencies = TRUE)
-BiocManager::install('clusterProfiler', dependencies = TRUE)
-BiocManager::install('GSEABase', dependencies = TRUE)
-BiocManager::install('rWikiPathways', dependencies = TRUE)
-BiocManager::install('STRINGdb', dependencies = TRUE)
-BiocManager::install('limma', dependencies = TRUE)
-BiocManager::install('edgeR', dependencies = TRUE)
-BiocManager::install('pcaMethods', dependencies = TRUE)
-BiocManager::install('gridExtra', dependencies = TRUE)
-BiocManager::install('MASS', dependencies = TRUE)
-BiocManager::install('vsn', dependencies = TRUE)
-BiocManager::install('preprocessCore', dependencies = TRUE)
+#loop to install required BioConductor packages
+for (pack in biocmanager_list){
+  print(pack)
+  if(pack %in% rownames(installed.packages())) {   
+    print("not installing")
+  }else{
+    print("installing")
+    BiocManager::install(pack, dependencies = TRUE, lib="/home/dpmsr/R/library") 
+  }
+}                             
+                              
