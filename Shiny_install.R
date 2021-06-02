@@ -13,9 +13,8 @@ biocmanager_list = c('impute', 'ViSEAGO', 'topGO', 'clusterProfiler', 'GSEABase'
                      'preprocessCore', 'org.Hs.eg.db', 'org.Mm.eg.db')
 
 
-devtools::install_github('omarwagih/rmotifx')
-
-remotes::install_github("jmwozniak/PTMphinder")
+withr::with_libpaths(new = "/home/dpmsr/R/library", install_github('omarwagih/rmotifx'))
+withr::with_libpaths(new = "/home/dpmsr/R/library", install_github('jmwozniak/PTMphinder'))
 
 # loop to install require packages
 for (pack in package_list){
