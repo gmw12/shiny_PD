@@ -12,7 +12,7 @@ biocmanager_list = c('impute', 'ViSEAGO', 'topGO', 'clusterProfiler', 'GSEABase'
                      'STRINGdb', 'limma', 'edgeR', 'pcaMethods', 'gridExtra', 'MASS', 'vsn',
                      'preprocessCore', 'org.Hs.eg.db', 'org.Mm.eg.db')
 
-
+library(devtools)
 withr::with_libpaths(new = "/home/dpmsr/R/library", install_github('omarwagih/rmotifx'))
 withr::with_libpaths(new = "/home/dpmsr/R/library", install_github('jmwozniak/PTMphinder'))
 
