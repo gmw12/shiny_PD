@@ -5,7 +5,8 @@ package_list <- c('devtools', 'tidyr', 'httr', 'png', 'tidyverse', 'dplyr', 'fs'
                   'ggpubr', 'rgl', 'pca3d', 'robustbase', 'cluster', 'factoextra',
                   'igraph', 'shiny', 'shinyWidgets', 'shinyFiles', 'rhandsontable', 
                   'shinyjs', 'shinyalert', 'DT', 'ggraph', 'imp4p', 'Peptides',
-                  'flexdashboard', 'openxlsx', 'stringi', 'jsonlite', 'remotes', 'BiocManager')
+                  'flexdashboard', 'openxlsx', 'stringi', 'jsonlite', 'remotes', 
+                  'BiocManager', 'rAmCharts')
 
 
 biocmanager_list = c('impute', 'ViSEAGO', 'topGO', 'clusterProfiler', 'GSEABase', 'rWikiPathways', 
