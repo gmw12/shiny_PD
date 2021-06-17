@@ -1173,93 +1173,100 @@ observeEvent(input$data_show, {
     #-------------------------------------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------------------------------------
     observeEvent(input$go_volcano, {
-      showModal(modalDialog("Preparing Go Volcano...", footer = NULL))  
+
+      if (input$go_volcano_id != ""){
       
-      comp_string <- input$select_data_comp_go
-      comp_number <- which(grepl(comp_string, dpmsr_set$y$stats$groups$comp_name))
-      data_in <- dpmsr_set$data$stats[[comp_string]]
-      
-      volcano_data <- interactive_go_volcano(session, input, output)
-      volcano_go_data <- subset(data_in, Accession %in% volcano_data$Accession  )
-      
-      volcano_go_data_colnames <- colnames(volcano_go_data )
-      volcano_go_data_colnames <- gsub("_v_", " v ", volcano_go_data_colnames)
-      volcano_go_data_colnames <- gsub("_FC", " FC", volcano_go_data_colnames)
-      volcano_go_data_colnames <- gsub("_CV", " CV", volcano_go_data_colnames)
-      volcano_go_data_colnames <- gsub("_MF", " MF", volcano_go_data_colnames)
-      volcano_go_data_colnames <- gsub("_pval", " pval", volcano_go_data_colnames)
-      volcano_go_data_colnames <- gsub("_", ".", volcano_go_data_colnames)
-      colnames(volcano_go_data) <-  volcano_go_data_colnames
-      
-      
-      pval_cols <- colnames(volcano_go_data %>% dplyr::select(contains("pval") ) )
-      sample_cols <- c(colnames(volcano_go_data %>% dplyr::select(contains("Normalized"))),
-                       colnames(volcano_go_data %>% dplyr::select(contains("Imputed"))) )
-      sample_col_numbers <- list(match(sample_cols, names(volcano_go_data)))
-      sample_col_numbers <- unlist(sample_col_numbers)
-      cv_cols <- colnames(volcano_go_data %>% dplyr::select(contains("CV") ) )
-      mf_cols <- colnames(volcano_go_data %>% dplyr::select(contains("MF") ) )
-      
-      volcano_DT <-  DT::datatable(volcano_go_data,
-                                 rownames = FALSE,
-                                 extensions = c("FixedColumns"), #, "Buttons"),
-                                 options=list(
-                                   #dom = 'Bfrtipl',
-                                   autoWidth = TRUE,
-                                   scrollX = TRUE,
-                                   scrollY=500,
-                                   scrollCollapse=TRUE,
-                                   columnDefs = list(list(targets = c(0), visibile = TRUE, "width"='30', className = 'dt-center'),
-                                                     list(targets = c(2), visible = TRUE, "width"='20', className = 'dt-center'),
-                                                     list(
-                                                       targets = c(1),
-                                                       width = '250',
-                                                       render = JS(
-                                                         "function(data, type, row, meta) {",
-                                                         "return type === 'display' && data.length > 35 ?",
-                                                         "'<span title=\"' + data + '\">' + data.substr(0, 35) + '...</span>' : data;",
-                                                         "}")
-                                                     ),
-                                                     list(
-                                                       targets = c(3),
-                                                       width = '100',
-                                                       render = JS(
-                                                         "function(data, type, row, meta) {",
-                                                         "return type === 'display' && data.length > 20 ?",
-                                                         "'<span title=\"' + data + '\">' + data.substr(0, 20) + '...</span>' : data;",
-                                                         "}")
-                                                     )
-                                   ),
-                                   ordering = TRUE,
-                                   orderClasses= TRUE,
-                                   fixedColumns = list(leftColumns = 1),
-                                   pageLength = 100, lengthMenu = c(10,50,100,200)),
-                                 #buttons=c('copy', 'csv', 'excelHtml5', 'pdf')),
-                                 callback = JS('table.page(3).draw(false);'
-                                 ))
-      
-      volcano_DT <- volcano_DT %>%  formatRound(columns=c(sample_col_numbers), digits=0)
-      
-      output$volcano_data_final <-  DT::renderDataTable({volcano_DT })
-      
-      Simple_Excel(volcano_go_data, str_c(dpmsr_set$file$string, "GoVolcano_", input$select_data_comp_go, "_", input$go_volcano_id, "_", 
-                                 input$select_ont_go, ".xlsx", collapse = " "))
-      
-      
-      fullName <- str_c(dpmsr_set$file$string, "GoVolcano_", input$select_data_comp_go, "_", input$go_volcano_id, "_", 
-                        input$select_ont_go, ".xlsx", collapse = " ")
-      output$download_go_volcano_table <- downloadHandler(
-        filename = function(){
-          str_c("GoVolcano_", input$select_data_comp_go, "_", input$go_volcano_id, "_", 
-                input$select_ont_go, ".xlsx", collapse = " ")
-        },
-        content = function(file){
-          file.copy(fullName, file)
-        }
-      )
-      
-      
-      removeModal()
+          showModal(modalDialog("Preparing Go Volcano...", footer = NULL))  
+          
+          comp_string <- input$select_data_comp_go
+          comp_number <- which(grepl(comp_string, dpmsr_set$y$stats$groups$comp_name))
+          data_in <- dpmsr_set$data$stats[[comp_string]]
+          
+          volcano_data <- interactive_go_volcano(session, input, output)
+          volcano_go_data <- subset(data_in, Accession %in% volcano_data$Accession  )
+          
+          volcano_go_data_colnames <- colnames(volcano_go_data )
+          volcano_go_data_colnames <- gsub("_v_", " v ", volcano_go_data_colnames)
+          volcano_go_data_colnames <- gsub("_FC", " FC", volcano_go_data_colnames)
+          volcano_go_data_colnames <- gsub("_CV", " CV", volcano_go_data_colnames)
+          volcano_go_data_colnames <- gsub("_MF", " MF", volcano_go_data_colnames)
+          volcano_go_data_colnames <- gsub("_pval", " pval", volcano_go_data_colnames)
+          volcano_go_data_colnames <- gsub("_", ".", volcano_go_data_colnames)
+          colnames(volcano_go_data) <-  volcano_go_data_colnames
+          
+          
+          pval_cols <- colnames(volcano_go_data %>% dplyr::select(contains("pval") ) )
+          sample_cols <- c(colnames(volcano_go_data %>% dplyr::select(contains("Normalized"))),
+                           colnames(volcano_go_data %>% dplyr::select(contains("Imputed"))) )
+          sample_col_numbers <- list(match(sample_cols, names(volcano_go_data)))
+          sample_col_numbers <- unlist(sample_col_numbers)
+          cv_cols <- colnames(volcano_go_data %>% dplyr::select(contains("CV") ) )
+          mf_cols <- colnames(volcano_go_data %>% dplyr::select(contains("MF") ) )
+          
+          volcano_DT <-  DT::datatable(volcano_go_data,
+                                     rownames = FALSE,
+                                     extensions = c("FixedColumns"), #, "Buttons"),
+                                     options=list(
+                                       #dom = 'Bfrtipl',
+                                       autoWidth = TRUE,
+                                       scrollX = TRUE,
+                                       scrollY=500,
+                                       scrollCollapse=TRUE,
+                                       columnDefs = list(list(targets = c(0), visibile = TRUE, "width"='30', className = 'dt-center'),
+                                                         list(targets = c(2), visible = TRUE, "width"='20', className = 'dt-center'),
+                                                         list(
+                                                           targets = c(1),
+                                                           width = '250',
+                                                           render = JS(
+                                                             "function(data, type, row, meta) {",
+                                                             "return type === 'display' && data.length > 35 ?",
+                                                             "'<span title=\"' + data + '\">' + data.substr(0, 35) + '...</span>' : data;",
+                                                             "}")
+                                                         ),
+                                                         list(
+                                                           targets = c(3),
+                                                           width = '100',
+                                                           render = JS(
+                                                             "function(data, type, row, meta) {",
+                                                             "return type === 'display' && data.length > 20 ?",
+                                                             "'<span title=\"' + data + '\">' + data.substr(0, 20) + '...</span>' : data;",
+                                                             "}")
+                                                         )
+                                       ),
+                                       ordering = TRUE,
+                                       orderClasses= TRUE,
+                                       fixedColumns = list(leftColumns = 1),
+                                       pageLength = 100, lengthMenu = c(10,50,100,200)),
+                                     #buttons=c('copy', 'csv', 'excelHtml5', 'pdf')),
+                                     callback = JS('table.page(3).draw(false);'
+                                     ))
+          
+          volcano_DT <- volcano_DT %>%  formatRound(columns=c(sample_col_numbers), digits=0)
+          
+          output$volcano_data_final <-  DT::renderDataTable({volcano_DT })
+          
+          Simple_Excel(volcano_go_data, str_c(dpmsr_set$file$string, "GoVolcano_", input$select_data_comp_go, "_", input$go_volcano_id, "_", 
+                                     input$select_ont_go, ".xlsx", collapse = " "))
+          
+          
+          fullName <- str_c(dpmsr_set$file$string, "GoVolcano_", input$select_data_comp_go, "_", input$go_volcano_id, "_", 
+                            input$select_ont_go, ".xlsx", collapse = " ")
+          output$download_go_volcano_table <- downloadHandler(
+            filename = function(){
+              str_c("GoVolcano_", input$select_data_comp_go, "_", input$go_volcano_id, "_", 
+                    input$select_ont_go, ".xlsx", collapse = " ")
+            },
+            content = function(file){
+              file.copy(fullName, file)
+            }
+          )
+          
+          
+          removeModal()
+          
+      }else{
+        shinyalert("Oops!", "GO ID is missing!", type = "error")
+      }
     }
     )  
     
