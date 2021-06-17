@@ -1,4 +1,4 @@
-options(shiny.maxRequestSize=1000*1024^2)
+options(shiny.maxRequestSize=2000*1024^2)
 
 source("Shiny_Startup_v1.R")
 
