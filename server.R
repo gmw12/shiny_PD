@@ -1421,6 +1421,7 @@ observeEvent(input$data_show, {
       save(dpmsr_set, file=str_c(dpmsr_set$file$output_dir, input$dpmsr_set_name_customer, ".dpmsr_set"))
 
       dpmsr_set <- dpmsr_set_temp
+      dpmsr_set_temp <- NULL
     })     
     
     
