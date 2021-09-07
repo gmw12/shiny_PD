@@ -122,8 +122,10 @@ save_data <- function(data_file){
 
 #----------------------------------------------------------------------------------------
 create_dir <- function(name){
+  cat(file=stderr(), "create_dir...", "\n")
   if(is_dir(name)) {
     #added file delete, dir delete not working on customer shiny server
+    cat(file=stderr(), "dir exists, deleting...", "\n")
     do.call(file.remove, list(list.files(name, full.names = TRUE)))
     dir_delete(name)
     dir_create(name)
@@ -132,6 +134,7 @@ create_dir <- function(name){
     }
   name <- str_replace_all(name, "/", "//")
   name <- str_c(name, "//")
+  cat(file=stderr(), str_c(name, " created...", "\n"))
   return(name)
 }
 

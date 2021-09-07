@@ -2,9 +2,11 @@
 apply_impute <- function(session, input, output){
   cat(file=stderr(), "apply_impute function...", "\n")
   
-  # save set of random numbers to be used for impute, if reipute numbers the same
+  # save set of random numbers to be used for impute, if reimpute numbers the same
   set.seed(123)
-  dpmsr_set$y$rand_impute <<- runif(200000, min=-1, max=1)
+  #get number of missing values
+  total_missing <- table(is.na(dpmsr_set$data$normalized$impute))
+  dpmsr_set$y$rand_impute <<- runif(total_missing[2]*2, min=-1, max=1)
   dpmsr_set$y$rand_count <<- 1
   
   ncores <- (detectCores()/2)
@@ -170,6 +172,7 @@ impute_multi <- function(data_in, distribution_in, info_columns){
 
     #save group dataframe
     assign(dpmsr_set$y$sample_groups$Group[i], df[1:dpmsr_set$y$sample_groups$Count[i]])
+    gc()
   }
   
   #saving original data with imputed data frame for return

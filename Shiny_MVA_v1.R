@@ -113,10 +113,22 @@ set_stat_groups <- function(session, input, output){
     stats_data_N <- stats_data
     stats_data_D <- stats_data
     
+    #REBUILDING COMPARISON SELECTOR
     # using contains instead of matches, trying to find all inclusive sample group with not SPQC type
-    for(stats_group in input[[str_c('comp_',i,'N')]]){stats_data_N <- stats_data_N %>% dplyr::select(contains(stats_group))   }
-    for(stats_group in input[[str_c('comp_',i,'D')]]){stats_data_D <- stats_data_D %>% dplyr::select(contains(stats_group))   }
+    #for(stats_group in input[[str_c('comp_',i,'N')]]){stats_data_N <- stats_data_N %>% dplyr::select(contains(stats_group))   }
+    #for(stats_group in input[[str_c('comp_',i,'D')]]){stats_data_D <- stats_data_D %>% dplyr::select(contains(stats_group))   }
+ 
+    for(stats_group in input[[str_c('comp_',i,'N')]]){
+      grep_comp <- paste("[ _]", stats_group, "[ _$]", sep="")
+      stats_data_N <- stats_data_N[,grepl(grep_comp, colnames(stats_data_N))]
+      }
     
+    for(stats_group in input[[str_c('comp_',i,'D')]]){
+      grep_comp <- paste("[ _]", stats_group, "[ _$]", sep="")
+      stats_data_D <- stats_data_D[,grepl(grep_comp, colnames(stats_data_D))]
+     }
+
+      
     #work around to get all samples into a comparison for graphs
     if( input[[str_c('comp_',i,'N')]] == "All.Samples"){
       stats_data_N <- stats_data %>% dplyr::select(!contains(input$comp_spqc))
@@ -345,7 +357,7 @@ stat_calc2 <- function(session, input, output) {
         df <- add_column(df, test2[,1] , .after = "Peptides")
         names(df)[4] <- "PD_Detected_Peptides"
         
-        xdfimpute2 <<- df_impute
+        #xdfimpute2 <<- df_impute
         imputed_df <- df_impute[4:ncol(df_impute)]  
         imputed_df[imputed_df>1] <- 1
         comp_N_imputed <- imputed_df[1:dpmsr_set$y$stats$groups$N_count[i]]
@@ -353,7 +365,7 @@ stat_calc2 <- function(session, input, output) {
         
       }
       
-      xdf2 <<- df
+      #xdf2 <<- df
       
       annotate_in <- df[1:dpmsr_set$y$info_columns_final]
       data_in <- df[(dpmsr_set$y$info_columns_final+1):(ncol(df))]
