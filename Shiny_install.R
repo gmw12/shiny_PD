@@ -1,11 +1,12 @@
 
 
-package_list <- c('devtools', 'tidy', 'httr', 'png', 'tidyverse', 'dplyr', 'fs', 'effsize',
+package_list <- c('devtools', 'tidyr', 'httr', 'png', 'tidyverse', 'dplyr', 'fs', 'effsize',
                   'colourpicker', 'tibble', 'stringr', 'readxl', 'randomcoloR', 'gplots',
                   'ggpubr', 'rgl', 'pca3d', 'robustbase', 'cluster', 'factoextra',
                   'igraph', 'shiny', 'shinyWidgets', 'shinyFiles', 'rhandsontable', 
                   'shinyjs', 'shinyalert', 'DT', 'ggraph', 'imp4p', 'Peptides',
-                  'flexdashboard', 'openxlsx', 'stringi', 'jsonlite', 'remotes', 'BiocManager')
+                  'flexdashboard', 'openxlsx', 'stringi', 'jsonlite', 'remotes', 
+                  'BiocManager', 'rAmCharts')
 
 
 biocmanager_list = c('impute', 'ViSEAGO', 'topGO', 'clusterProfiler', 'GSEABase', 'rWikiPathways', 
@@ -18,8 +19,8 @@ devtools::install_github('omarwagih/rmotifx', dependencies = TRUE, library="/hom
 remotes::install_github("jmwozniak/PTMphinder", dependencies = TRUE)
 
 library(devtools)
-withr::with_libpaths(new = "/home/dpmsr/R/library", install_github('omarwagih/rmotifx'))
-withr::with_libpaths(new = "/home/dpmsr/R/library", install_github('jmwozniak/PTMphinder'))
+withr::with_libpaths(new = "/home/greg/R/library", install_github('omarwagih/rmotifx'))
+withr::with_libpaths(new = "/home/greg/R/library", install_github('jmwozniak/PTMphinder'))
 
 devtools::install_github('omarwagih/rmotifx', args = c('--lib="/home/dpmsr/R/library"'))
 
@@ -30,7 +31,7 @@ for (pack in package_list){
     print("not installing")
   }else{
     print("installing")
-    install.packages(pack, dependencies = TRUE, lib="/home/dpmsr/R/library") 
+    install.packages(pack, dependencies = TRUE, lib="/home/greg/R/library") 
   }
 }
 
@@ -41,7 +42,33 @@ for (pack in biocmanager_list){
     print("not installing")
   }else{
     print("installing")
-    BiocManager::install(pack, dependencies = TRUE, lib="/home/dpmsr/R/library") 
+    BiocManager::install(pack, dependencies = TRUE, lib="/home/greg/R/library") 
   }
-}                             
+}        
+
+
+
+# loop to check require packages
+for (pack in package_list){
+  if(pack %in% rownames(installed.packages())) {   
+    print(" ")
+  }else{
+    print(pack)
+    print("not found")
+  }
+}
+
+
+
+#loop to install required BioConductor packages
+for (pack in biocmanager_list){
+  if(pack %in% rownames(installed.packages())) {   
+    print(" ")
+  }else{
+    print(pack)
+    print("not found")
+  }
+} 
+
+
                               
