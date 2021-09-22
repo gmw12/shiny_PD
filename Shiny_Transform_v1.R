@@ -85,7 +85,6 @@ peptide_to_peptide <- function(){
 isoform_to_isoform <- function(){
   cat(file=stderr(), "isoform_to_isoform", "\n")
   peptide_groups <- dpmsr_set$data$data_raw_isoform
-<<<<<<< HEAD
   peptide_out <- try(peptide_groups %>% dplyr::select(contains("Confidence.by"), Master.Protein.Accessions, 
                                                     Master.Protein.Descriptions, Sequence, Modifications,
                                                     contains('Positions.'),
