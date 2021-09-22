@@ -68,6 +68,7 @@ return(protein_out)
 
 #----------------------------------------------------------------------------------------
 peptide_to_peptide <- function(){
+  cat(file=stderr(), "peptide_to_peptide", "\n")
   peptide_groups <- dpmsr_set$data$data_raw_peptide
   peptide_out <- peptide_groups %>% dplyr::select(Confidence, Master.Protein.Accessions, Master.Protein.Descriptions, 
                                                 Sequence, Modifications,
@@ -78,22 +79,35 @@ peptide_to_peptide <- function(){
   colnames(peptide_out)[1:9] <- c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Positions", "Retention.Time", "Ion.Score", "q-Value")
   peptide_out <- subset(peptide_out, Confidence %in% ("High"))
   Simple_Excel(peptide_out, str_c(dpmsr_set$file$extra_prefix,"_Peptide_to_Peptide_Raw.xlsx", collapse = " "))
+  cat(file=stderr(), "peptide_to_peptide complete", "\n")
   return(peptide_out)
 }
 
 #Top.Apex.RT.in.min,
 #----------------------------------------------------------------------------------------
 isoform_to_isoform <- function(){
+  cat(file=stderr(), "isoform_to_isoform", "\n")
   peptide_groups <- dpmsr_set$data$data_raw_isoform
-  peptide_out <- peptide_groups %>% dplyr::select(contains("Confidence.by"), Master.Protein.Accessions, 
-                                                  Master.Protein.Descriptions, Sequence, Modifications,
-                                                  contains('Positions.'),
-                                                  Top.Apex.RT.in.min, 
-                                                  contains('Ions.Score.by.Search.Engine.'), 
-                                                  contains("Percolator.q.Value"), contains("Abundance.F"))
+  peptide_out <- try(peptide_groups %>% dplyr::select(contains("Confidence.by"), Master.Protein.Accessions, 
+                                                    Master.Protein.Descriptions, Sequence, Modifications,
+                                                    contains('Positions.'),
+                                                    Top.Apex.RT.in.min, 
+                                                    contains('Ions.Score.by.Search.Engine.'), 
+                                                    contains("Percolator.q.Value"), contains("Abundance.F")))
+  if (class(peptide_out) == 'try-error') {
+    cat(file=stderr(), "column select error - retry", "\n")
+    peptide_out <- peptide_groups %>% dplyr::select(contains("Confidence.by"), Master.Protein.Accessions, 
+                                                    Master.Protein.Descriptions, Sequence, Modifications,
+                                                    contains('Positions.'),
+                                                    contains('RT.in.min.by.'), 
+                                                    contains('Ions.Score.by.Search.Engine.'), 
+                                                    contains("Percolator.q.Value"), contains("Abundance.F"))
+    }
+  
   colnames(peptide_out)[1:9] <- c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Positions", "Retention.Time", "Ion.Score", "q-Value")
   peptide_out <- subset(peptide_out, Confidence %in% ("High"))
   Simple_Excel(peptide_out, str_c(dpmsr_set$file$extra_prefix,"_Isoform_to_Isoform_Raw.xlsx", collapse = " "))
+  cat(file=stderr(), "isoform_to_isoform complete", "\n")
   return(peptide_out)
 }
 

@@ -141,13 +141,16 @@ load_data <- function(session, input, volumes){
 prepare_data <- function(session, input) {  #function(data_type, data_file_path){
    data_type <- input$radio_input
    if(as.numeric(data_type) == 1){
+    cat(file=stderr(), "prepare data_type 1", "\n")
     dpmsr_set$data$data_peptide_start <<- protein_to_peptide()
     dpmsr_set$data$data_protein_start <<- protein_to_protein()
     dpmsr_set$y$state <<- "Peptide"
   }else if(data_type ==2){
+    cat(file=stderr(), "prepare data_type 2", "\n")
     dpmsr_set$data$data_protein_start <<- protein_to_protein()
     dpmsr_set$y$state <<- "Protein"
   }else if(data_type ==3){
+    cat(file=stderr(), "prepare data_type 3", "\n")
     dpmsr_set$data$data_peptide_start <<- peptide_to_peptide()
     dpmsr_set$y$state <<- "Peptide"
   }else{msgBox <- tkmessageBox(title = "Whoops",
