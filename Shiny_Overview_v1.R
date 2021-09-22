@@ -31,6 +31,12 @@ project_overview <- function(){
   stat_list[["GlyGly"]] <- length(df_peptide$GG[df_peptide$GG==TRUE])
   stat_list[["Missed%"]] <- round(length(dpmsr_set$data$data_raw_peptide$Number.of.Missed.Cleavages[dpmsr_set$data$data_raw_peptide$Number.of.Missed.Cleavages>0])/count_peptides*100,1)
   stat_list[["Semi%"]] <- round(length(df_peptide$semi[df_peptide$semi==0]) /count_peptides *100,1) 
+  test_data <- dpmsr_set$data$data_raw_peptide %>% dplyr::select(contains("Abundance.F"))
+  total_missing <- table(is.na(test_data))
+  stat_list[["Peptide_IDs"]] <- total_missing[1]
+  stat_list[["Peptide_Missing"]] <- total_missing[2]
+  stat_list[["Missing%"]] <- round(total_missing[2]/total_missing[1]*100,1)
+  
   
   dpmsr_set$overview <<- stat_list
 
@@ -235,9 +241,12 @@ project_overview <- function(){
     
   
     dpmsr_set$data$data_raw_msms <<- NULL
-    #dpmsr_set$data$data_raw_psm <<- NULL
-    #dpmsr_set$data$data_raw_decoypsm <<- NULL
+    dpmsr_set$data$data_raw_psm <<- NULL
+    dpmsr_set$data$data_raw_decoypsm <<- NULL
+    dpmsr_set$data$data_raw_decoypeptide <<- NULL
+    dpmsr_set$data$data_raw_decoyprotein <<- NULL
     dpmsr_set$data$data_features <<- NULL
+    gc()
 }
 
 

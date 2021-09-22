@@ -132,5 +132,13 @@ check_sample_id <- function() {
   cat(file=stderr(), "check_sample_id...end", "\n")
   }
 
-
+#----------------------------------------------------------------------------------------
+garbage_cleanup <- function(){
+  # reduce size of objects in dpmsr_set
+  cat(file=stderr(), "garbage cleanup...", "\n")
+ 
+  
+   
+  
+}
 

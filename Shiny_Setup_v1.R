@@ -1,5 +1,6 @@
 
 load_dpmsr_set <- function(session, input, volumes){
+  cat(file=stderr(), "load_dpmsr_set...", "\n")
   design_list <- c("General", "QC", "Fill_Norm", "Filters", "Protein", "TMT_PTM", "Report")
   design_data <- parseFilePaths(volumes, input$design_file)
   new_path <- str_extract(design_data$datapath, "^/.*/")
@@ -45,6 +46,7 @@ load_dpmsr_set <- function(session, input, volumes){
 #------------------------
 
 check_comp_name_length <- function(){
+  cat(file=stderr(), "check_comp_name_length...", "\n")
   names <- unique(dpmsr_set$design$Group)
   names_len <- sort(nchar(names), decreasing = TRUE)
   longest_comp <- names_len[1] + names_len[2]
@@ -66,6 +68,7 @@ dpmsr_set_create <- function(design){
 #----------------------------------------------------------------------------------------
 #load design elements into dpmsr_set
 load_design <- function(session, input){
+  cat(file=stderr(), "load_design...", "\n")
   design_list <- c("General", "QC", "Fill_Norm", "Filters", "Protein", "TMT_PTM", "Report")
   for(x in design_list){
     for(i in 1:nrow(dpmsr_set$design[[x]]) ){
@@ -87,16 +90,26 @@ load_design <- function(session, input){
 
 #----------------------------------------------------------------------------------------
 load_data <- function(session, input, volumes){
+  cat(file=stderr(), "load_data...", "\n")
   raw_data <- parseFilePaths(dpmsr_set$x$volumes, input$raw_files)
   for (i in 1:nrow(raw_data) ){
     raw_name <- raw_data$datapath[i]
     if (grepl("_PeptideGroups.txt", raw_name)){
       cat(file=stderr(), "loading raw peptide data...", "\n")
-      dpmsr_set$data$data_raw_peptide <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
+      temp_df <- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
+      dpmsr_set$data$data_raw_peptide <<- temp_df %>% dplyr::select(contains(
+        c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Abundance.F", "Retention.Time", "Ion.Score",
+          "q-Value", "RT.in.min", "mz.in.Da.by.Search.Engine.", "Charge.by.Search.Engine.", "Quan.Info")
+      ))
       save_data(raw_name)
     } else if (grepl("_Proteins.txt", raw_name)){
       cat(file=stderr(), "loading raw protein data...", "\n")
-      dpmsr_set$data$data_raw_protein <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
+      temp_df <- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
+      dpmsr_set$data$data_raw_protein <<- temp_df %>% dplyr::select(contains(
+        c("Master", "Protein.FDR.Confidence.Combined", "Number.of.Razor.Peptides", "Accession", "Description",
+          "Number.of.Peptides", "Coverage.in.Percent", "Number.of.Unique.Peptides", "Number.of.Razor.Peptides",
+          "Number.of.Protein.Unique.Peptides", "Abundance.F")
+      ))
       save_data(raw_name)
     } else if (grepl("_PSMs.txt", raw_name)){
       cat(file=stderr(), "loading raw psm data...", "\n")
@@ -133,12 +146,13 @@ load_data <- function(session, input, volumes){
     }
   }
   save_data(dpmsr_set$x$design_name)
-  
+  gc()
 }
 
 
 #----------------------------------------------------------------------------------------
 prepare_data <- function(session, input) {  #function(data_type, data_file_path){
+  cat(file=stderr(), "prepare_data...", "\n")
    data_type <- input$radio_input
    if(as.numeric(data_type) == 1){
     cat(file=stderr(), "prepare data_type 1", "\n")
@@ -159,11 +173,13 @@ prepare_data <- function(session, input) {  #function(data_type, data_file_path)
    if(input$checkbox_isoform){
      dpmsr_set$data$data_peptide_isoform_start <<- isoform_to_isoform()
    }
+   gc()
 }
 
 
 #----------------------------------------------------------------------------------------
 set_sample_groups<- function(){
+  cat(file=stderr(), "set_sample_groups...", "\n")
   sample_info <- dpmsr_set$design
   
   # number of groups, comparisons are not hardcoded, R will extract information from excel SampleData file
@@ -264,6 +280,7 @@ set_sample_groups<- function(){
 
 #----------------------------------------------------------------------------------------
 isoform_set <- function(){
+  cat(file=stderr(), "isoform_set...", "\n")
   norm_dir <- create_dir(str_c(dpmsr_set$file$data_dir,"//Norm"))
   norm_prefix <- str_c(norm_dir, file_prefix)
   if(ptm_peptide_only){norm_data <- special_norm(data_raw) }

@@ -228,6 +228,9 @@ shinyServer(function(input, output, session) {
           
           removeModal()
           inputfilterapply_render(session, input, output)
+          
+          garbage_cleanup()
+          file_touch("restart.txt", access_time = Sys.time(), modification_time = Sys.time())
       }
     
   })
@@ -1402,24 +1405,26 @@ observeEvent(input$data_show, {
     #-------------------------------------------------------------------------------------------------------------   
     observeEvent(input$save_customer_dpmsr_set, { 
       
-      df <- dpmsr_set
+      dpmsr_set_temp <- dpmsr_set
       
-      df$data$data_raw_decoypsm <- NULL
-      df$data$data_raw_decoypeptide <- NULL
-      df$data$data_raw_decoyprotein <- NULL
-      df$data$data_raw_inputfiles <- NULL
-      df$data$data_raw_psm <- NULL
-      df$data$data_to_norm <- NULL
-      df$data$Protein_imputed_df <- NULL
-      df$data$protein_missing <- NULL
-      df$data$normalized <- NULL
-      df$data$impute <- NULL
-      df$overview <- NULL
-      df$protocol <- NULL
-      df$data$norm_data <- NULL
+      dpmsr_set$data$data_raw_decoypsm <- NULL
+      dpmsr_set$data$data_raw_decoypeptide <- NULL
+      dpmsr_set$data$data_raw_decoyprotein <- NULL
+      dpmsr_set$data$data_raw_inputfiles <- NULL
+      dpmsr_set$data$data_raw_psm <- NULL
+      dpmsr_set$data$data_to_norm <- NULL
+      dpmsr_set$data$Protein_imputed_df <- NULL
+      dpmsr_set$data$protein_missing <- NULL
+      dpmsr_set$data$normalized <- NULL
+      dpmsr_set$data$impute <- NULL
+      dpmsr_set$overview <- NULL
+      dpmsr_set$protocol <- NULL
+      dpmsr_set$data$norm_data <- NULL
       
-      save_object(df, str_c(dpmsr_set$file$output_dir, input$dpmsr_set_name_customer, ".dpmsr_set"))
-      #save(df, file=str_c(dpmsr_set$file$output_dir, input$dpmsr_set_name_customer, ".dpmsr_set"))
+      save(dpmsr_set, file=str_c(dpmsr_set$file$output_dir, input$dpmsr_set_name_customer, ".dpmsr_set"))
+
+      dpmsr_set <- dpmsr_set_temp
+      dpmsr_set_temp <- NULL
     })     
     
     
@@ -1445,8 +1450,9 @@ observeEvent(input$data_show, {
       dpmsr_set$file$string <<- str_c(dpmsr_set$file$output_dir, "String//")
       dpmsr_set$file$extra_prefix2 <<- str_c(dpmsr_set$file$extra_dir, dpmsr_set$x$file_prefix)
       #create dir for excel reports
-      create_dir(str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp))
-      
+      if(!is_dir(str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp))) {
+        create_dir(str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp))
+      }
       #reload shiny 
       update_widget_all(session, input, output)
       update_dpmsr_set_from_widgets(session, input)

@@ -2,7 +2,7 @@
 #----------------------------------------------------------------------------------
 
 inputloaddata_render <- function(session, input, output){
-  
+  cat(file=stderr(), "inputloaddata_render...", "\n")
   output$text1 <- renderText({str_c("Original Data Format:  ",  as.character(dpmsr_set$x$raw_data_input)   )  })
   output$text2 <- renderText({str_c("Current Data Format:  ",  as.character(dpmsr_set$y$state)   )  })
   output$text3 <- renderText({str_c(as.character(dpmsr_set$y$state), " Count:  ",  nrow(dpmsr_set$data$data_peptide_start) )   })
@@ -61,7 +61,7 @@ inputloaddata_render <- function(session, input, output){
 #----------------------------------------------------------------------------------
 
 inputfilterapply_render <- function(session, input, output){
-  
+  cat(file=stderr(), "inputfilterapply_render...", "\n")
   output$text4 <- renderText({str_c("Filtered ", as.character(dpmsr_set$y$state), " Count:  ",  nrow(dpmsr_set$data$data_peptide) )   })
   
   output$raw_bar <- renderImage({
@@ -80,7 +80,7 @@ inputfilterapply_render <- function(session, input, output){
 #----------------------------------------------------------------------------------
 
 inputnorm_render <- function(session, input, output){
-  
+  cat(file=stderr(), "inputnorm_render...", "\n")
   output$histogram <- renderImage({
     list(src=str_c(dpmsr_set$file$qc_dir,"Intensity_Histogram.png"), contentType = 'image/png', width=600, height=500, alt="this is alt text")
   }, deleteFile = FALSE)
@@ -105,7 +105,7 @@ inputnorm_render <- function(session, input, output){
 #----------------------------------------------------------------------------------
 
 qc_spike_render <- function(session, input, output){
-  
+  cat(file=stderr(), "qc_spike_render...", "\n")
   output$data_CV <- renderRHandsontable({
     cv_table <- dpmsr_set$data$summary_cv
     cv_table [,-1] <-trunc(round(cv_table [,-1],0))
@@ -135,90 +135,90 @@ qc_spike_render <- function(session, input, output){
   #----------------------------------------------------------------------------------
   
   qc_render <- function(session, input, output){
+    cat(file=stderr(), "qc_render...", "\n")
+    qc_spike_render(session, input, output)
+      
+    output$cv_plot <- renderImage({
+      list(src=str_c(dpmsr_set$file$qc_dir, "CV_barplot.png"),  
+           contentType = 'image/png', width=800, height=400, alt="this is alt text")
+    }, deleteFile = FALSE)
     
-  qc_spike_render(session, input, output)
+    output$qc_spike_plot <- renderImage({
+      list(src=str_c(dpmsr_set$file$qc_dir, input$norm_type, "_QC_Spike_barplot.png"),  
+           contentType = 'image/png', width=800, height=400, alt="this is alt text")
+    }, deleteFile = FALSE)
     
-  output$cv_plot <- renderImage({
-    list(src=str_c(dpmsr_set$file$qc_dir, "CV_barplot.png"),  
-         contentType = 'image/png', width=800, height=400, alt="this is alt text")
-  }, deleteFile = FALSE)
-  
-  output$qc_spike_plot <- renderImage({
-    list(src=str_c(dpmsr_set$file$qc_dir, input$norm_type, "_QC_Spike_barplot.png"),  
-         contentType = 'image/png', width=800, height=400, alt="this is alt text")
-  }, deleteFile = FALSE)
-  
-  output$adh_plot <- renderImage({
-    list(src=str_c(dpmsr_set$file$qc_dir, "ADH_barplot.png"),  
-         contentType = 'image/png', width=800, height=400, alt="this is alt text")
-  }, deleteFile = FALSE)
-  
-  
-  output$adh_boxplot <- renderImage({
-    list(src=str_c(dpmsr_set$file$qc_dir, "ADH_boxplot.png"),  
-         contentType = 'image/png', width=800, height=400, alt="this is alt text")
-  }, deleteFile = FALSE)
-  
-  output$impute_plot <- renderImage({
-    list(src=str_c(dpmsr_set$file$output_dir, "impute//impute_", input$plot_select, ".png"),  
-         contentType = 'image/png', width=500, height=400, alt="this is alt text")
-  }, deleteFile = FALSE)
-  
-  output$sl_plot <- renderImage({
-    list(src=str_c(dpmsr_set$file$output_dir, "sl//sl_", input$plot_select,".png"),  
-         contentType = 'image/png', width=500, height=400, alt="this is alt text")
-  }, deleteFile = FALSE)
-  
-  output$sltmm_plot <- renderImage({
-    list(src=str_c(dpmsr_set$file$output_dir, "sltmm//sltmm_", input$plot_select, ".png"),  
-         contentType = 'image/png', width=500, height=400, alt="this is alt text")
-  }, deleteFile = FALSE)
-  
-  output$tmm_plot <- renderImage({
-    list(src=str_c(dpmsr_set$file$output_dir, "tmm//tmm_", input$plot_select, ".png"),  
-         contentType = 'image/png', width=500, height=400, alt="this is alt text")
-  }, deleteFile = FALSE)
-  
-  output$quantile_plot <- renderImage({
-    list(src=str_c(dpmsr_set$file$output_dir, "quantile//quantile_", input$plot_select, ".png"),  
-         contentType = 'image/png', width=500, height=400, alt="this is alt text")
-  }, deleteFile = FALSE)
-  
-  output$loess_plot <- renderImage({
-    list(src=str_c(dpmsr_set$file$output_dir, "loess//loess_", input$plot_select, ".png"),  
-         contentType = 'image/png', width=500, height=400, alt="this is alt text")
-  }, deleteFile = FALSE)
-  
-  output$lr_plot <- renderImage({
-    list(src=str_c(dpmsr_set$file$output_dir, "lr//lr_", input$plot_select, ".png"),  
-         contentType = 'image/png', width=500, height=400, alt="this is alt text")
-  }, deleteFile = FALSE)
-  
-  output$ai_plot <- renderImage({
-    list(src=str_c(dpmsr_set$file$output_dir, "ai//ai_", input$plot_select, ".png"),  
-         contentType = 'image/png', width=500, height=400, alt="this is alt text")
-  }, deleteFile = FALSE)
-  
-  output$mi_plot <- renderImage({
-    list(src=str_c(dpmsr_set$file$output_dir, "mi//mi_", input$plot_select, ".png"),  
-         contentType = 'image/png', width=500, height=400, alt="this is alt text")
-  }, deleteFile = FALSE)
-  
-  output$ti_plot <- renderImage({
-    list(src=str_c(dpmsr_set$file$output_dir, "ti//ti_", input$plot_select, ".png"),  
-         contentType = 'image/png', width=500, height=400, alt="this is alt text")
-  }, deleteFile = FALSE)
-  
-  output$vsn_plot <- renderImage({
-    list(src=str_c(dpmsr_set$file$output_dir, "vsn//vsn_", input$plot_select, ".png"),  
-         contentType = 'image/png', width=500, height=400, alt="this is alt text")
-  }, deleteFile = FALSE)
-  
-  output$protein_plot <- renderImage({
-    list(src=str_c(dpmsr_set$file$output_dir, "protein//protein_", input$plot_select, ".png"),  
-         contentType = 'image/png', width=500, height=400, alt="this is alt text")
-  }, deleteFile = FALSE)
-  
+    output$adh_plot <- renderImage({
+      list(src=str_c(dpmsr_set$file$qc_dir, "ADH_barplot.png"),  
+           contentType = 'image/png', width=800, height=400, alt="this is alt text")
+    }, deleteFile = FALSE)
+    
+    
+    output$adh_boxplot <- renderImage({
+      list(src=str_c(dpmsr_set$file$qc_dir, "ADH_boxplot.png"),  
+           contentType = 'image/png', width=800, height=400, alt="this is alt text")
+    }, deleteFile = FALSE)
+    
+    output$impute_plot <- renderImage({
+      list(src=str_c(dpmsr_set$file$output_dir, "impute//impute_", input$plot_select, ".png"),  
+           contentType = 'image/png', width=500, height=400, alt="this is alt text")
+    }, deleteFile = FALSE)
+    
+    output$sl_plot <- renderImage({
+      list(src=str_c(dpmsr_set$file$output_dir, "sl//sl_", input$plot_select,".png"),  
+           contentType = 'image/png', width=500, height=400, alt="this is alt text")
+    }, deleteFile = FALSE)
+    
+    output$sltmm_plot <- renderImage({
+      list(src=str_c(dpmsr_set$file$output_dir, "sltmm//sltmm_", input$plot_select, ".png"),  
+           contentType = 'image/png', width=500, height=400, alt="this is alt text")
+    }, deleteFile = FALSE)
+    
+    output$tmm_plot <- renderImage({
+      list(src=str_c(dpmsr_set$file$output_dir, "tmm//tmm_", input$plot_select, ".png"),  
+           contentType = 'image/png', width=500, height=400, alt="this is alt text")
+    }, deleteFile = FALSE)
+    
+    output$quantile_plot <- renderImage({
+      list(src=str_c(dpmsr_set$file$output_dir, "quantile//quantile_", input$plot_select, ".png"),  
+           contentType = 'image/png', width=500, height=400, alt="this is alt text")
+    }, deleteFile = FALSE)
+    
+    output$loess_plot <- renderImage({
+      list(src=str_c(dpmsr_set$file$output_dir, "loess//loess_", input$plot_select, ".png"),  
+           contentType = 'image/png', width=500, height=400, alt="this is alt text")
+    }, deleteFile = FALSE)
+    
+    output$lr_plot <- renderImage({
+      list(src=str_c(dpmsr_set$file$output_dir, "lr//lr_", input$plot_select, ".png"),  
+           contentType = 'image/png', width=500, height=400, alt="this is alt text")
+    }, deleteFile = FALSE)
+    
+    output$ai_plot <- renderImage({
+      list(src=str_c(dpmsr_set$file$output_dir, "ai//ai_", input$plot_select, ".png"),  
+           contentType = 'image/png', width=500, height=400, alt="this is alt text")
+    }, deleteFile = FALSE)
+    
+    output$mi_plot <- renderImage({
+      list(src=str_c(dpmsr_set$file$output_dir, "mi//mi_", input$plot_select, ".png"),  
+           contentType = 'image/png', width=500, height=400, alt="this is alt text")
+    }, deleteFile = FALSE)
+    
+    output$ti_plot <- renderImage({
+      list(src=str_c(dpmsr_set$file$output_dir, "ti//ti_", input$plot_select, ".png"),  
+           contentType = 'image/png', width=500, height=400, alt="this is alt text")
+    }, deleteFile = FALSE)
+    
+    output$vsn_plot <- renderImage({
+      list(src=str_c(dpmsr_set$file$output_dir, "vsn//vsn_", input$plot_select, ".png"),  
+           contentType = 'image/png', width=500, height=400, alt="this is alt text")
+    }, deleteFile = FALSE)
+    
+    output$protein_plot <- renderImage({
+      list(src=str_c(dpmsr_set$file$output_dir, "protein//protein_", input$plot_select, ".png"),  
+           contentType = 'image/png', width=500, height=400, alt="this is alt text")
+    }, deleteFile = FALSE)
+    
 }
 
 
@@ -227,7 +227,7 @@ qc_spike_render <- function(session, input, output){
 
 inputproteinselect_render <- function(session, input, output){
   
-  
+  cat(file=stderr(), "inputproteinselect_render...", "\n")
   output$impute_plot_select <- renderImage({
     list(src=str_c(dpmsr_set$file$output_dir, "impute//", input$protein_select, "_impute_barplot.png"),  
          contentType = 'image/png', width=500, height=400, alt="this is alt text")
