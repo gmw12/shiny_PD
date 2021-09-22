@@ -100,16 +100,9 @@ isoform_to_isoform <- function(){
                                                     contains('Ions.Score.by.Search.Engine.'), 
                                                     contains("Percolator.q.Value"), contains("Abundance.F"))
     }
-  
-  colnames(peptide_out)[1:9] <- c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Positions", "Retention.Time", "Ion.Score", "q-Value")
-=======
-  peptide_out <- peptide_groups %>% dplyr::select(contains("Confidence.by"), Master.Protein.Accessions, 
-                                                  Master.Protein.Descriptions, Sequence, Modifications,
-                                                  Top.Apex.RT.in.min, 
-                                                  contains('Ions.Score.by.Search.Engine.'), 
-                                                  contains("Percolator.q.Value"), contains("Abundance.F"))
+
   colnames(peptide_out)[1:8] <- c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Retention.Time", "Ion.Score", "q-Value")
->>>>>>> 0eb546421cb0412c26569d0c38dd0913ed1d7889
+
   peptide_out <- subset(peptide_out, Confidence %in% ("High"))
   Simple_Excel(peptide_out, str_c(dpmsr_set$file$extra_prefix,"_Isoform_to_Isoform_Raw.xlsx", collapse = " "))
   cat(file=stderr(), "isoform_to_isoform complete", "\n")
