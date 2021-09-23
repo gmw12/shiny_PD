@@ -98,8 +98,8 @@ load_data <- function(session, input, volumes){
       cat(file=stderr(), "loading raw peptide data...", "\n")
       temp_df <- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
       dpmsr_set$data$data_raw_peptide <<- temp_df %>% dplyr::select(contains(
-        c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Abundance.F", "Retention.Time", "Ion.Score",
-          "q-Value", "RT.in.min", "mz.in.Da.by.Search.Engine.", "Charge.by.Search.Engine.", "Quan.Info")
+        c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Abundance.F", "Retention.Time", "Ion.Score", "Percolator.SVM",
+          "q.Value", "RT.in.min", "mz.in.Da.by.Search.Engine.", "Charge.by.Search.Engine.", "Quan.Info")
       ))
       save_data(raw_name)
     } else if (grepl("_Proteins.txt", raw_name)){
@@ -137,7 +137,11 @@ load_data <- function(session, input, volumes){
       save_data(raw_name)
     } else if (grepl("_PeptideIsoforms.txt", raw_name)){
       cat(file=stderr(), "loading raw peptide isoform data...", "\n")
-      dpmsr_set$data$data_raw_isoform <<- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
+      temp_df <- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
+      dpmsr_set$data$data_raw_isoform <<- temp_df %>% dplyr::select(contains(
+        c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Abundance.F", "Retention.Time", "Ion.Score", "Percolator.SVM",
+          "q.Value", "RT.in.min", "mz.in.Da.by.Search.Engine.", "Charge.by.Search.Engine.", "Quan.Info")
+      ))
       save_data(raw_name)
     }else if (grepl("_LCMSFeatures.txt", raw_name)){
       cat(file=stderr(), "loading feature data...", "\n")

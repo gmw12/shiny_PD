@@ -71,9 +71,15 @@ peptide_to_peptide <- function(){
   peptide_out <- peptide_groups %>% dplyr::select(Confidence, Master.Protein.Accessions, Master.Protein.Descriptions, 
                                                 Sequence, Modifications,
                                                 contains('RT.in.min.by.Search.Engine.'), 
-                                                contains('Ions.Score.by.Search.Engine.'), 
+                                                contains('Percolator.SVM'),  
                                                 contains("Percolator.q.Value"), contains("Abundance.F"))
-  colnames(peptide_out)[1:8] <- c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Retention.Time", "Ion.Score", "q-Value")
+  
+  if(ncol(peptide_out) != (8 + dpmsr_set$y$sample_number))
+  {
+    shinyalert("Oops!", "Number of columns extracted is not as expected", type = "error")  
+  }
+  
+  colnames(peptide_out)[1:8] <- c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Retention.Time", "SVM.Score", "q-Value")
   peptide_out <- subset(peptide_out, Confidence %in% ("High"))
   Simple_Excel(peptide_out, str_c(dpmsr_set$file$extra_prefix,"_Peptide_to_Peptide_Raw.xlsx", collapse = " "))
   cat(file=stderr(), "peptide_to_peptide complete", "\n")
@@ -89,7 +95,7 @@ isoform_to_isoform <- function(){
                                                     Master.Protein.Descriptions, Sequence, Modifications,
                                                     contains('Positions.'),
                                                     Top.Apex.RT.in.min, 
-                                                    contains('Ions.Score.by.Search.Engine.'), 
+                                                    contains('Percolator.SVM'),  
                                                     contains("Percolator.q.Value"), contains("Abundance.F")))
   if (class(peptide_out) == 'try-error') {
     cat(file=stderr(), "column select error - retry", "\n")
@@ -97,11 +103,16 @@ isoform_to_isoform <- function(){
                                                     Master.Protein.Descriptions, Sequence, Modifications,
                                                     contains('Positions.'),
                                                     contains('RT.in.min.by.'), 
-                                                    contains('Ions.Score.by.Search.Engine.'), 
+                                                    contains('Percolator.SVM'), 
                                                     contains("Percolator.q.Value"), contains("Abundance.F"))
-    }
-
-  colnames(peptide_out)[1:8] <- c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Retention.Time", "Ion.Score", "q-Value")
+  }
+  
+  if(ncol(peptide_out) != (8 + dpmsr_set$y$sample_number))
+  {
+    shinyalert("Oops!", "Number of columns extracted is not as expected", type = "error")  
+  }
+  
+  colnames(peptide_out)[1:8] <- c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Retention.Time", "SVM.Score", "q-Value")
 
   peptide_out <- subset(peptide_out, Confidence %in% ("High"))
   Simple_Excel(peptide_out, str_c(dpmsr_set$file$extra_prefix,"_Isoform_to_Isoform_Raw.xlsx", collapse = " "))
