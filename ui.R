@@ -596,9 +596,10 @@ shinyUI(
                                             checkboxInput("stats_peptide_minimum", label = "Require minimum # of peptides per protein", value = 0),
                                             numericInput("stats_peptide_minimum_factor", label="Peptide Minimum", value = 1),
                                             h5('Extra Stats'),
-                                            checkboxInput("checkbox_adjpval", label = "Include bonferroni adjusted pvalue?"),
+                                            checkboxInput("checkbox_adjpval", label = "Include adjusted pvalue?"),
                                             selectInput("padjust_options", label = "p.adjust method", choices = list("holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr"), 
                                                        selected = "bonferroni"),
+                                            checkboxInput("checkbox_filter_adjpval", label = "Filter with adjusted pvalue?"),
                                             checkboxInput("checkbox_cohensd", label = "Include Cohen's D?"),
                                             checkboxInput("checkbox_cohensd_hedges", label = "Use Hedge's Correction (low N)?"),
                                             checkboxInput("checkbox_limmapvalue", label = "Include Limma Pvalue?"),
@@ -1773,6 +1774,9 @@ shinyUI(
                                    ),
                                    column(width=2, offset =0,  
                                           numericInput("pval_motif", label="MotifX pval (x1e-5)", value =1, width = 150)
+                                   ),
+                                   column(width=2, offset =0,  
+                                          numericInput("motif_min_seq", label="Minimum sequences", value =20, width = 150)
                                    ),
                                    column(width=3, offset =0,  
                                           textInput("protein_filter", label="Specific Protein Filter Accession", value ="", width = 250)

@@ -13,7 +13,8 @@ run_motifx <- function(input, output, data_in){
   s <- parsed_ref$Sequence
   w <- 15
   pval_motif <- input$pval_motif * 1e-5
-  
+  min_seq <- as.integer(input$motif_min_seq)
+
   # parsed_refx <<- parsed_ref
   # sx <<- s
   # wx <<- w
@@ -28,29 +29,40 @@ run_motifx <- function(input, output, data_in){
     filter_df <- subset(data_in, data_in$Stats == "Up" ) 
     FC <- "Up"
     ptm_data <- create_motifx_input(filter_df, parsed_ref)
-    motifx_S <- motifx_calc(s, "S", w, "Up", ptm_data, parsed_ref, pval_motif, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
-    motifx_T <- motifx_calc(s, "T", w, "Up", ptm_data, parsed_ref, pval_motif, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
-    motifx_Y <- motifx_calc(s, "Y", w, "Up", ptm_data, parsed_ref, pval_motif, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+    cat(file=stderr(), str_c("ptm_data has ", nrow(ptm_data), " entries") , "\n") 
+    motifx_S <- motifx_calc(s, "S", w, "Up", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+    cat(file=stderr(), str_c("motifx_S has ", nrow(motifx_S), " entries") , "\n") 
+    motifx_T <- motifx_calc(s, "T", w, "Up", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+    cat(file=stderr(), str_c("motifx_T has ", nrow(motifx_T), " entries") , "\n") 
+    motifx_Y <- motifx_calc(s, "Y", w, "Up", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+    cat(file=stderr(), str_c("motifx_Y has ", nrow(motifx_Y), " entries") , "\n") 
     motifx_up <- rbind(motifx_S, motifx_T, motifx_Y)
+    cat(file=stderr(), str_c("motifx_up has ", nrow(motifx_up), " entries") , "\n") 
     
   cat(file=stderr(), "motifx down..." , "\n")     
     filter_df <- subset(data_in, data_in$Stats == "Down" )
     FC <<- "Down"
     ptm_data <- create_motifx_input(filter_df, parsed_ref)
-    motifx_S <- motifx_calc(s, "S", w, "Down", ptm_data, parsed_ref, pval_motif, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
-    motifx_T <- motifx_calc(s, "T", w, "Down", ptm_data, parsed_ref, pval_motif, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
-    motifx_Y <- motifx_calc(s, "Y", w, "Down", ptm_data, parsed_ref, pval_motif, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+    motifx_S <- motifx_calc(s, "S", w, "Down", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+    motifx_T <- motifx_calc(s, "T", w, "Down", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+    motifx_Y <- motifx_calc(s, "Y", w, "Down", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
     motifx_down <- rbind(motifx_S, motifx_T, motifx_Y)
     
   cat(file=stderr(), "motifx updown..." , "\n")  
     filter_df<- subset(data_in, data_in$Stats == "Up" | data_in$Stats == "Down") 
     FC <- "UpDown"
     ptm_data <- create_motifx_input(filter_df, parsed_ref)
-    motifx_S <- motifx_calc(s, "S", w, "UpDown", ptm_data, parsed_ref, pval_motif, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
-    motifx_T <- motifx_calc(s, "T", w, "UpDown", ptm_data, parsed_ref, pval_motif, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
-    motifx_Y <- motifx_calc(s, "Y", w, "UpDown", ptm_data, parsed_ref, pval_motif, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+    motifx_S <- motifx_calc(s, "S", w, "UpDown", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+    motifx_T <- motifx_calc(s, "T", w, "UpDown", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+    motifx_Y <- motifx_calc(s, "Y", w, "UpDown", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
     motifx_updown <- rbind(motifx_S, motifx_T, motifx_Y)
     
+  cat(file=stderr(), str_c("compiling motifs... ", nrow(motifx_up), "... ", nrow(motifx_down), "... ", nrow(motifx_updown)) , "\n")   
+  
+  test1 <<- motifx_up
+  test2 <<- motifx_down
+  test3 <<- motifx_updown
+  
     motifx_all <- rbind(motifx_up, motifx_down, motifx_updown)
     
     cat(file=stderr(), "write motifx excel..." , "\n")  
@@ -68,9 +80,9 @@ run_motifx <- function(input, output, data_in){
 
 #--------------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------------
-#motifx_S <- motifx_calc(s, "S", w, "Up", ptm_data, parsed_ref, pval_motif, input$pvalue_cutoff, input$foldchange_cutoff)
-motifx_calc <- function(s, c, w, FC, ptm_data, parsed_ref, pval_motif, pval_filter, fc_filter, comparison, pvalcutoff){
 
+motifx_calc <- function(s, c, w, FC, ptm_data, parsed_ref, pval_motif, min_seq, pval_filter, fc_filter, comparison){
+  
   extractBack_Example <- extractBackground(s, c, w)
   
   # Locate PTMs within full-length proteins and extract neighboring motifs
@@ -78,22 +90,29 @@ motifx_calc <- function(s, c, w, FC, ptm_data, parsed_ref, pval_motif, pval_filt
   
   # Reformat foreground sequences for motif-x
   foreground_Seqs <- unlist(strsplit(phindPTMs_Example[,"Flank_Seq"], split = "[.]"))
+  
   foreground_Seqs_Filtered <- foreground_Seqs[which(lapply(foreground_Seqs, nchar)==15)]
   
-  # Run motif-x using foreground and background sequences from PTMphinder functions above
-  motifx_data <- motifx(foreground_Seqs_Filtered, extractBack_Example, central.res = c, min.seqs = 20, pval.cutoff = pval_motif)
+  cat(file=stderr(), str_c("Number of foreground sequences for = ", length(foreground_Seqs_Filtered)), "\n")  
   
-  if (!is.null(motifx_data)){
+  # Run motif-x using foreground and background sequences from PTMphinder functions above
+  motifx_data <- try(motifx(foreground_Seqs_Filtered, extractBack_Example, central.res = c, min.seqs = min_seq, pval.cutoff = pval_motif))
+  
+  if ((!is.null(motifx_data)) & (class(motifx_data) != "try-error")){
     motifx_data <- add_column(motifx_data, FC, .before = 1)
     motifx_data <- add_column(motifx_data, pval_filter, .before = 1)
     motifx_data <- add_column(motifx_data, fc_filter, .before = 1)
     motifx_data <- add_column(motifx_data, c, .before = 1)
     motifx_data <- add_column(motifx_data, comparison, .before = 1)
     names(motifx_data)[1:5] <- c("comparison", "central.res", "foldchange", "pval", "direction")
+  } else {
+    motifx_data <- NULL
   }
   
+  cat(file=stderr(), str_c("Number of motifs for ", c," = ", nrow(motifx_data)), "\n") 
+  
   return(motifx_data)
-}
+} 
 
 
 

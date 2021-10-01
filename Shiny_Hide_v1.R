@@ -540,8 +540,11 @@
    observe({
      if(input$checkbox_adjpval){
        shinyjs::show("padjust_options") 
+       shinyjs::show("checkbox_filter_adjpval") 
      }else{
        shinyjs::hide("padjust_options") 
+       shinyjs::hide("checkbox_filter_adjpval") 
+       updateCheckboxInput(session, "checkbox_filter_adjpval", value = FALSE) 
      }
    })
    

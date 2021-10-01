@@ -176,59 +176,59 @@ set_stat_groups <- function(session, input, output){
 }
 
 
-#--------------------------------------------------------------------------------------------------------------------------------
+#----no longer used----------------------------------------------------------------------------------------------------------------------------
 #Fold change, pvalue, export volcano, return organized table for output-------------------------------------------------
-stat_calc <- function(session, input, output) {
-  data_in <- dpmsr_set$data$final[[input$select_final_data_stats]]
-
-  annotate_in <- data_in[1:dpmsr_set$y$info_columns_final]
-  data_in <- data_in[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)]
-  #start df for stats
-  stat_df <- annotate_in[1:1]
-  imputed_df <- dpmsr_set$data$Protein_imputed_df[3:ncol(dpmsr_set$data$Protein_imputed_df)]  
-  
-  for(i in 1:nrow(dpmsr_set$y$stats$groups)) 
-  {
-    stat_df[ , str_c(dpmsr_set$y$stats$groups$comp_N[i], "_CV")] <- percentCV_gw(data_in[,unlist(dpmsr_set$y$stats$groups$sample_numbers_N[i]) ])
-    stat_df[ , str_c(dpmsr_set$y$stats$groups$comp_D[i], "_CV")] <- percentCV_gw(data_in[,unlist(dpmsr_set$y$stats$groups$sample_numbers_D[i]) ])
-  } 
-
-  stat_df[ , str_c(dpmsr_set$y$stats$comp_spqc, "_CV")] <- percentCV_gw(data_in[unlist(dpmsr_set$y$stats$comp_spqc_sample_numbers)])
-  
-  #generate pvalue and FC for each comparison
-  for(i in 1:nrow(dpmsr_set$y$stats$groups))
-  {
-    comp_N_data <- data_in[,unlist(dpmsr_set$y$stats$groups$sample_numbers_N[i]) ]
-    comp_D_data <- data_in[,unlist(dpmsr_set$y$stats$groups$sample_numbers_D[i]) ]
-    stat_df[ ,dpmsr_set$y$stats$groups$fc[i]] <- foldchange_gw(comp_N_data, comp_D_data)
-    stat_df[ ,dpmsr_set$y$stats$groups$fc2[i]] <- foldchange_decimal_gw(comp_N_data, comp_D_data)
-    stat_df[ ,dpmsr_set$y$stats$groups$pval[i]] <- pvalue_gw(comp_N_data, comp_D_data)
-    #stat_df[ , comp_groups$limma_pval[i]] <- limma_gw(comp_N_data, comp_D_data, comp_groups$comp_name[i], plot_dir)
-    #stat_df[ , comp_groups$exactTest[i]] <- exactTest_gw(comp_N_data, comp_D_data)
-    comp_N_imputed <- imputed_df[,unlist(dpmsr_set$y$stats$groups$sample_numbers_N[i]) ]
-    comp_D_imputed <- imputed_df[,unlist(dpmsr_set$y$stats$groups$sample_numbers_D[i]) ]
-    stat_df[ ,dpmsr_set$y$stats$groups$mf[i]] <- missing_factor_gw(comp_N_imputed, comp_D_imputed)
-  } 
-  
-  # Create final tables--------------------------------------------------
-  if(input$select_final_data_stats == "impute"){
-    colnames(data_in) <- dpmsr_set$design$Header3
-  }else{
-    colnames(data_in) <- dpmsr_set$design$Header2
-  }
-  data_table <- cbind(annotate_in, data_in, stat_df[2:ncol(stat_df)])
-  dpmsr_set$data$stats$final <<- data_table
-  
-  #single shot observers
-  dpmsr_set$data$stats$final_comp <<- input$select_final_data_stats
-  dpmsr_set$y$stats$pvalue_cutoff <<- input$stats_pvalue_cutoff
-  dpmsr_set$y$stats$foldchange_cutoff <<- input$stats_foldchange_cutoff
-  dpmsr_set$y$stats$stats_spqc_cv_filter <<- input$stats_spqc_cv_filter
-  dpmsr_set$y$stats$stats_spqc_cv_filter_factor <<- input$stats_spqc_cv_filter_factor
-  dpmsr_set$y$stats$stats_comp_cv_filter <<- input$stats_spqc_cv_filter
-  dpmsr_set$y$stats$stats_comp_cv_filter_factor <<- input$stats_spqc_cv_filter_factor
-  return()
-}
+# stat_calc <- function(session, input, output) {
+#   data_in <- dpmsr_set$data$final[[input$select_final_data_stats]]
+# 
+#   annotate_in <- data_in[1:dpmsr_set$y$info_columns_final]
+#   data_in <- data_in[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)]
+#   #start df for stats
+#   stat_df <- annotate_in[1:1]
+#   imputed_df <- dpmsr_set$data$Protein_imputed_df[3:ncol(dpmsr_set$data$Protein_imputed_df)]  
+#   
+#   for(i in 1:nrow(dpmsr_set$y$stats$groups)) 
+#   {
+#     stat_df[ , str_c(dpmsr_set$y$stats$groups$comp_N[i], "_CV")] <- percentCV_gw(data_in[,unlist(dpmsr_set$y$stats$groups$sample_numbers_N[i]) ])
+#     stat_df[ , str_c(dpmsr_set$y$stats$groups$comp_D[i], "_CV")] <- percentCV_gw(data_in[,unlist(dpmsr_set$y$stats$groups$sample_numbers_D[i]) ])
+#   } 
+# 
+#   stat_df[ , str_c(dpmsr_set$y$stats$comp_spqc, "_CV")] <- percentCV_gw(data_in[unlist(dpmsr_set$y$stats$comp_spqc_sample_numbers)])
+#   
+#   #generate pvalue and FC for each comparison
+#   for(i in 1:nrow(dpmsr_set$y$stats$groups))
+#   {
+#     comp_N_data <- data_in[,unlist(dpmsr_set$y$stats$groups$sample_numbers_N[i]) ]
+#     comp_D_data <- data_in[,unlist(dpmsr_set$y$stats$groups$sample_numbers_D[i]) ]
+#     stat_df[ ,dpmsr_set$y$stats$groups$fc[i]] <- foldchange_gw(comp_N_data, comp_D_data)
+#     stat_df[ ,dpmsr_set$y$stats$groups$fc2[i]] <- foldchange_decimal_gw(comp_N_data, comp_D_data)
+#     stat_df[ ,dpmsr_set$y$stats$groups$pval[i]] <- pvalue_gw(comp_N_data, comp_D_data)
+#     #stat_df[ , comp_groups$limma_pval[i]] <- limma_gw(comp_N_data, comp_D_data, comp_groups$comp_name[i], plot_dir)
+#     #stat_df[ , comp_groups$exactTest[i]] <- exactTest_gw(comp_N_data, comp_D_data)
+#     comp_N_imputed <- imputed_df[,unlist(dpmsr_set$y$stats$groups$sample_numbers_N[i]) ]
+#     comp_D_imputed <- imputed_df[,unlist(dpmsr_set$y$stats$groups$sample_numbers_D[i]) ]
+#     stat_df[ ,dpmsr_set$y$stats$groups$mf[i]] <- missing_factor_gw(comp_N_imputed, comp_D_imputed)
+#   } 
+#   
+#   # Create final tables--------------------------------------------------
+#   if(input$select_final_data_stats == "impute"){
+#     colnames(data_in) <- dpmsr_set$design$Header3
+#   }else{
+#     colnames(data_in) <- dpmsr_set$design$Header2
+#   }
+#   data_table <- cbind(annotate_in, data_in, stat_df[2:ncol(stat_df)])
+#   dpmsr_set$data$stats$final <<- data_table
+#   
+#   #single shot observers
+#   dpmsr_set$data$stats$final_comp <<- input$select_final_data_stats
+#   dpmsr_set$y$stats$pvalue_cutoff <<- input$stats_pvalue_cutoff
+#   dpmsr_set$y$stats$foldchange_cutoff <<- input$stats_foldchange_cutoff
+#   dpmsr_set$y$stats$stats_spqc_cv_filter <<- input$stats_spqc_cv_filter
+#   dpmsr_set$y$stats$stats_spqc_cv_filter_factor <<- input$stats_spqc_cv_filter_factor
+#   dpmsr_set$y$stats$stats_comp_cv_filter <<- input$stats_spqc_cv_filter
+#   dpmsr_set$y$stats$stats_comp_cv_filter_factor <<- input$stats_spqc_cv_filter_factor
+#   return()
+# }
 
 
 
