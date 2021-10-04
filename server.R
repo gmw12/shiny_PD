@@ -948,13 +948,16 @@ observeEvent(input$data_show, {
       filter_df <- dpmsr_set$data$stats[[comp_string]]
       motif_data <- run_motifx(input, output, filter_df)
       
-      output$motif_table<- renderRHandsontable({
-        rhandsontable(motif_data, rowHeaders = NULL) %>%
-          hot_cols(colWidths = 80, halign = "htCenter" ) %>%
-          hot_col(col = "comparison", halign = "htCenter", colWidths = 150) %>%
-          hot_col(col = "motif", halign = "htCenter", colWidths = 100) %>%
-          hot_col(col = "fold.increase", halign = "htCenter", colWidths = 100)
-      })
+      if (!is.null(motif_data)){
+        output$motif_table<- renderRHandsontable({
+          rhandsontable(motif_data, rowHeaders = NULL) %>%
+            hot_cols(colWidths = 80, halign = "htCenter" ) %>%
+            hot_col(col = "comparison", halign = "htCenter", colWidths = 150) %>%
+            hot_col(col = "motif", halign = "htCenter", colWidths = 100) %>%
+            hot_col(col = "fold.increase", halign = "htCenter", colWidths = 100)
+        })
+      }
+      
       removeModal()
     })
 

@@ -98,7 +98,7 @@ load_data <- function(session, input, volumes){
       cat(file=stderr(), "loading raw peptide data...", "\n")
       temp_df <- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
       dpmsr_set$data$data_raw_peptide <<- temp_df %>% dplyr::select(contains(
-        c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Abundance.F", "Retention.Time", "Ion.Score", "Percolator.SVM",
+        c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Positions", "Abundance.F", "Retention.Time", "Ion.Score", "Percolator.SVM",
           "q.Value", "RT.in.min", "mz.in.Da.by.Search.Engine.", "Charge.by.Search.Engine.", "Quan.Info")
       ))
       save_data(raw_name)
@@ -139,7 +139,7 @@ load_data <- function(session, input, volumes){
       cat(file=stderr(), "loading raw peptide isoform data...", "\n")
       temp_df <- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
       dpmsr_set$data$data_raw_isoform <<- temp_df %>% dplyr::select(contains(
-        c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Abundance.F", "Retention.Time", "Ion.Score", "Percolator.SVM",
+        c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Positions", "Abundance.F", "Retention.Time", "Ion.Score", "Percolator.SVM",
           "q.Value", "RT.in.min", "mz.in.Da.by.Search.Engine.", "Charge.by.Search.Engine.", "Quan.Info")
       ))
       save_data(raw_name)

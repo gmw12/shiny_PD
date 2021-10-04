@@ -27,49 +27,65 @@ run_motifx <- function(input, output, data_in){
   
   cat(file=stderr(), "motifx up..." , "\n") 
     filter_df <- subset(data_in, data_in$Stats == "Up" ) 
-    FC <- "Up"
-    ptm_data <- create_motifx_input(filter_df, parsed_ref)
-    cat(file=stderr(), str_c("ptm_data has ", nrow(ptm_data), " entries") , "\n") 
-    motifx_S <- motifx_calc(s, "S", w, "Up", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
-    cat(file=stderr(), str_c("motifx_S has ", nrow(motifx_S), " entries") , "\n") 
-    motifx_T <- motifx_calc(s, "T", w, "Up", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
-    cat(file=stderr(), str_c("motifx_T has ", nrow(motifx_T), " entries") , "\n") 
-    motifx_Y <- motifx_calc(s, "Y", w, "Up", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
-    cat(file=stderr(), str_c("motifx_Y has ", nrow(motifx_Y), " entries") , "\n") 
-    motifx_up <- rbind(motifx_S, motifx_T, motifx_Y)
-    cat(file=stderr(), str_c("motifx_up has ", nrow(motifx_up), " entries") , "\n") 
+      if (nrow(filter_df > 0)){
+        FC <- "Up"
+        ptm_data <- create_motifx_input(filter_df, parsed_ref, input$select_data_comp_motif, "Up")
+        cat(file=stderr(), str_c("ptm_data has ", nrow(ptm_data), " entries") , "\n") 
+        motifx_S <- motifx_calc(s, "S", w, "Up", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+        cat(file=stderr(), str_c("motifx_S has ", nrow(motifx_S), " entries") , "\n") 
+        motifx_T <- motifx_calc(s, "T", w, "Up", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+        cat(file=stderr(), str_c("motifx_T has ", nrow(motifx_T), " entries") , "\n") 
+        motifx_Y <- motifx_calc(s, "Y", w, "Up", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+        cat(file=stderr(), str_c("motifx_Y has ", nrow(motifx_Y), " entries") , "\n") 
+        motifx_up <- rbind(motifx_S, motifx_T, motifx_Y)
+        cat(file=stderr(), str_c("motifx_up has ", nrow(motifx_up), " entries") , "\n") 
+      }else{
+        motifx_up <- NULL
+        shinyalert("Oops!", "No peptides passed stats for Up", type = "error")
+      }
+    
     
   cat(file=stderr(), "motifx down..." , "\n")     
     filter_df <- subset(data_in, data_in$Stats == "Down" )
-    FC <<- "Down"
-    ptm_data <- create_motifx_input(filter_df, parsed_ref)
-    motifx_S <- motifx_calc(s, "S", w, "Down", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
-    motifx_T <- motifx_calc(s, "T", w, "Down", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
-    motifx_Y <- motifx_calc(s, "Y", w, "Down", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
-    motifx_down <- rbind(motifx_S, motifx_T, motifx_Y)
+    if (nrow(filter_df > 0)){
+      FC <<- "Down"
+      ptm_data <- create_motifx_input(filter_df, parsed_ref, input$select_data_comp_motif, "Down")
+      motifx_S <- motifx_calc(s, "S", w, "Down", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+      motifx_T <- motifx_calc(s, "T", w, "Down", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+      motifx_Y <- motifx_calc(s, "Y", w, "Down", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+      motifx_down <- rbind(motifx_S, motifx_T, motifx_Y)
+    }else{
+      motifx_down <- NULL
+      shinyalert("Oops!", "No peptides passed stats for Down", type = "error")
+    }
     
   cat(file=stderr(), "motifx updown..." , "\n")  
     filter_df<- subset(data_in, data_in$Stats == "Up" | data_in$Stats == "Down") 
-    FC <- "UpDown"
-    ptm_data <- create_motifx_input(filter_df, parsed_ref)
-    motifx_S <- motifx_calc(s, "S", w, "UpDown", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
-    motifx_T <- motifx_calc(s, "T", w, "UpDown", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
-    motifx_Y <- motifx_calc(s, "Y", w, "UpDown", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
-    motifx_updown <- rbind(motifx_S, motifx_T, motifx_Y)
+    if (nrow(filter_df > 0)){
+      FC <- "UpDown"
+      ptm_data <- create_motifx_input(filter_df, parsed_ref, input$select_data_comp_motif, "UpDown")
+      motifx_S <- motifx_calc(s, "S", w, "UpDown", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+      motifx_T <- motifx_calc(s, "T", w, "UpDown", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+      motifx_Y <- motifx_calc(s, "Y", w, "UpDown", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+      motifx_updown <- rbind(motifx_S, motifx_T, motifx_Y)
+    }else{
+      motifx_updown <- NULL
+      shinyalert("Oops!", "No peptides passed stats for UpDown", type = "error")
+    }
     
   cat(file=stderr(), str_c("compiling motifs... ", nrow(motifx_up), "... ", nrow(motifx_down), "... ", nrow(motifx_updown)) , "\n")   
-  
-  test1 <<- motifx_up
-  test2 <<- motifx_down
-  test3 <<- motifx_updown
+
   
     motifx_all <- rbind(motifx_up, motifx_down, motifx_updown)
     
-    cat(file=stderr(), "write motifx excel..." , "\n")  
-    # save filename to dpmsr_set so downloadhandler can grab it
-    dpmsr_set$data$phos$filename <<- str_c("MotifX_", input$select_data_comp_motif, ".xlsx")
-    Simple_Excel(motifx_all, str_c(dpmsr_set$file$phos, "MotifX_", input$select_data_comp_motif, ".xlsx"))
-
+    if(is.null(motifx_all)){
+      shinyalert("Oops!", "No motifx found", type = "error")
+    }else {
+      cat(file=stderr(), "write motifx excel..." , "\n")  
+      # save filename to dpmsr_set so downloadhandler can grab it
+      dpmsr_set$data$phos$filename <<- str_c("MotifX_", input$select_data_comp_motif, ".xlsx")
+      Simple_Excel(motifx_all, str_c(dpmsr_set$file$phos, "MotifX_", input$select_data_comp_motif, ".xlsx"))
+    }
   
   return(motifx_all)
 }
@@ -111,6 +127,8 @@ motifx_calc <- function(s, c, w, FC, ptm_data, parsed_ref, pval_motif, min_seq, 
   
   cat(file=stderr(), str_c("Number of motifs for ", c," = ", nrow(motifx_data)), "\n") 
   
+  Simple_Excel(phindPTMs_Example, str_c(dpmsr_set$file$phos, "MotifX_phindPTM_", comparison, "_", FC, ".xlsx"))
+  
   return(motifx_data)
 } 
 
@@ -119,7 +137,7 @@ motifx_calc <- function(s, c, w, FC, ptm_data, parsed_ref, pval_motif, min_seq, 
 #--------------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------------
 
-create_motifx_input <- function(filter_df, parsed_ref){
+create_motifx_input <- function(filter_df, parsed_ref, comparison, direction_filter){
   #---------Create input file for PTM data ----------------------------------------
 
   MotifPhos <- data.frame(cbind(filter_df$Accession, filter_df$Sequence, filter_df$Modifications))
@@ -162,6 +180,11 @@ create_motifx_input <- function(filter_df, parsed_ref){
   ptm_data$Protein_ID <- gsub( " .*$", "", ptm_data$Protein_ID)
   ptm_data <-subset(ptm_data, Protein_ID %in% parsed_ref$Accession)
 
+  cat(file=stderr(), "write ptm_data to excel..." , "\n")  
+  
+  Simple_Excel(ptm_data, str_c(dpmsr_set$file$phos, "MotifX_ptmdata_", comparison, "_", direction_filter, ".xlsx"))
+  
+  
   return(ptm_data)
 }
 
