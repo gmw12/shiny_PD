@@ -418,7 +418,12 @@ interactive_stats_volcano <- function(session, input, output, i)
     df <- subset(df, df[ , dpmsr_set$y$stats$groups$mf[i]] >= input$missing_factor )
   }
   df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[i]))
-  df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[i]))
+  
+  if (!input$checkbox_filter_adjpval) {
+    df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[i]))
+  }else{
+    df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$adjpval[i]))
+  }
   
   #df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[1]))
   #df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[1]))

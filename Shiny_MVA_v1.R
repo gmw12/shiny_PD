@@ -423,7 +423,12 @@ stat_calc2 <- function(session, input, output) {
     data_table$Stats <- ""
     data_table_cols <- ncol(data_table)
     
-    data_table$pval <- ifelse(data_table[[dpmsr_set$y$stats$groups$pval[i]]]  <= input$pvalue_cutoff, 0, 1)
+    if (!input$checkbox_filter_adjpval) {
+      data_table$pval <- ifelse(data_table[[dpmsr_set$y$stats$groups$pval[i]]]  <= input$pvalue_cutoff, 0, 1)
+    }else{
+      data_table$pval <- ifelse(data_table[[dpmsr_set$y$stats$groups$adjpval[i]]]  <= input$pvalue_cutoff, 0, 1)
+    }
+    
     if (!as.logical(dpmsr_set$x$tmt_spqc_norm)){
       data_table$mf <- ifelse(data_table[[dpmsr_set$y$stats$groups$mf[i]]]  >= input$missing_factor, 0, 1)
     }
@@ -441,15 +446,12 @@ stat_calc2 <- function(session, input, output) {
     
     data_table$sum <- rowSums(data_table[(data_table_cols+1):ncol(data_table)])
     
-
     data_table$Stats <- ifelse(data_table$sum == 0 & data_table[[dpmsr_set$y$stats$groups$fc[i]]] >= input$foldchange_cutoff, "Up", 
                          ifelse(data_table$sum == 0 & data_table[[dpmsr_set$y$stats$groups$fc[i]]] <= -input$foldchange_cutoff, "Down", ""))       
     
     data_table <- data_table[1:data_table_cols]
     
     data_table <- data_table[order(data_table$Stats, -data_table[[dpmsr_set$y$stats$groups$pval[i]]], decreasing = TRUE),]
-    
-    #xdt <<- data_table
     
     #filter stats by ptm or accession if needed
     if(dpmsr_set$x$final_data_output == "Peptide" &  input$checkbox_report_ptm){
