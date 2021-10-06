@@ -907,6 +907,14 @@ shinyUI(
                                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
                                    ), 
                                    column(width=2, offset = 0,
+                                          textInput("volcano_highlight", label = "Highlight search term (description)")
+                                   ),
+                                   column(width=1, offset =0,
+                                          actionButton("volcano_help", label = "?", width = 10,
+                                                       style="color: #fc0303; background-color: #d3d3d3; border-color: #d3d3d3;
+                                                       font-size:150%")
+                                   ), 
+                                   column(width=2, offset = 0,
                                           checkboxInput("stats_volcano_fixed_axis", label = "Fix x and y axis for all plots?")
                                           ),
                                    column(width=1, offset = 0,

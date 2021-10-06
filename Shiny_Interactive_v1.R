@@ -443,6 +443,12 @@ interactive_stats_volcano <- function(session, input, output, i)
       ymax <- max(df$log_pvalue)
   }
   
+  if (input$volcano_highlight != ""){
+    highlight_list <- str_split(input$volcano_highlight, ",")
+    highlight_df <<- df %>% filter(str_detect(Description, paste(unlist(highlight_list), collapse = "|")))
+  }else{
+    highlight_df <<- df %>% filter(str_detect(Description, "You will find nothing now"))
+  }
   
   volcano_stats_plot <- reactive({
     ggplot(df, aes(x = log_fc, y = log_pvalue)) +
@@ -461,8 +467,8 @@ interactive_stats_volcano <- function(session, input, output, i)
             legend.position = "none")+
       geom_vline(aes(xintercept = log(input$foldchange_cutoff, 2)),  linetype = "dotted", color = "black")  + 
       geom_vline(aes(xintercept = -log(input$foldchange_cutoff, 2)),  linetype = "dotted", color = "black")  + 
-      geom_hline(aes(yintercept = -log(input$pvalue_cutoff, 10)),  linetype = "dotted", color = "black")  
-    
+      geom_hline(aes(yintercept = -log(input$pvalue_cutoff, 10)),  linetype = "dotted", color = "black") +
+    geom_point(data=highlight_df, aes(x=log_fc, y=log_pvalue), color='red', size=3, alpha=0.5)
     
   })
   
