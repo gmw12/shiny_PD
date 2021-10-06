@@ -40,7 +40,7 @@ protein_to_peptide <- function(){
   peptide_out <- peptide_final %>% dplyr::select(Confidence, Master.Protein.Accessions, Master.Protein.Descriptions, 
                                                  Sequence, Modifications,
                                                  contains('RT.in.min.by.Search.Engine.'), 
-                                                 contains('mz.in.Da.by.Search.Engine.'), 
+                                                 starts_with('mz.in.Da.by.Search.Engine.'), 
                                                  contains('Charge.by.Search.Engine.'), 
                                                  contains('Percolator.SVM'), 
                                                  contains("Percolator.q.Value"), contains("Abundance.F"))
@@ -76,7 +76,9 @@ peptide_to_peptide <- function(){
   cat(file=stderr(), "peptide_to_peptide", "\n")
   peptide_groups <- dpmsr_set$data$data_raw_peptide
   peptide_out <- peptide_groups %>% dplyr::select(Confidence, Master.Protein.Accessions, Master.Protein.Descriptions, 
-                                                Sequence, Modifications, Positions.in.Master.Proteins, Modifications.in.Master.Proteins,
+                                                Sequence, Modifications, 
+                                                (starts_with("Positions.in.") & ends_with("Proteins")), 
+                                                (starts_with("Modifications.in.") & ends_with("Proteins")), 
                                                 contains('RT.in.min.by.Search.Engine.'), 
                                                 contains('Percolator.SVM'),  
                                                 contains("Percolator.q.Value"), contains("Abundance.F"))
@@ -100,15 +102,19 @@ isoform_to_isoform <- function(){
   cat(file=stderr(), "isoform_to_isoform", "\n")
   peptide_groups <- dpmsr_set$data$data_raw_isoform
   peptide_out <- try(peptide_groups %>% dplyr::select(contains("Confidence.by"), Master.Protein.Accessions, Master.Protein.Descriptions, 
-                                                    Sequence, Modifications, Positions.in.Master.Proteins, Modifications.in.Master.Proteins,
+                                                    Sequence, Modifications, 
+                                                    (starts_with("Positions.in.") & ends_with("Proteins")), 
+                                                    (starts_with("Modifications.in.") & ends_with("Proteins")), 
                                                     Top.Apex.RT.in.min, 
                                                     contains('Percolator.SVM'),  
                                                     contains("Percolator.q.Value"), contains("Abundance.F")))
   if (class(peptide_out) == 'try-error') {
     cat(file=stderr(), "column select error - retry", "\n")
     peptide_out <- peptide_groups %>% dplyr::select(contains("Confidence.by"), Master.Protein.Accessions, Master.Protein.Descriptions,
-                                                    Sequence, Modifications, Positions.in.Master.Proteins, Modifications.in.Master.Proteins,
-                                                    contains('Positions.'),
+                                                    Sequence, Modifications, 
+                                                    (starts_with("Positions.in.") & ends_with("Proteins")), 
+                                                    (starts_with("Modifications.in.") & ends_with("Proteins")), 
+                                                    contains("Positions."),
                                                     contains('RT.in.min.by.'), 
                                                     contains('Percolator.SVM'), 
                                                     contains("Percolator.q.Value"), contains("Abundance.F"))
