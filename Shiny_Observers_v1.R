@@ -261,10 +261,7 @@ update_dpmsr_set_from_widgets <- function(session, input, output){
     dpmsr_set$y$organism <<-  input$select_organism
   })
 
- #---Helpers -----------------------------------------
-  observeEvent(input$volcano_help, { 
-    shinyalert("Highlights proteins on plot", "Enter description search terms separated by comma (no spaces).  Case sensistive.", type = "info")
-  })
+
   
    
 }

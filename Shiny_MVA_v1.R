@@ -53,6 +53,7 @@ stat_prep_collapse <- function(data_in) {
   
   info_columns_final <- ncol(data_in)-dpmsr_set$y$sample_number
   annotate_in <- data_in[1:info_columns_final]
+
   data_in <- data_in[(info_columns_final+1):ncol(data_in)]
   #start df for stats
   stat_df <- annotate_in[1:1]
@@ -235,7 +236,6 @@ set_stat_groups <- function(session, input, output){
 #--------------------------------------------------------------------------------------------------------------------------------
 #Fold change, pvalue, export volcano, return organized table for output-------------------------------------------------
 stat_calc2 <- function(session, input, output) {
-  #data_in <- dpmsr_set$data$impute$sltmm
   #single shot observers
   dpmsr_set$data$stats$final_comp <<- input$select_final_data_stats
   dpmsr_set$y$stats$pvalue_cutoff <<- input$stats_pvalue_cutoff
@@ -254,7 +254,6 @@ stat_calc2 <- function(session, input, output) {
   
   for(i in 1:nrow(dpmsr_set$y$stats$groups)) 
   {
-    #data_in <- dpmsr_set$data$impute$sl
     cat(file=stderr(), str_c("Calculating stats...", i, " of ", nrow(dpmsr_set$y$stats$groups)), "\n")
     data_in <- dpmsr_set$data$impute[[input$select_final_data_stats]]
     info_columns <- ncol(data_in) - dpmsr_set$y$sample_number
@@ -368,6 +367,16 @@ stat_calc2 <- function(session, input, output) {
       #xdf2 <<- df
       
       annotate_in <- df[1:dpmsr_set$y$info_columns_final]
+      
+      if(input$checkbox_add_gene_column) {
+        add_gene <- str_extract(annotate_in$Description, "GN=\\w*")
+        add_gene <- gsub("GN=", "", add_gene)
+        annotate_in <- annotate_in %>% add_column(Gene = add_gene, .before = 3)
+        dpmsr_set$data$final[[input$select_final_data_stats]] <<- dpmsr_set$data$final[[input$select_final_data_stats]] %>% 
+          add_column(Gene = annotate_in$Gene, .before = 3)
+        
+      }
+      
       data_in <- df[(dpmsr_set$y$info_columns_final+1):(ncol(df))]
       
       comp_N_data <- data_in[1:dpmsr_set$y$stats$groups$N_count[i]]

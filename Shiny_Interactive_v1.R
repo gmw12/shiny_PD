@@ -444,10 +444,17 @@ interactive_stats_volcano <- function(session, input, output, i)
   }
   
   if (input$volcano_highlight != ""){
-    highlight_list <- str_split(input$volcano_highlight, ",")
-    highlight_df <<- df %>% filter(str_detect(Description, paste(unlist(highlight_list), collapse = "|")))
+    highlight_list <- gsub(", ", "," ,input$volcano_highlight)
+    highlight_list <- str_split(highlight_list, ",")
+    highlight_list <- paste(tolower(unlist(highlight_list)), collapse = "|")
+    h_list <<- highlight_list
+    highlight_df <- df
+    highlight_df$Description <- tolower(highlight_df$Description)
+    test1 <<- highlight_df
+    highlight_df <- highlight_df %>% filter(str_detect(Description, highlight_list))
+    test2 <<- highlight_df
   }else{
-    highlight_df <<- df %>% filter(str_detect(Description, "You will find nothing now"))
+    highlight_df <- df %>% filter(str_detect(Description, "You will find nothing now"))
   }
   
   volcano_stats_plot <- reactive({
@@ -468,7 +475,8 @@ interactive_stats_volcano <- function(session, input, output, i)
       geom_vline(aes(xintercept = log(input$foldchange_cutoff, 2)),  linetype = "dotted", color = "black")  + 
       geom_vline(aes(xintercept = -log(input$foldchange_cutoff, 2)),  linetype = "dotted", color = "black")  + 
       geom_hline(aes(yintercept = -log(input$pvalue_cutoff, 10)),  linetype = "dotted", color = "black") +
-    geom_point(data=highlight_df, aes(x=log_fc, y=log_pvalue), color='red', size=3, alpha=0.5)
+    geom_point(data=highlight_df, aes(x=log_fc, y=log_pvalue), color=input$volcano_highlight_color, size=input$volcano_highlight_dot_size, 
+               alpha=input$volcano_highlight_alpha)
     
   })
   

@@ -2,33 +2,51 @@ protein_to_peptide <- function(){
   protein <- dpmsr_set$data$data_raw_protein
   peptide_groups <- dpmsr_set$data$data_raw_peptide
   
+  #add columns to preserve peptide to protein links
+  peptide_groups$Proteins <- peptide_groups$Protein.Accessions
+  peptide_groups$Unique <- peptide_groups$Quan.Info
+  peptide_groups$Unique[peptide_groups$Unique==""] <- "Unique"
+  
+  #protein raw has all confidence proteins - limit to high master
   protein_master <- subset(protein, Master %in% ("IsMasterProtein"))
   protein_high_master <- subset(protein_master, Protein.FDR.Confidence.Combined %in% ("High"))
+  master_accessions <- protein_high_master$Accession 
+  
+  #PD will label which proteins get the razor peptides, 
   protein_razor <- subset(protein, Number.of.Razor.Peptides>0)
-  
   razor_accessions <- protein_razor$Accession
-  master_accessions <- protein_high_master$Accession  
-  
+   
+  #gather peptides that are shared
   peptide_shared <- subset(peptide_groups,  Quan.Info %in% ("NotUnique"))
+  #gather peptides that have no quant values
   peptide_noquan <- subset(peptide_groups,  Quan.Info %in% ("NoQuanValues"))
+  #gather unique peptides
   peptide_unique <- peptide_groups[peptide_groups$Quan.Info=="",]
   
+  #expand shared peptides so that each protein has peptides listed separately
   peptide_shared_expand  <- peptide_shared %>% 
     mutate(Master.Protein.Accessions = strsplit(as.character(Master.Protein.Accessions), "; ", fixed = TRUE)) %>% 
     unnest(Master.Protein.Accessions)
   
   if(dpmsr_set$x$peptides_to_use=="Razor"){
+    #reduce df to only peptides that have proteins that PD lists as having "razor" peptides
     peptide_shared_expand <- subset(peptide_shared_expand, Master.Protein.Accessions %in% razor_accessions )
+    #gather df for razor proteins
     protein_razor_lookup <- protein_razor %>% dplyr::select(Accession, Description, Number.of.Peptides, 
                                                             Coverage.in.Percent, Number.of.Unique.Peptides, Number.of.Razor.Peptides)
+    #add columns from protein to df
     peptide_shared_expand <- merge(peptide_shared_expand, protein_razor_lookup, by.x="Master.Protein.Accessions", by.y="Accession")
-    peptide_shared_expand$unique <- str_c(peptide_shared_expand$Annotated.Sequence, peptide_shared_expand$Modifications)
-    peptide_shared_expand <- peptide_shared_expand[order(peptide_shared_expand$unique, -peptide_shared_expand$Number.of.Peptides, 
+    #create column to check for duplicated peptides
+    peptide_shared_expand$duplicated_test <- str_c(peptide_shared_expand$Annotated.Sequence, peptide_shared_expand$Modifications)
+    peptide_shared_expand <- peptide_shared_expand[order(peptide_shared_expand$duplicated_test, -peptide_shared_expand$Number.of.Peptides, 
                                                          peptide_shared_expand$Coverage.in.Percent, 
                                                          -peptide_shared_expand$Number.of.Razor.Peptides),]
-    peptide_final <- peptide_shared_expand[!duplicated(peptide_shared_expand$unique),]
+    #remove duplicated peptides
+    peptide_final <- peptide_shared_expand[!duplicated(peptide_shared_expand$duplicated_test),]
     peptide_final$Master.Protein.Descriptions <- peptide_final$Description
+    #remove extra columns
     peptide_final <- peptide_final[1:(ncol(peptide_groups))]
+    #combine unique and razor/shared peptides
     peptide_final <- rbind(peptide_unique, peptide_final)
   }else if (dpmsr_set$x$peptides_to_use=="Shared"){
     peptide_final <- rbind(peptide_unique, peptide_shared_expand)
@@ -37,8 +55,8 @@ protein_to_peptide <- function(){
   }
   
   peptide_final <- peptide_final[order(peptide_final$Master.Protein.Accessions, peptide_final$Sequence),]
-  peptide_out <- peptide_final %>% dplyr::select(Confidence, Master.Protein.Accessions, Master.Protein.Descriptions, 
-                                                 Sequence, Modifications,
+  peptide_out <- peptide_final %>% dplyr::select(Confidence, Master.Protein.Accessions, Master.Protein.Descriptions, Proteins, 
+                                                 Sequence, Modifications, Unique,
                                                  contains('RT.in.min.by.Search.Engine.'), 
                                                  starts_with('mz.in.Da.by.Search.Engine.'), 
                                                  contains('Charge.by.Search.Engine.'), 
@@ -46,12 +64,12 @@ protein_to_peptide <- function(){
                                                  contains("Percolator.q.Value"), contains("Abundance.F"))
   
   
-  if(ncol(peptide_out) != (10 + dpmsr_set$y$sample_number))
+  if(ncol(peptide_out) != (12 + dpmsr_set$y$sample_number))
   {
     shinyalert("Oops!", "Number of columns extracted is not as expected", type = "error")  
   }
   
-  colnames(peptide_out)[1:10] <- c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Retention.Time","Da","mz", "Ion.Score", "q-Value")
+  colnames(peptide_out)[1:12] <- c("Confidence", "Accession", "Description", "All.Proteins", "Sequence", "Modifications", "Unique", "Retention.Time","Da","mz", "Ion.Score", "q-Value")
   peptide_out <- subset(peptide_out, Accession %in% master_accessions )
   Simple_Excel(peptide_out, str_c(dpmsr_set$file$extra_prefix,"_ProteinPeptide_to_Peptide_Raw.xlsx", collapse = " "))
   return(peptide_out)
@@ -161,16 +179,29 @@ collapse_peptide <- function(peptide_data){
 
 #--- collapse peptide to protein-------------------------------------------------------------
 collapse_peptide_stats <- function(peptide_data, info_columns){
+  cat(file=stderr(), "starting collapse_peptide_stats...", "\n")
   peptide_annotate <- peptide_data[1:info_columns]
   peptide_data <- peptide_data[(info_columns+1):ncol(peptide_data)]
   peptide_data[is.na(peptide_data)] <- 0
-  peptide_annotate <- peptide_annotate[, c("Accession", "Description")]
+  peptide_annotate <- peptide_annotate[, c("Accession", "Description", "Unique")]
+  
+  #count number of peptides for each protein
   peptide_annotate$Peptides <- 1
   peptide_annotate$Peptides <- as.numeric(peptide_annotate$Peptides)
+  
+  #count number of unique peptides for each protein
+  peptide_annotate$Unique[peptide_annotate$Unique == "Unique"] <- 1
+  peptide_annotate$Unique[peptide_annotate$Unique != 1] <- 0
+  peptide_annotate$Unique <- as.numeric(peptide_annotate$Unique)
+  
+  peptide_annotate <- peptide_annotate[, c("Accession", "Description", "Peptides", "Unique")]
+  
+  #combine data and rollup peptides to protein
   test1 <- cbind(peptide_annotate, peptide_data)
   #test2 <- test1 %>% group_by(Accession, Description) %>% summarise_all(funs(sum))
   test2 <- test1 %>% group_by(Accession, Description) %>% summarise_all(list(sum))
   test2 <- data.frame(ungroup(test2))
+  cat(file=stderr(), "finished collapse_peptide_stats...", "\n")
   return(test2)
 } 
 
