@@ -156,24 +156,38 @@ isoform_to_isoform <- function(){
 #peptide_data <- xdf
 #--- collapse peptide to protein-------------------------------------------------------------
 collapse_peptide <- function(peptide_data){
+  cat(file=stderr(), "starting collapse_peptide...", "\n")
   info_columns <- ncol(peptide_data) - dpmsr_set$y$sample_number
   peptide_annotate <- peptide_data[1:(info_columns)]
   peptide_data <- peptide_data[(info_columns+1):ncol(peptide_data)]
   peptide_data[is.na(peptide_data)] <- 0
-  peptide_annotate <- peptide_annotate[, c("Accession", "Description")]
+  peptide_annotate <- peptide_annotate[, c("Accession", "Description", "Unique")]
+  
+  #count number of peptides for each protein
   peptide_annotate$Peptides <- 1
   peptide_annotate$Peptides <- as.numeric(peptide_annotate$Peptides)
+  
+  #count number of unique peptides for each protein
+  peptide_annotate$Unique[peptide_annotate$Unique == "Unique"] <- 1
+  peptide_annotate$Unique[peptide_annotate$Unique != 1] <- 0
+  peptide_annotate$Unique <- as.numeric(peptide_annotate$Unique)
+  
+  peptide_annotate <- peptide_annotate[, c("Accession", "Description", "Peptides", "Unique")]
+  
   test1 <- cbind(peptide_annotate, peptide_data)
   #test2 <- test1 %>% group_by(Accession, Description) %>% summarise_all(funs(sum))
   test2 <- test1 %>% group_by(Accession, Description) %>% summarise_all(list(sum))
   test2 <- data.frame(ungroup(test2))
+  
   #add imputed column info
   if ((dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Peptide") 
-      && dpmsr_set$x$final_data_output == "Protein" && !as.logical(dpmsr_set$x$tmt_spqc_norm)   ){
+      && dpmsr_set$x$final_data_output == "Protein" && !as.logical(dpmsr_set$x$tmt_spqc_norm)   )
+    {
             test2 <- add_column(test2, dpmsr_set$data$protein_missing, .after = "Peptides")
             dpmsr_set$y$info_columns_final <<- ncol(test2)-dpmsr_set$y$sample_number
             names(test2)[4] <- "PD_Detected_Peptides"
-  }
+    }
+  cat(file=stderr(), "finished collapse_peptide...", "\n")
   return(test2)
 } 
 

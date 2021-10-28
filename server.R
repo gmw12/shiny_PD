@@ -613,8 +613,9 @@ observeEvent(input$data_show, {
       cat(file=stderr(), "stats data show triggered..." , "\n")
       
       if( !is.null(dpmsr_set$data$stats[[dpmsr_set$y$stats$groups$comp_name[1]]] )  &  input$stats_select_data_comp != "Choice 1"   ) {
-      
+        
         filter_df <- stats_data_table_filter(session, input, output)
+        test_df <<- filter_df
         
         filter_df_colnames <- colnames(filter_df)
         filter_df_colnames <- gsub("_v_", " v ", filter_df_colnames)

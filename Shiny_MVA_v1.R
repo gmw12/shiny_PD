@@ -340,13 +340,17 @@ stat_calc2 <- function(session, input, output) {
         df$PD_Detected_Peptides <- df_impute_summary
         dpmsr_set$data$stats$peptide[[dpmsr_set$y$stats$groups$comp_name[i]]] <<- df
         
+        #collapse peptide data and imputed peptide info, this is done with only the stat groups
         df <- collapse_peptide_stats(df, info_columns)
         df_impute <- collapse_peptide_stats(df_impute, info_columns)
       
         #xdf <<- df
         #xdf_impute <<- df_impute
         
-        test2 <- df_impute[4:ncol(df_impute)]
+        #create string column with imputed peptide info
+        info_columns <- ncol(df) - dpmsr_set$y$sample_number
+        test2 <- df_impute[(info_columns+1):ncol(df_impute)]
+        
         test2[test2==0] <- "-"
         test2 <- test2 %>% mutate_all(as.character)
         while (ncol(test2)>1) {
@@ -596,17 +600,22 @@ stats_Final_Excel <- function(session, input, output) {
 # data table filter ------------------------------------------------------
 
 stats_data_table_filter <- function(session, input, output) {
+  cat(file=stderr(), "stats_data_table_filter... start", "\n")
   
   comp_string <- input$stats_select_data_comp
   comp_number <- which(grepl(comp_string, dpmsr_set$y$stats$groups$comp_name))
   sample_number <- dpmsr_set$y$stats$groups$N_count[comp_number] + dpmsr_set$y$stats$groups$D_count[comp_number]
   
+  cat(file=stderr(), "stats_data_table_filter... 1", "\n")
   df_filter <- dpmsr_set$data$stats[[comp_string]]
-
+  test_df_filter <<- df_filter
+  
+  cat(file=stderr(), "stats_data_table_filter... 2", "\n")
   if(input$stats_add_filters){
     df_filter <- df_filter %>% filter(df_filter$Stats == "Up" | df_filter$Stats == "Down")
   }
   
+  cat(file=stderr(), "stats_data_table_filter... 3", "\n")
   
   if(input$stats_data_topn != 0 ){
     df_filter$sum <- rowSums(df_filter[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+sample_number)])
@@ -615,6 +624,8 @@ stats_data_table_filter <- function(session, input, output) {
     df_filter$sum <- NULL
   }
   
+  cat(file=stderr(), "stats_data_table_filter... 4", "\n")
+  
   if(input$stats_data_accession != "0" ){
     df_filter <-subset(df_filter, Accession %in% as.character(input$stats_data_accession)  )
   }
@@ -622,7 +633,7 @@ stats_data_table_filter <- function(session, input, output) {
   if(input$stats_data_description != "0") {
     df_filter <-df_filter[grep(as.character(input$stats_data_description), df_filter$Description), ]
   }
-  
+  cat(file=stderr(), "stats_data_table_filter... end", "\n")
   return(df_filter)
 }
 
