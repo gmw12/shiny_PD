@@ -289,6 +289,8 @@ stat_calc2 <- function(session, input, output) {
     #--section for peptide to protein final data----------------------------------------------------------
     if(dpmsr_set$x$final_data_output == "Protein"){
 
+      cat(file=stderr(), str_c("Final data output is ", dpmsr_set$x$final_data_output), "\n")
+      
       mf <- missing_factor_gw(comp_N_imputed, comp_D_imputed)
       N_CV <- percentCV_gw(comp_N_data)
       D_CV <- percentCV_gw(comp_D_data)
@@ -475,10 +477,10 @@ stat_calc2 <- function(session, input, output) {
       data_table <-subset(data_table, Accession %in% dpmsr_set$x$accession_report_list )
     }
     
-    dpmsr_set$data$stats[[dpmsr_set$y$stats$groups$comp_name[i] ]] <<- data_table
+    dpmsr_set$data$stats[[dpmsr_set$y$stats$groups$comp_name[i]]] <<- data_table
   } 
     
-  
+  cat(file=stderr(), str_c(dpmsr_set$y$stats$groups$comp_name[i], " data has ", nrow(dpmsr_set$data$stats[[dpmsr_set$y$stats$groups$comp_name[i]]]), " rows"), "\n")
   cat(file=stderr(), "Calculating stats complete...", "\n")
   return()
 }
