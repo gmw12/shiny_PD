@@ -274,6 +274,8 @@ stat_calc2 <- function(session, input, output) {
     comp_D_imputed <- mutate_all(comp_D_imputed, function(x) as.numeric(x))
     spqc_impute_data <- mutate_all(spqc_impute_data, function(x) as.numeric(x))
     
+    sample_count <- ncol(comp_N_data) + ncol(comp_D_data) + ncol(spqc_data)
+    
     #--reduce peptide PD imputed column to only samples of comparison----------------------------------------------------------
     if(dpmsr_set$x$final_data_output == "Peptide"){
       df_impute_peptide <- cbind(comp_N_imputed, comp_D_imputed, spqc_impute_data)
@@ -350,7 +352,7 @@ stat_calc2 <- function(session, input, output) {
         #xdf_impute <<- df_impute
         
         #create string column with imputed peptide info
-        info_columns <- ncol(df) - dpmsr_set$y$sample_number
+        info_columns <- ncol(df) - sample_count
         test2 <- df_impute[(info_columns+1):ncol(df_impute)]
         
         test2[test2==0] <- "-"
@@ -359,8 +361,10 @@ stat_calc2 <- function(session, input, output) {
           test2[,1] <- str_c(test2[,1], ".", test2[,2])
           test2[,2] <- NULL
         }
+        
         df <- add_column(df, test2[,1] , .after = "Peptides")
         names(df)[4] <- "PD_Detected_Peptides"
+        #xdf2 <<- df
         
         #xdfimpute2 <<- df_impute
         imputed_df <- df_impute[4:ncol(df_impute)]  
