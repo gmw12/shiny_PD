@@ -96,7 +96,7 @@ set_pathway <- function(input, output, session){
   if (version$major < 4){
     string_version <- "10"
   }else{
-    string_version <- "11.0"
+    string_version <- "11.5"
   }
   
   cat(file=stderr(), str_c("string version...", string_version), "\n")
