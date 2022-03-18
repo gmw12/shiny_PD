@@ -103,6 +103,7 @@ motifx_calc <- function(s, c, w, FC, ptm_data, parsed_ref, pval_motif, min_seq, 
   
   # Locate PTMs within full-length proteins and extract neighboring motifs
   phindPTMs_Example <- phindPTMs(ptm_data, parsed_ref)
+
   
   # Reformat foreground sequences for motif-x
   foreground_Seqs <- unlist(strsplit(phindPTMs_Example[,"Flank_Seq"], split = "[.]"))
@@ -198,12 +199,17 @@ create_phos_database <- function(session, input, output){
   require(stringr)
 
   fasta_path <- parseFilePaths(dpmsr_set$x$volumes, input$motif_fasta)
+  cat(file=stderr(), str_c("fasta_path... ",fasta_path), "\n")
+  
+  #direct read for legacy dpmsr_set files
+  #fasta_txt_file <- "/home/dpmsr/shared/mouse.fasta"
   fasta_txt_file <- fasta_path$datapath
   
   #raw_fasta <- read.csv2(fasta_txt_file, header=FALSE)
   raw_fasta <- data.frame(read_lines(fasta_txt_file)  )
   
-  
+  raw_fasta <- data.frame(lapply(raw_fasta, function(x) gsub(">sp\\|", ">", x)), stringsAsFactors=F)
+             
   if(input$accession_split == "Bar"){
     split_char <- "\\|"
   }else  if(input$accession_split == "Space"){
@@ -335,3 +341,74 @@ testonly <- function(){
   
 }
 #--------------------------------------------------------------------------------------------
+
+create_padded_seq <- function(){
+  
+  filter_df <- dpmsr_set$data$final$sltmm
+  
+  parsed_ref <- dpmsr_set$data$phos$background
+  
+  #---------Create input file for PTM data ----------------------------------------
+  
+  MotifPhos <- data.frame(cbind(filter_df$Accession, filter_df$Sequence, filter_df$Modifications))
+  
+  colnames(MotifPhos) <- c("Accession", "Sequence", "Modifications")
+  MotifPhos$Accession <- as.character(MotifPhos$Accession)
+  MotifPhos$Sequence <- as.character(MotifPhos$Sequence)
+  MotifPhos$Modifications <- as.character(MotifPhos$Modifications)
+  
+  MotifPhos$Accession <- gsub(";.*", "", MotifPhos$Accession)
+  MotifPhos <- subset(MotifPhos, Accession != 1000 )
+  
+  MotifPhos$PhosOnly <- str_extract(MotifPhos$Modifications, "\\dxP.+\\]")
+  MotifPhos$Total_Sites <- substr(MotifPhos$PhosOnly,0,1)
+  MotifPhos$PTM_Loc <- str_extract_all(MotifPhos$PhosOnly, "[STY]\\d+")
+  MotifPhos$PTM_Loc <- gsub("[(]", "", MotifPhos$PTM_Loc)
+  MotifPhos$PTM_Loc <- gsub("[)]", "", MotifPhos$PTM_Loc)
+  MotifPhos$PTM_Loc <- gsub("[\"]", "", MotifPhos$PTM_Loc)
+  MotifPhos$PTM_Loc <- gsub(",", ";", MotifPhos$PTM_Loc)
+  MotifPhos <- subset(MotifPhos, PTM_Loc != 'character0')
+  MotifPhos$PTM_Loc <- gsub("c", "", MotifPhos$PTM_Loc)
+  MotifPhos$PTM_Loc <- gsub(" ", "", MotifPhos$PTM_Loc)
+  
+  MotifPhos$PTM_Score <- str_extract_all(MotifPhos$PhosOnly, "[(]\\d+\\.*\\d*")
+  MotifPhos$PTM_Score <- gsub("[(]", "", MotifPhos$PTM_Score)
+  MotifPhos$PTM_Score <- gsub("[)]", "", MotifPhos$PTM_Score)
+  MotifPhos$PTM_Score <- gsub("[\"]", "", MotifPhos$PTM_Score)
+  MotifPhos$PTM_Score <- gsub(",", ";", MotifPhos$PTM_Score)
+  MotifPhos <- subset(MotifPhos, PTM_Score != 'character0')
+  MotifPhos$PTM_Score <- gsub("c", "", MotifPhos$PTM_Score)
+  MotifPhos$PTM_Score <- gsub(" ", "", MotifPhos$PTM_Score)
+  
+  MotifPhos$Identifier <- str_c("PhosPeptide", seq.int(nrow(MotifPhos)))
+  
+  df <- data.frame(cbind(MotifPhos$Identifier, MotifPhos$Accession, MotifPhos$Sequence, 
+                         MotifPhos$Total_Sites, MotifPhos$PTM_Loc, MotifPhos$PTM_Score))
+  colnames(df) <- c("Identifier", "Protein_ID", "Peptide_Seq", "Total_Sites", "PTM_Loc", "PTM_Score")
+  
+  #--------- Subset to insure proteins are in database ----------------------------------------
+  ptm_data <- df
+  ptm_data$Protein_ID <- gsub( " .*$", "", ptm_data$Protein_ID)
+  ptm_data <-subset(ptm_data, Protein_ID %in% parsed_ref$Accession)
+  
+  cat(file=stderr(), "write ptm_data to excel..." , "\n")  
+  
+  Simple_Excel(ptm_data, str_c(dpmsr_set$file$phos, "Padded_Seq.xlsx"))
+  
+  phindPTMs_Example <- phindPTMs(ptm_data, parsed_ref)
+  df_PTMs <- data.frame(phindPTMs_Example)
+  
+  ptm_data$Prot_Loc <- df_PTMs$Prot_Loc
+  ptm_data$Flank_Seq <- df_PTMs$Flank_Seq
+  ptm_data$Ambiguity <- df_PTMs$Ambiguity
+  ptm_data$Prot_Seq <- df_PTMs$Prot_Seq
+  
+  Simple_Excel(ptm_data, str_c(dpmsr_set$file$phos, "Padded_Seq.xlsx"))
+  
+  return(ptm_data)
+}
+
+
+
+
+

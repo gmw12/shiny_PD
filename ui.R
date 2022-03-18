@@ -1285,7 +1285,10 @@ shinyUI(
                                    ),
                                    column(width=1, offset =0,
                                           actionButton("stats_data_save", label = "Save Data", width = 100,
-                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                                          br(),
+                                          br(),
+                                          downloadButton('download_stats_data_save')
                                    )
                                  ),
                                  
@@ -1342,7 +1345,10 @@ shinyUI(
                                    ),
                                    column(width=1, offset =0,
                                           actionButton("stats_oneprotein_data_save", label = "Save Data", width = 100,
-                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                                          br(),
+                                          br(),
+                                          downloadButton('download_stats_oneprotein_data_save')
                                    )
                                  ),
                                  fluidRow(
@@ -1765,7 +1771,7 @@ shinyUI(
     
     tabPanel("Phos", value = "tp_phos",
              navbarPage("Phosphorylation:", id ="np_phos",
-                        tabPanel("Format Fasta", id="motif",
+                        tabPanel("Format Fasta", value = "fasta", id="fasta",
                                  fluidRow(
                                    shinyFilesButton('motif_fasta', label='Select Motif-X FASTA', title='Please select motif-x formated text file', multiple=FALSE,
                                                     style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),

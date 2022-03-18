@@ -596,6 +596,7 @@
        hideTab(inputId = "nlp1", target = "tp_tmt")
        hideTab(inputId = "nlp1", target = "tp_qc")
        hideTab(inputId = "nlp1", target = "tp_report")
+       hideTab(inputId = "nlp1", target = "fasta")
        showTab(inputId = "nlp1", target = "tp_customer_load")
      }else if (site_user == "dpmsr") {
        showTab(inputId = "nlp1", target = "tp_load_design")
@@ -606,6 +607,7 @@
        showTab(inputId = "nlp1", target = "tp_impute")
        showTab(inputId = "nlp1", target = "tp_qc")
        showTab(inputId = "nlp1", target = "tp_report")
+       showTab(inputId = "nlp1", target = "fasta")
        hideTab(inputId = "nlp1", target = "tp_customer_load")
      }
    })

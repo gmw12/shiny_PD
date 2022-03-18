@@ -40,7 +40,8 @@ if(Sys.info()["sysname"]=="Darwin" ){
   site_user <<- "not_dpmsr"
 }
 
-
+#force setting when testing customer version
+#site_user <<- "not_dpmsr"
 
 shinyServer(function(input, output, session) {
   
@@ -517,11 +518,11 @@ observeEvent(input$data_show, {
     output$download_stats_excel <- downloadHandler(
       file = function(){
         input$final_stats_name
-        #str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", input$final_stats_name)
       },
       content = function(file){
-        fullName <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", input$final_stats_name)
-        file.copy(fullName, file)
+        fullname <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", input$final_stats_name)
+        cat(file=stderr(), str_c("download_stats_excel fullname = ", fullname), "\n")
+        file.copy(fullname, file)
       }
     )
     #-------------------------------------------------------------------------------------------------------------
@@ -615,7 +616,7 @@ observeEvent(input$data_show, {
       if( !is.null(dpmsr_set$data$stats[[dpmsr_set$y$stats$groups$comp_name[1]]] )  &  input$stats_select_data_comp != "Choice 1"   ) {
         
         filter_df <- stats_data_table_filter(session, input, output)
-        test_df <<- filter_df
+        #test_df <<- filter_df
         
         filter_df_colnames <- colnames(filter_df)
         filter_df_colnames <- gsub("_v_", " v ", filter_df_colnames)
@@ -636,6 +637,9 @@ observeEvent(input$data_show, {
         }
   
         output$stats_data_final <-  DT::renderDataTable(stats_DT, selection = 'single' )
+        #save data
+        dpmsr_set$data$stats_DT <<- filter_df
+        
         
         # get selections from data table for protein or peptide formats
         if(dpmsr_set$x$final_data_output == "Protein"){
@@ -714,13 +718,32 @@ observeEvent(input$data_show, {
         cat(file=stderr(), "stats saving datatable to excel..." , "\n") 
         #Convert to R object
         #x <- hot_to_r(isolate(input$stats_data_final))
-        x <- stats_data_table_filter(session, input, output)
+        #x <- stats_data_table_filter(session, input, output)
         filename <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", input$stats_data_filename)
-        Simple_Excel_name(x, filename, "data")
+        cat(file=stderr(), str_c("filename = ", filename) , "\n")
+        Simple_Excel_name(dpmsr_set$data$stats_DT, filename, "data")
         removeModal()
     
     })
 
+    
+    #-------------------------------------------------------------------------------------------------------------    
+    output$download_stats_data_save <- downloadHandler(
+      file = function(){
+        input$stats_data_filename
+      },
+      content = function(file){
+        fullname <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", input$stats_data_filename)
+        cat(file=stderr(), str_c("download_stats_data fullname = ", fullname), "\n")
+        file.copy(fullname, file)
+      }
+    )
+    #-------------------------------------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------------------------------------
+    
+    
+    
+    
     
     #-------------------------------------------------------------------------------------------------------------      
     #-------------------------------------------------------------------------------------------------------------  
@@ -749,6 +772,8 @@ observeEvent(input$data_show, {
         df_peptide <- df_peptide[order(df_peptide$Start, df_peptide$Stop), ]
         
         sample_col_numbers <- seq(from=14, to = ncol(df_peptide) )
+        
+        dpmsr_set$data$oneprotein_peptide_DT <<- df_peptide
         
         oneprotein_peptide_DT <-  DT::datatable(df_peptide,
                                    rownames = FALSE,
@@ -921,21 +946,74 @@ observeEvent(input$data_show, {
     
     #-------------------------------------------------------------------------------------------------------------      
     #-------------------------------------------------------------------------------------------------------------  
-    
-    
-    observeEvent(input$stats_oneprotein_data_save, { 
+
+    observeEvent(input$XXXXXX, { 
       
-      showModal(modalDialog("Saving Data...", footer = NULL))  
-      cat(file=stderr(), "stats saving datatable to excel..." , "\n") 
+      showModal(modalDialog("Saving OneProtein Data...", footer = NULL))  
+      cat(file=stderr(), "stats saving OneProtein datatable to excel..." , "\n") 
       
       df_list <- oneprotein_data(session, input, output)
-      for(j in names(df_list)){assign(j, df_list[[j]]) }
+      for(j in names(df_list)){
+        assign(j, df_list[[j]]) 
+        }
       
       filename <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", input$stats_oneprotein_data_filename)
       Simple_Excel_name(df_peptide, filename, "data")
       removeModal()
       
     })
+    
+    #-------------------------------------------------------------------------------------------------------------      
+    #-------------------------------------------------------------------------------------------------------------  
+    observeEvent(input$stats_oneprotein_data_save, { 
+      
+      showModal(modalDialog("Saving Data OneProtein...", footer = NULL))  
+      cat(file=stderr(), "stats saving OneProtein datatable to excel..." , "\n") 
+      filename <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", input$stats_oneprotein_data_filename)
+      cat(file=stderr(), str_c("filename = ", filename) , "\n")
+      df <- dpmsr_set$data$oneprotein_peptide_DT
+      x <- unlist(df$PD_Detected_Peptides)
+      df$PD_Detected_Peptides <- x
+      Simple_Excel_name(df, filename, "data")
+      removeModal()
+      
+    })
+
+
+    #-------------------------------------------------------------------------------------------------------------    
+    output$download_stats_oneprotein_data_save <- downloadHandler(
+      file = function(){
+        input$stats_oneprotein_data_filename
+      },
+      content = function(file){
+        fullname <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", input$stats_oneprotein_data_filename)
+        cat(file=stderr(), str_c("download_stats_data_oneprotein fullname = ", fullname), "\n")
+        file.copy(fullname, file)
+      }
+    )
+    #-------------------------------------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------------------------------------
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     #-------------------------------------------------------------------------------------------------------------

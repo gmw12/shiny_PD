@@ -499,6 +499,7 @@ stats_Final_Excel <- function(session, input, output) {
   require(openxlsx)
     
     filename <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", input$final_stats_name)
+    
     df <- dpmsr_set$data$final[[input$select_final_data_stats]]
     
     #testing
@@ -547,14 +548,14 @@ stats_Final_Excel <- function(session, input, output) {
      #raw_peptide <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_Isoform_to_Isoform_Raw.xlsx"))
      #raw_peptide <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_Peptide_to_Peptide_Raw.xlsx"))
   
-    if(as.logical(dpmsr_set$x$peptide_isoform) ){
-        raw_peptide <- dpmsr_set$data$data_peptide_isoform_start
-      }else{
-        raw_peptide <- dpmsr_set$data$data_peptide_start
-      }
-
+      if(as.logical(dpmsr_set$x$peptide_isoform) ){
+          raw_peptide <- dpmsr_set$data$data_peptide_isoform_start
+        }else{
+          raw_peptide <- dpmsr_set$data$data_peptide_start
+        }
+  
       peptide_impute <- dpmsr_set$data$impute$impute
-      
+        
       addWorksheet(wb, "Sample Info")
       writeData(wb, sheet = nextsheet, dpmsr_set$protocol)
       nextsheet <- nextsheet +1
@@ -567,7 +568,7 @@ stats_Final_Excel <- function(session, input, output) {
     }
     
     if(site_user == "dpmsr" && dpmsr_set$x$raw_data_input == "Protein"){
-      raw_protein <- pmsr_set$data$data_protein_start
+      raw_protein <- dpmsr_set$data$data_protein_start
       protein_impute <- dpmsr_set$data$impute$impute
       
       addWorksheet(wb, "Sample Info")
@@ -600,7 +601,7 @@ stats_Final_Excel <- function(session, input, output) {
     }
     cat(file=stderr(), "writting excel to disk...", "\n")
     saveWorkbook(wb, filename, overwrite = TRUE)
-    cat(file=stderr(), "Creating Excel Output File...end", "\n")
+    cat(file=stderr(), str_c("Creating Excel Output File...", filename), "\n")
 }
 
 # data table filter ------------------------------------------------------
