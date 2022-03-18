@@ -478,6 +478,7 @@ observeEvent(input$data_show, {
       }
       #update all of the dropdown stat group choices that are downstream from this point
       update_comparisons(session, input, output)
+      updateTextInput(session, "final_stats_name", value = str_c("Final_", input$select_final_data_stats,  "_stats.xlsx"))
       removeModal()
     })  
     
@@ -520,7 +521,7 @@ observeEvent(input$data_show, {
         input$final_stats_name
       },
       content = function(file){
-        fullname <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", input$final_stats_name)
+        fullname <- str_c(dpmsr_set$file$output_dir, input$select_final_data_stats, "//", input$final_stats_name)
         cat(file=stderr(), str_c("download_stats_excel fullname = ", fullname), "\n")
         file.copy(fullname, file)
       }
@@ -719,7 +720,14 @@ observeEvent(input$data_show, {
         #Convert to R object
         #x <- hot_to_r(isolate(input$stats_data_final))
         #x <- stats_data_table_filter(session, input, output)
-        filename <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", input$stats_data_filename)
+        filename <- str_c(dpmsr_set$file$output_dir, input$select_final_data_stats, "//", input$stats_data_filename)
+        file_dir <- str_c(dpmsr_set$file$output_dir, input$select_final_data_stats) 
+        
+        if(!is_dir(file_dir)) {
+          cat(file=stderr(), str_c("create_dir...", file_dir), "\n")
+          dir_create(file_dir)
+        }
+        
         cat(file=stderr(), str_c("filename = ", filename) , "\n")
         Simple_Excel_name(dpmsr_set$data$stats_DT, filename, "data")
         removeModal()
@@ -733,7 +741,7 @@ observeEvent(input$data_show, {
         input$stats_data_filename
       },
       content = function(file){
-        fullname <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", input$stats_data_filename)
+        fullname <- str_c(dpmsr_set$file$output_dir, input$select_final_data_stats, "//", input$stats_data_filename)
         cat(file=stderr(), str_c("download_stats_data fullname = ", fullname), "\n")
         file.copy(fullname, file)
       }
@@ -969,7 +977,16 @@ observeEvent(input$data_show, {
       
       showModal(modalDialog("Saving Data OneProtein...", footer = NULL))  
       cat(file=stderr(), "stats saving OneProtein datatable to excel..." , "\n") 
-      filename <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", input$stats_oneprotein_data_filename)
+      
+      filename <- str_c(dpmsr_set$file$output_dir, input$select_final_data_stats, "//", input$stats_oneprotein_data_filename)
+      file_dir <- str_c(dpmsr_set$file$output_dir, input$select_final_data_stats) 
+
+      if(!is_dir(file_dir)) {
+        cat(file=stderr(), str_c("create_dir...", file_dir), "\n")
+        dir_create(file_dir)
+      }
+      
+      
       cat(file=stderr(), str_c("filename = ", filename) , "\n")
       df <- dpmsr_set$data$oneprotein_peptide_DT
       x <- unlist(df$PD_Detected_Peptides)
@@ -986,7 +1003,7 @@ observeEvent(input$data_show, {
         input$stats_oneprotein_data_filename
       },
       content = function(file){
-        fullname <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", input$stats_oneprotein_data_filename)
+        fullname <- str_c(dpmsr_set$file$output_dir, input$select_final_data_stats, "//", input$stats_oneprotein_data_filename)
         cat(file=stderr(), str_c("download_stats_data_oneprotein fullname = ", fullname), "\n")
         file.copy(fullname, file)
       }

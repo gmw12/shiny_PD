@@ -498,7 +498,14 @@ stats_Final_Excel <- function(session, input, output) {
   cat(file=stderr(), "Creating Excel Output File...1", "\n")
   require(openxlsx)
     
-    filename <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", input$final_stats_name)
+    file_dir <- str_c(dpmsr_set$file$output_dir, input$select_final_data_stats) 
+    filename <- str_c(dpmsr_set$file$output_dir, input$select_final_data_stats, "//", input$final_stats_name)
+    
+    if(!is_dir(file_dir)) {
+      cat(file=stderr(), str_c("create_dir...", file_dir), "\n")
+      dir_create(file_dir)
+    }
+    
     
     df <- dpmsr_set$data$final[[input$select_final_data_stats]]
     
