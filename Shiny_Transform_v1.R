@@ -145,9 +145,17 @@ isoform_to_isoform <- function(){
                                                         contains("Percolator.q.Value"), contains("Abundance.F"))
       }
       
+      
+      cat(file=stderr(), str_c("There are ", ncol(peptide_out) - dpmsr_set$y$sample_number, "/10 info columns"), "\n")
+      
+      if( (ncol(peptide_out) - dpmsr_set$y$sample_number) < 10) {
+        cat(file=stderr(), "If this is TMT phos you will need to manually export the isoform text file, load the correct layout file before export", "\n")
+      }
+      
+      
       if(ncol(peptide_out) != (10 + dpmsr_set$y$sample_number))
       {
-        shinyalert("Oops!", "Number of columns extracted is not as expected", type = "error")  
+        shinyalert("Oops!", "Number of isoform columns extracted is not as expected", type = "error")  
       }
     
       colnames(peptide_out)[1:10] <- c("Confidence", "Accession", "Description", "Sequence", "Modifications", "PositionMaster", "ModificationMaster",

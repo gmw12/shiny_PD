@@ -669,6 +669,40 @@ peptide_zscore <- function(df_peptide, info_columns) {
   
 }
 
+# TMT IRS data ------------------------------------------------------
+
+TMT_IRS_protein_data <- function(session, input, output) {
+  
+  cat(file=stderr(), "TMT IRS Protein stats and plots..." , "\n")
+  
+  comp_string <- input$stats_oneprotein_plot_comp
+  comp_number <- which(dpmsr_set$y$stats$groups$comp_name == comp_string)
+  
+  df <- dpmsr_set$data$stats[[comp_string]]
+  df <-subset(df, Accession %in% as.character(input$stats_oneprotein_accession)  )
+  sample_number <- dpmsr_set$y$stats$groups$N_count[comp_number] + dpmsr_set$y$stats$groups$D_count[comp_number]
+  
+  #add spqc to plots
+  if(input$stats_oneprotein_plot_spqc){
+    df <- df[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final + sample_number + dpmsr_set$y$stats$comp_spqc_number)]
+  }else{
+    df <- df[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final + sample_number)]
+  }
+  
+  comp_rows <- c(dpmsr_set$y$stats$groups$sample_numbers_N[comp_number],dpmsr_set$y$stats$groups$sample_numbers_D[comp_number] )
+  #add spqc to plots
+  if(input$stats_oneprotein_plot_spqc){
+    comp_rows <- c(comp_rows, dpmsr_set$y$stats$comp_spqc_sample_numbers)
+  }
+  
+  comp_rows <- unlist(comp_rows)
+  namex <- dpmsr_set$design$Label[comp_rows]
+  color_list <- dpmsr_set$design$colorlist[comp_rows]
+  groupx <- dpmsr_set$design$Group[comp_rows]
+
+  
+  return(list("df"=df, "namex"=namex, "color_list"=color_list, "comp_string"=comp_string))
+}
 
 # one protein data ------------------------------------------------------
 
