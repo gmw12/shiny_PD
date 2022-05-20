@@ -14,16 +14,6 @@ biocmanager_list = c('impute', 'ViSEAGO', 'topGO', 'clusterProfiler', 'GSEABase'
                      'preprocessCore', 'org.Hs.eg.db', 'org.Mm.eg.db', 'org.Rn.eg.db')
 
 
-devtools::install_github('omarwagih/rmotifx', dependencies = TRUE) 
-
-remotes::install_github("jmwozniak/PTMphinder", dependencies = TRUE)
-
-library(devtools)
-withr::with_libpaths(new = "/home/greg/R/library", install_github('omarwagih/rmotifx'))
-withr::with_libpaths(new = "/home/greg/R/library", install_github('jmwozniak/PTMphinder'))
-
-devtools::install_github('omarwagih/rmotifx')
-
 
 # loop to install require packages
 for (pack in package_list){
@@ -35,6 +25,12 @@ for (pack in package_list){
     install.packages(pack, dependencies = TRUE) 
   }
 }
+
+library(devtools)
+
+devtools::install_github('omarwagih/rmotifx', dependencies = TRUE) 
+
+devtools::install_github("jmwozniak/PTMphinder", dependencies = TRUE)
 
 
 #loop to install required BioConductor packages
