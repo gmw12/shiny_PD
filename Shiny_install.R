@@ -1,4 +1,4 @@
-cat(file=stderr(), "Shiny_install.R.... starting...."), "\n")
+cat(file=stderr(), "Shiny_install.R.... starting....", "\n")
 
 package_list <- c('devtools', 'tidyr', 'httr', 'png', 'tidyverse', 'dplyr', 'fs', 'effsize',
                   'colourpicker', 'tibble', 'stringr', 'readxl', 'randomcoloR', 'gplots',
@@ -14,7 +14,7 @@ biocmanager_list = c('impute', 'ViSEAGO', 'topGO', 'clusterProfiler', 'GSEABase'
                      'preprocessCore', 'org.Hs.eg.db', 'org.Mm.eg.db', 'org.Rn.eg.db')
 
 
-cat(file=stderr(), "Shiny_install.R.... package_list"), "\n")
+cat(file=stderr(), "Shiny_install.R.... package_list", "\n")
 # loop to install require packages
 for (pack in package_list){
   print(pack)
@@ -27,7 +27,7 @@ for (pack in package_list){
 }
 
 
-cat(file=stderr(), "Shiny_install.R.... bioconductor_list"), "\n")
+cat(file=stderr(), "Shiny_install.R.... bioconductor_list", "\n")
 #loop to install required BioConductor packages
 for (pack in biocmanager_list){
   print(pack)
@@ -40,7 +40,7 @@ for (pack in biocmanager_list){
 }        
 
 
-cat(file=stderr(), "Shiny_install.R.... github"), "\n")
+cat(file=stderr(), "Shiny_install.R.... github", "\n")
 library(devtools)
 
 devtools::install_github('omarwagih/rmotifx', dependencies = TRUE) 
@@ -50,6 +50,6 @@ devtools::install_github("jmwozniak/PTMphinder", dependencies = TRUE)
 
 
  
-cat(file=stderr(), "Shiny_install.R.... END"), "\n")
+cat(file=stderr(), "Shiny_install.R.... END", "\n")
 
                               
