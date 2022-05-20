@@ -14,7 +14,7 @@ biocmanager_list = c('impute', 'ViSEAGO', 'topGO', 'clusterProfiler', 'GSEABase'
                      'preprocessCore', 'org.Hs.eg.db', 'org.Mm.eg.db', 'org.Rn.eg.db')
 
 
-devtools::install_github('omarwagih/rmotifx', dependencies = TRUE) 
+devtools::install_github('omarwagih/rmotifx', dependencies = TRUE, library="/home/greg/R/library") 
 
 remotes::install_github("jmwozniak/PTMphinder", dependencies = TRUE)
 
@@ -22,7 +22,7 @@ library(devtools)
 withr::with_libpaths(new = "/home/greg/R/library", install_github('omarwagih/rmotifx'))
 withr::with_libpaths(new = "/home/greg/R/library", install_github('jmwozniak/PTMphinder'))
 
-devtools::install_github('omarwagih/rmotifx')
+devtools::install_github('omarwagih/rmotifx', args = c('--lib="/home/greg/R/library"'))
 
 
 # loop to install require packages
@@ -32,7 +32,7 @@ for (pack in package_list){
     print("not installing")
   }else{
     print("installing")
-    install.packages(pack, dependencies = TRUE) 
+    install.packages(pack, dependencies = TRUE, lib="/home/greg/R/library") 
   }
 }
 
@@ -44,13 +44,35 @@ for (pack in biocmanager_list){
     print("not installing")
   }else{
     print("installing")
-    BiocManager::install(pack, dependencies = TRUE) 
+    BiocManager::install(pack, dependencies = TRUE, lib="/home/greg/R/library") 
   }
 }        
 
+#BiocManager::install("org.Rn.eg.db", dependencies = TRUE, lib="/home/dpmsr/R/library")
+#sudo su - -c "R -e \"BiocManager::install('org.Rn.eg.db')\""
 
 
- 
+# loop to check require packages
+for (pack in package_list){
+  if(pack %in% rownames(installed.packages())) {   
+    print(" ")
+  }else{
+    print(pack)
+    print("not found")
+  }
+}
+
+
+
+#loop to install required BioConductor packages
+for (pack in biocmanager_list){
+  if(pack %in% rownames(installed.packages())) {   
+    print(" ")
+  }else{
+    print(pack)
+    print("not found")
+  }
+} 
 
 
                               
