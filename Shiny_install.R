@@ -11,7 +11,7 @@ package_list <- c('devtools', 'tidyr', 'httr', 'png', 'tidyverse', 'dplyr', 'fs'
 
 biocmanager_list = c('impute', 'ViSEAGO', 'topGO', 'clusterProfiler', 'GSEABase', 'rWikiPathways', 
                      'STRINGdb', 'limma', 'edgeR', 'pcaMethods', 'gridExtra', 'MASS', 'vsn',
-                     'preprocessCore', 'org.Hs.eg.db', 'org.Mm.eg.db')
+                     'preprocessCore', 'org.Hs.eg.db', 'org.Mm.eg.db', 'org.Rn.eg.db')
 
 
 devtools::install_github('omarwagih/rmotifx', dependencies = TRUE, library="/home/dpmsr/R/library") 
@@ -24,6 +24,7 @@ withr::with_libpaths(new = "/home/greg/R/library", install_github('jmwozniak/PTM
 
 devtools::install_github('omarwagih/rmotifx', args = c('--lib="/home/dpmsr/R/library"'))
 
+
 # loop to install require packages
 for (pack in package_list){
   print(pack)
@@ -35,6 +36,7 @@ for (pack in package_list){
   }
 }
 
+
 #loop to install required BioConductor packages
 for (pack in biocmanager_list){
   print(pack)
@@ -45,6 +47,8 @@ for (pack in biocmanager_list){
     BiocManager::install(pack, dependencies = TRUE, lib="/home/greg/R/library") 
   }
 }        
+
+
 
 
 

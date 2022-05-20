@@ -1526,7 +1526,7 @@ shinyUI(
                  tags$h1("Select organism for pathway analysis/enrichment..."),
                  hr(),
                  selectInput("select_organism", label = "organism", 
-                             choices = list("Human", "Mouse"), #, "Rat", "Danio", "Arabidopsis", "Ecoli"), 
+                             choices = list("Human", "Mouse", "Rat"), #, "Rat", "Danio", "Arabidopsis", "Ecoli"), 
                              selected = "Human"),
                  br(),
                  actionButton("set_pathway", label = "Set Pathway", width = 300, 

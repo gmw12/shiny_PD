@@ -10,9 +10,15 @@ set_pathway <- function(input, output, session){
     if (tax_choice == "Human"){
       library(org.Hs.eg.db)
       tax_db = org.Hs.eg.db}
+    
     if (tax_choice == "Mouse"){
       library(org.Mm.eg.db)
       tax_db = org.Mm.eg.db}
+    
+    if (tax_choice == "Rat"){
+      library(org.Rn.eg.db)
+      tax_db = org.Rn.eg.db}   
+    
     return(tax_db)
   }
   
@@ -20,6 +26,7 @@ set_pathway <- function(input, output, session){
   #zebra fish org.Dr.eg.db
   #arabidopsis org.At.tair.db
   #yeast org.Sc.sgd.db
+  
   
   #listOrganisms()
   
@@ -37,6 +44,11 @@ set_pathway <- function(input, output, session){
       wp.gmt <- rWikiPathways::downloadPathwayArchive(date = "20220110", organism="Mus musculus" , format = "gmt", destpath = dpmsr_set$file$string)
       wp2gene <- clusterProfiler::read.gmt(str_c(dpmsr_set$file$string,wp.gmt))
     }
+    if (tax_choice == "Rat"){
+      wp.gmt <- rWikiPathways::downloadPathwayArchive(date = "20220110", organism="Rattus norvegicus" , format = "gmt", destpath = dpmsr_set$file$string)
+      wp2gene <- clusterProfiler::read.gmt(str_c(dpmsr_set$file$string,wp.gmt))
+    } 
+    
     return(wp2gene)
   }
   
@@ -76,9 +88,19 @@ set_pathway <- function(input, output, session){
       dpmsr_set$pathway$myGENE2GO <<- ViSEAGO::annotate(
         "mouse", dpmsr_set$pathway$Uniprot)
     }
-  
+  if (tax_choice == "Rat"){
+    dpmsr_set$pathway$myGENE2GO <<- ViSEAGO::annotate(
+      "rat", dpmsr_set$pathway$Uniprot)
+  }
 
   #myGENE2GO<-ViSEAGO::annotate("human", Uniprot)
+  
+  
+# Display table of available organisms with Uniprot
+# connect to Uniprot-GOA
+# Uniprot<-ViSEAGO::Uniprot2GO()
+# ViSEAGO::available_organisms(Uniprot)
+  
   
   cat(file=stderr(), str_c("Uniprot/ViSEAGO download has ", nrow(dpmsr_set$pathway$myGENE2GO@MF), " entries"), "\n")
   cat(file=stderr(), "Set Pathway...complete" , "\n")
@@ -91,7 +113,9 @@ set_pathway <- function(input, output, session){
   dpmsr_set$string$string_db <<- NULL
   tax_choice <- input$select_organism
   cat(file=stderr(), str_c("organism...", tax_choice), "\n")
+  
   #string_species <- get_STRING_species(version=10)
+  # look up tax ID https://www.ncbi.nlm.nih.gov/taxonomy
   
   if (version$major < 4){
     string_version <- "10"
@@ -110,6 +134,12 @@ set_pathway <- function(input, output, session){
     dpmsr_set$string$string_db <<- STRINGdb$new( version=string_version, species=10090,
                                                  score_threshold=0, input_directory=dpmsr_set$file$string)
   } 
+  
+  if(input$select_organism=="Rat"){
+    dpmsr_set$string$string_db <<- STRINGdb$new( version=string_version, species=10116,
+                                                 score_threshold=0, input_directory=dpmsr_set$file$string)
+  } 
+  
   
   cat(file=stderr(), str_c("stringdb object created"), "\n")
   
