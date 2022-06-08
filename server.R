@@ -34,6 +34,10 @@ if(Sys.info()["sysname"]=="Darwin" ){
   #for greg linux laptop
   volumes <- c(dd='/home/dpmsr/shared', wd='.', Home = fs::path_home(), getVolumes()())
   site_user <<- "dpmsr"
+}else if (Sys.info()["nodename"] == "greg-ThinkPad-W550s"){
+  #for greg linux laptop
+  volumes <- c(dd='/home/dpmsr/shared', wd='.', Home = fs::path_home(), getVolumes()())
+  site_user <<- "dpmsr"
 }else{
   #for public website
   volumes <- c(dd='/data', wd='.', Home = fs::path_home(), getVolumes()())
