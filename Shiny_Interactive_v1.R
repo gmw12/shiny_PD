@@ -1,5 +1,6 @@
 interactive_go_volcano <- function(session, input, output)
 {
+    cat(file=stderr(), "interactive_go_volcano" , "\n")
     volcano_data <- create_go_volcano(session, input, output)
     
     # testdf <- data.frame(cbind(dpmsr_set$data$stats$final$Accession, dpmsr_set$data$stats$final$Description))
@@ -95,7 +96,7 @@ interactive_barplot <- function(session, input, output, df, namex, color_list, o
   # color_list <<- color_list
   # output_name <<- output_name
   # comp_name <<- comp_name
-  
+  cat(file=stderr(), "interactive_barplot" , "\n")
   
   datay <- colSums(df, na.rm = TRUE)
   df2 <- data.frame(namex)
@@ -141,6 +142,8 @@ interactive_barplot <- function(session, input, output, df, namex, color_list, o
 
 interactive_boxplot <- function(session, input, output, df, namex, color_list, comp_name)
 {
+  cat(file=stderr(), "interactive_boxplot" , "\n")
+  
   colnames(df) <- namex
   df3 <- log2(df) %>% gather(Sample, Intensity, colnames(df))
   df3$Sample <- factor(df3$Sample, levels = rev(namex))
@@ -180,6 +183,7 @@ interactive_boxplot <- function(session, input, output, df, namex, color_list, c
 
 interactive_pca2d <- function(session, input, output, df, namex, color_list, groupx, comp_name)
 {
+  cat(file=stderr(), "interactive_pca2d" , "\n")
   x_transpose <- t(df)
   x_transpose <-data.frame(x_transpose)
   row.names(x_transpose) <- NULL
@@ -268,6 +272,7 @@ interactive_pca2d <- function(session, input, output, df, namex, color_list, gro
 
 interactive_pca3d <- function(session, input, output, df, namex, color_list, groupx, comp_name)
 {
+  cat(file=stderr(), "interactive_pca3d" , "\n")
   x_transpose <- t(df)
   x_transpose <-data.frame(x_transpose)
   row.names(x_transpose) <- NULL
@@ -311,6 +316,7 @@ interactive_pca3d <- function(session, input, output, df, namex, color_list, gro
 
 interactive_cluster <- function(session, input, output, df, namex, comp_name)
 {
+  cat(file=stderr(), "interactive_cluster" , "\n")
   colnames(df) <- namex
   
   df <- t(df)
@@ -354,6 +360,7 @@ interactive_cluster <- function(session, input, output, df, namex, comp_name)
 
 interactive_heatmap <- function(session, input, output, df, namex, groupx, comp_name)
 {
+  cat(file=stderr(), "interactive_heatmap" , "\n")
   if (site_user == "dpmsr"){
     heatmap_filename <- "erasemyheatmap.png"
   }else{
@@ -413,6 +420,8 @@ interactive_heatmap <- function(session, input, output, df, namex, groupx, comp_
 
 interactive_stats_volcano <- function(session, input, output, i)
 {
+  cat(file=stderr(), "interactive_stats_volcano" , "\n")
+  
   df <- dpmsr_set$data$stats[[dpmsr_set$y$stats$groups$comp_name[i]]]
   if(input$stats_spqc_cv_filter){
     df <- subset(df, df[ , dpmsr_set$y$stats$groups$mf[i]] >= input$missing_factor )
@@ -539,6 +548,7 @@ interactive_stats_volcano <- function(session, input, output, i)
 
 interactive_grouped_peptide_barplot <- function(session, input, output, comp_string, df, info_columns, comp_name, peptide_pos_lookup, color_list)
 {
+  cat(file=stderr(), "interactive_grouped_peptide_barplot" , "\n")
   # comp_string <<- comp_string 
   # df <<- df
   # dfb <<- df
@@ -707,6 +717,7 @@ interactive_grouped_peptide_barplot <- function(session, input, output, comp_str
 
 interactive_grouped_barplot <- function(session, input, output, comp_string, df, info_columns, comp_name, peptide_pos_lookup, color_list)
 {
+  cat(file=stderr(), "interactive_grouped_barplot" , "\n")
   # comp_string <<- comp_string 
   # df <<- df
   # info_columns <<- info_columns 

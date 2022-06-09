@@ -242,7 +242,9 @@ protein_qc_plots<- function(data_in, plot_title, plot_dir) {
   }
   
   if(!is.null(dpmsr_set$x$carbox_list)){
-    carbox_plot <-subset(data_in, Accession %in% dpmsr_set$x$carbox_list)  
+    carbox_list <- as.list(strsplit(dpmsr_set$x$carbox_list, ",")[[1]])
+    carbox_plot <- subset(data_in, Accession %in% carbox_list)
+    #protein_norm_raw <-subset(data_to_norm, Accession %in% dpmsr_set$x$protein_norm_list)
     carbox_plot <- carbox_plot[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)]
     bar_plot(carbox_plot, str_c("Carbox_", plot_title), plot_dir)
     dpmsr_set$y$protein_list <<- c(dpmsr_set$y$protein_list, "Carbox")

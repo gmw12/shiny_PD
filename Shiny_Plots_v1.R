@@ -1,6 +1,8 @@
 
 create_qc_plots <- function() {
+  cat(file=stderr(), "create_qc_plots", "\n")
   for(df_name in names(dpmsr_set$data$final)){
+    cat(file=stderr(), str_c("create_qc_plots ", df_name), "\n")
     plot_dir <- create_dir(str_c(dpmsr_set$file$output_dir, df_name))
     df <- dpmsr_set$data$final[[df_name]]
     df <- df[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)]
@@ -13,6 +15,7 @@ create_qc_plots <- function() {
 
 
 create_stat_plots <- function() {
+  cat(file=stderr(), "create_stat_plots", "\n")
   for(df_name in names(dpmsr_set$data$final)){
     plot_dir <- create_dir(str_c(dpmsr_set$file$output_dir, df_name))
     df <- dpmsr_set$data$final[[df_name]]
@@ -27,6 +30,7 @@ create_stat_plots <- function() {
 
 
 create_select_plots <- function() {
+  cat(file=stderr(), "create_select_plots", "\n")
   for(df_name in names(dpmsr_set$data$final)){
     plot_dir <- str_c(dpmsr_set$file$output_dir, "//", df_name, "//")
     df <- dpmsr_set$data$final[[df_name]]
@@ -37,6 +41,7 @@ create_select_plots <- function() {
 #-------------------------------------------------------------------------------
 volcano_plot <- function(df, df_name, plot_dir)  #x, comp_name, title, plot_dir)
 {
+  cat(file=stderr(), "volcano_plot", "\n")
   df[is.na(df)] <- 0
   for(i in 1:as.numeric(dpmsr_set$x$comp_number)) {
       plottitle <- str_c(df_name,"_", dpmsr_set$y$comp_groups$comp_name[i])
@@ -63,6 +68,7 @@ volcano_plot <- function(df, df_name, plot_dir)  #x, comp_name, title, plot_dir)
 
 #Bar plot-------------------------------------------------
 bar_plot <- function(df,plot_title,plot_dir) {
+  cat(file=stderr(), "bar_plot", "\n")
   namex <- dpmsr_set$design$Label
   datay <- colSums(df, na.rm = TRUE)
   df2 <- data.frame(namex)
@@ -89,6 +95,7 @@ bar_plot <- function(df,plot_title,plot_dir) {
 
 #--plot densities------------------------------------------------------------------
 densities_plot <- function(x,y,plot_dir) {
+  cat(file=stderr(), "densities_plot", "\n")
   png(filename=str_c(plot_dir, y, "_density.png"), width = 888, height = 571)  
   plotDensities(log2(x), 
                 group = dpmsr_set$y$sample_groups$Group,   
@@ -100,6 +107,7 @@ densities_plot <- function(x,y,plot_dir) {
 
 #Box plot-------------------------------------------------
 box_plot <- function(x,y, plot_dir) {
+  cat(file=stderr(), "box_plot", "\n")
   png(filename=str_c(plot_dir, y, "_boxplot.png"), width = 888, height = 571)
   data_box <- log2(x)
   data_box[data_box ==-Inf ] <- NA
@@ -117,6 +125,7 @@ box_plot <- function(x,y, plot_dir) {
 
 #Box plot-------------------------------------------------
 box_plot2 <- function(df,plot_title,plot_dir)  {
+  cat(file=stderr(), "blox_plot2", "\n")
   df <- dpmsr_set$data$final$sltmm[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)]
   df3 <- log2(df) %>% gather(Sample, Intensity, colnames(df))
   plot_title <- "Plot title"
@@ -138,6 +147,7 @@ box_plot2 <- function(df,plot_title,plot_dir)  {
 
 #MDS Plot-------------------------------------------------
 MDS_plot <- function(x,y,plot_dir) {
+  cat(file=stderr(), "MDS_plot", "\n")
   png(filename=str_c(plot_dir, y, "_MDS.png"), width = 888, height = 571)  
   plotMDS(log2(x), 
           col = dpmsr_set$design$colorlist, 
@@ -149,6 +159,7 @@ MDS_plot <- function(x,y,plot_dir) {
 #Heat map-------------------------------------------------
 heatmap_plot <- function(y,plottitle,plot_dir)
 {
+  cat(file=stderr(), "heatmap_plot", "\n")
   #y <- y[(info_columns_final+1):ncol(y)] # strip off info columns
   y <- log2(y)
   y <- data.matrix(y)
@@ -177,6 +188,7 @@ heatmap_plot <- function(y,plottitle,plot_dir)
 
 #PCA 2D 3D-------------------------------------------------
 PCA_plot <- function(x,y, plot_dir) {
+  cat(file=stderr(), "PCA_plot", "\n")
   #x <- x[(info_columns_final+1):ncol(x)] # strip off info columns
   require(pca3d)
   require(rgl)
@@ -227,6 +239,7 @@ PCA_plot <- function(x,y, plot_dir) {
 
 #Cluster-------------------------------------------------
 Cluster_plot <- function(x,y, plot_dir) {
+  cat(file=stderr(), "Cluster_plot", "\n")
   #x <- x[(info_columns_final+1):ncol(x)] # strip off info columns
   df <- t(x)
   df <-data.frame(df)

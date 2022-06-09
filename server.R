@@ -558,21 +558,29 @@ observeEvent(input$data_show, {
               }
             }
             #add spqc to plots
+            cat(file=stderr(), "Stats Plots...1" , "\n")
             if(input$stats_plot_spqc){
                 comp_rows <- c(comp_rows, dpmsr_set$y$stats$comp_spqc_sample_numbers)
             }
             
+            cat(file=stderr(), "Stats Plots...2" , "\n")
             comp_rows <- sort(unique(unlist(comp_rows)), decreasing = FALSE)
             df <- df[,comp_rows]
             namex <- dpmsr_set$design$Label[comp_rows]
             color_list <- dpmsr_set$design$colorlist[comp_rows]
             groupx <- dpmsr_set$design$Group[comp_rows]
             
+            cat(file=stderr(), "Stats Plots...3" , "\n")
             interactive_barplot(session, input, output, df, namex, color_list, "stats_barplot", input$stats_plot_comp)
+            cat(file=stderr(), "Stats Plots...4" , "\n")
             interactive_boxplot(session, input, output, df, namex, color_list, input$stats_plot_comp)
+            cat(file=stderr(), "Stats Plots...5" , "\n")
             interactive_pca2d(session, input, output, df, namex, color_list, groupx, input$stats_plot_comp)
+            cat(file=stderr(), "Stats Plots...6" , "\n")
             interactive_pca3d(session, input, output, df, namex, color_list, groupx, input$stats_plot_comp)
+            cat(file=stderr(), "Stats Plots...7" , "\n")
             interactive_cluster(session, input, output, df, namex, input$stats_plot_comp)
+            cat(file=stderr(), "Stats Plots...8" , "\n")
             interactive_heatmap(session, input, output, df, namex, groupx, input$stats_plot_comp)
         
             
@@ -586,6 +594,7 @@ observeEvent(input$data_show, {
       }
       
       removeModal()
+      cat(file=stderr(), "Stats Plots...end" , "\n")
     }
     ) 
     

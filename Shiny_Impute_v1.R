@@ -63,6 +63,9 @@ check_impute_parallel <- function(norm_list){
 #norm_name <-
 #--------------------------------------------------------------------------------
 impute_only <-  function(data_in, norm_name){
+  cat(file=stderr(), str_c("impute_only... ", norm_name), "\n")
+  cat(file=stderr(), str_c("impute method... ", dpmsr_set$x$impute_method), "\n")
+  
   info_columns <- ncol(data_in) - dpmsr_set$y$sample_number
   distribution_data <- data_in
   annotation_data <- data_in[1:info_columns]
