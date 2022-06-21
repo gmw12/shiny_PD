@@ -209,23 +209,45 @@ collapse_peptide <- function(peptide_data){
 
 #--- collapse peptide to protein-------------------------------------------------------------
 collapse_peptide_stats <- function(peptide_data, info_columns){
+  
+  #test <<- peptide_data
+  #test_info <<- info_columns
+  #peptide_data <- test
+  #info_columns <- test_info
+  
   cat(file=stderr(), "starting collapse_peptide_stats...", "\n")
   peptide_annotate <- peptide_data[1:info_columns]
   peptide_data <- peptide_data[(info_columns+1):ncol(peptide_data)]
   peptide_data[is.na(peptide_data)] <- 0
-  peptide_annotate <- peptide_annotate[, c("Accession", "Description", "Unique")]
   
+  # Issue with previous version of dpmsr_set file not have unique peptide information
+  if("unique" %in% colnames(peptide_data))
+  {
+    peptide_annotate <- peptide_annotate[, c("Accession", "Description", "Unique")]
+  }else{
+    peptide_annotate <- peptide_annotate[, c("Accession", "Description")]
+  }
+  
+
   #count number of peptides for each protein
   peptide_annotate$Peptides <- 1
   peptide_annotate$Peptides <- as.numeric(peptide_annotate$Peptides)
   
-  #count number of unique peptides for each protein
-  peptide_annotate$Unique[peptide_annotate$Unique == "Unique"] <- 1
-  peptide_annotate$Unique[peptide_annotate$Unique != 1] <- 0
-  peptide_annotate$Unique <- as.numeric(peptide_annotate$Unique)
+ 
+  # Issue with previous version of dpmsr_set file not have unique peptide information
+  if("unique" %in% colnames(peptide_data))
+  {
+    #count number of unique peptides for each protein
+    peptide_annotate$Unique[peptide_annotate$Unique == "Unique"] <- 1
+    peptide_annotate$Unique[peptide_annotate$Unique != 1] <- 0
+    peptide_annotate$Unique <- as.numeric(peptide_annotate$Unique)
+    peptide_annotate <- peptide_annotate[, c("Accession", "Description", "Peptides", "Unique")]
+  }else{
+    peptide_annotate <- peptide_annotate[, c("Accession", "Description", "Peptides")]
+  }
   
-  peptide_annotate <- peptide_annotate[, c("Accession", "Description", "Peptides", "Unique")]
   
+   
   #combine data and rollup peptides to protein
   test1 <- cbind(peptide_annotate, peptide_data)
   #test2 <- test1 %>% group_by(Accession, Description) %>% summarise_all(funs(sum))
