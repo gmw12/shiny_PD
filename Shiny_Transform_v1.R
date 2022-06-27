@@ -210,8 +210,8 @@ collapse_peptide <- function(peptide_data){
 #--- collapse peptide to protein-------------------------------------------------------------
 collapse_peptide_stats <- function(peptide_data, info_columns){
   
-  #test <<- peptide_data
-  #test_info <<- info_columns
+  #test_peptide_data <<- peptide_data
+  #test_info_columns <<- info_columns
   #peptide_data <- test
   #info_columns <- test_info
   
@@ -221,10 +221,12 @@ collapse_peptide_stats <- function(peptide_data, info_columns){
   peptide_data[is.na(peptide_data)] <- 0
   
   # Issue with previous version of dpmsr_set file not have unique peptide information
-  if("unique" %in% colnames(peptide_data))
+  if("Unique" %in% colnames(peptide_annotate))
   {
+    cat(file=stderr(), "Unique column found in peptide data...", "\n")
     peptide_annotate <- peptide_annotate[, c("Accession", "Description", "Unique")]
   }else{
+    cat(file=stderr(), "Unique column NOT found in peptide data...", "\n")
     peptide_annotate <- peptide_annotate[, c("Accession", "Description")]
   }
   
@@ -235,7 +237,7 @@ collapse_peptide_stats <- function(peptide_data, info_columns){
   
  
   # Issue with previous version of dpmsr_set file not have unique peptide information
-  if("unique" %in% colnames(peptide_data))
+  if("Unique" %in% colnames(peptide_annotate))
   {
     #count number of unique peptides for each protein
     peptide_annotate$Unique[peptide_annotate$Unique == "Unique"] <- 1
@@ -253,6 +255,9 @@ collapse_peptide_stats <- function(peptide_data, info_columns){
   #test2 <- test1 %>% group_by(Accession, Description) %>% summarise_all(funs(sum))
   test2 <- test1 %>% group_by(Accession, Description) %>% summarise_all(list(sum))
   test2 <- data.frame(ungroup(test2))
+  
+  test_peptide_annotate <<- peptide_annotate
+  
   cat(file=stderr(), "finished collapse_peptide_stats...", "\n")
   return(test2)
 } 
