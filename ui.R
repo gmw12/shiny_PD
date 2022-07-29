@@ -175,6 +175,16 @@ shinyUI(
                  column(width=4, offset =1,
                      br(),
                      hr(),
+                     textOutput("text_f1"),
+                     tags$head(tags$style("#text_f1{color: blue; font-size: 20px; font-style: bold;}")),
+                     checkboxInput("checkbox_norm_include", label = "Include only grep for norm"),
+                     textInput("include_norm_grep", label="Filter Include grep", value = "Enter value here"),
+                     checkboxInput("checkbox_norm_exclude", label = "Exclude grep from norm"),
+                     textInput("exclude_norm_grep", label="Filter Exclude grep", value = "Enter value here"),
+                     actionButton("include_exclude", label = "Apply Filter", width = 300,
+                                  style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                     br(),
+                     hr(),
                      textOutput("text_n1"),
                      tags$head(tags$style("#text_n1{color: blue; font-size: 20px; font-style: bold;}")),
                      checkboxInput("checkbox_n1", label = "Sample Loading - Total", value = TRUE),
@@ -188,12 +198,11 @@ shinyUI(
                      checkboxInput("checkbox_n9", label = "Median Intensity"),
                      checkboxInput("checkbox_n10", label = "Average Intensity"),
                      checkboxInput("checkbox_n11", label = "Protein"),
-                     br(),
                      textInput("protein_norm_list", label="Protein Norm List", value = "Enter value here"),
-                     hr(),
                      br(),
                      actionButton("norm1", label = "Apply Normalization", width = 300,
-                                  style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                                  style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                     hr()
                      ),
                column(width=7, offset =0,
                       "Raw Data Total Intensity",
@@ -209,7 +218,7 @@ shinyUI(
                       br(),
                       br(),
                       fluidRow(
-                        imageOutput("raw_ptm_bar")
+                        imageOutput("norm_data_bar")
                       )
                )
           )

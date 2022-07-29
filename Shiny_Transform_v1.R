@@ -1,4 +1,5 @@
 protein_to_peptide <- function(){
+  cat(file=stderr(), "protein_to_peptide", "\n")
   protein <- dpmsr_set$data$data_raw_protein
   peptide_groups <- dpmsr_set$data$data_raw_peptide
   
@@ -66,7 +67,7 @@ protein_to_peptide <- function(){
   
   if(ncol(peptide_out) != (12 + dpmsr_set$y$sample_number))
   {
-    shinyalert("Oops!", "Number of columns extracted is not as expected", type = "error")  
+    shinyalert("Oops!", str_c("Number of columns extracted is not as expected ", ncol(peptide_out), "/", (10+dpmsr_set$y$sample_number)), type = "error")  
   }
   
   colnames(peptide_out)[1:12] <- c("Confidence", "Accession", "Description", "All.Proteins", "Sequence", "Modifications", "Unique", "Retention.Time","Da","mz", "Ion.Score", "q-Value")
@@ -78,6 +79,7 @@ protein_to_peptide <- function(){
 
 #----------------------------------------------------------------------------------------
 protein_to_protein <- function(){
+  cat(file=stderr(), "protein_to_protein", "\n")
   protein <- dpmsr_set$data$data_raw_protein
   protein <- subset(protein, Master %in% ("IsMasterProtein"))
   protein <- subset(protein, Protein.FDR.Confidence.Combined %in% ("High"))

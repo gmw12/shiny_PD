@@ -28,6 +28,11 @@ update_widget_startup <- function(session, input, output){
   updateTextInput(session, "peptide_norm_grep", value = as.character(dpmsr_set$x$peptide_norm_grep ))
   updateTextInput(session, "peptide_impute_grep", value = as.character(dpmsr_set$x$peptide_impute_grep ))
   
+  updateCheckboxInput(session, "checkbox_norm_include", value = as.logical(dpmsr_set$x$checkbox_norm_include))
+  updateCheckboxInput(session, "checkbox_norm_exclude", value = as.logical(dpmsr_set$x$checkbox_norm_exclude ))
+  updateTextInput(session, "include_norm_grep", value = as.character(dpmsr_set$x$include_norm_grep ))
+  updateTextInput(session, "exclude_norm_grep", value = as.character(dpmsr_set$x$exclude_norm_grep ))
+  
   updateCheckboxInput(session, "checkbox_tmt", value = as.logical(dpmsr_set$x$tmt_spqc_norm)) 
   updateCheckboxInput(session, "checkbox_report_accession", value = as.logical(dpmsr_set$x$accession_report_out)) 
   
@@ -106,7 +111,6 @@ update_widget_norm <- function(session, input, output){
   updateCheckboxInput(session, "checkbox_n11", value = protein_norm)
   
   updateTextInput(session, "protein_norm_list", value = as.character(dpmsr_set$x$protein_norm_list ))
- 
   
   #TMT SPQC----------------------------------------------------------------------------------
   

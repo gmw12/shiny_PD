@@ -58,7 +58,24 @@
       shinyjs::show("checkbox_isoform")
     }
   })   
+
   
+  observe({
+    if (input$checkbox_norm_include) {
+      shinyjs::show("include_norm_grep")
+    } else {
+      shinyjs::hide("include_norm_grep")
+    }
+  })  
+  
+  observe({
+    if (input$checkbox_norm_exclude) {
+      shinyjs::show("exclude_norm_grep")
+    } else {
+      shinyjs::hide("exclude_norm_grep")
+    }
+  })  
+    
   observe({
     if (as.numeric(input$radio_output)==1) {
       shinyjs::hide("checkbox_isoform")
@@ -229,7 +246,7 @@
     }
   })
   
-  
+
   observe({
     if (input$radio_impute==1 | input$radio_impute==8 ){
       shinyjs::show("bottom_x")

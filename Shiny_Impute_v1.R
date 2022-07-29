@@ -22,10 +22,10 @@ apply_impute <- function(session, input, output){
   
   info_columns <- ncol(dpmsr_set$data$impute$impute) - dpmsr_set$y$sample_number
   if (2 %in% dpmsr_set$y$norm_list2)
-    {dpmsr_set$data$impute$tmm <<- tmm_normalize(dpmsr_set$data$impute$impute, dpmsr_set$data$impute$impute, "TMM_Norm", info_columns)
+    {dpmsr_set$data$impute$tmm <<- tmm_normalize(dpmsr_set$data$impute$impute, "TMM_Norm", info_columns)
     }
   if (3 %in% dpmsr_set$y$norm_list2)
-    {dpmsr_set$data$impute$sltmm <<- tmm_normalize(dpmsr_set$data$impute$sl,dpmsr_set$data$impute$sl, "SLTMM_Norm", info_columns)
+    {dpmsr_set$data$impute$sltmm <<- tmm_normalize(dpmsr_set$data$impute$sl, "SLTMM_Norm", info_columns)
   }
   if (11 %in% dpmsr_set$y$norm_list2)
     {dpmsr_set$data$impute$protein <<- protein_normalize(dpmsr_set$data$impute$impute, "Protein_Norm", info_columns)

@@ -1,5 +1,5 @@
 norm_prep <- function(){
-  
+  cat(file=stderr(), "norm_prep started...", "\n")
   if ((dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Peptide") 
       && !as.logical(dpmsr_set$x$peptide_isoform)) {
     dpmsr_set$data$norm_data <<- remove_duplicates(dpmsr_set$data$data_peptide)  
@@ -29,12 +29,39 @@ norm_prep <- function(){
     Simple_Excel(dpmsr_set$data$norm_data,  str_c(dpmsr_set$file$extra_prefix, "_norm_data.xlsx", collapse = " "))
     dpmsr_set$data$data_to_norm <<- dpmsr_set$data$data_protein
   }
+  
 
   #add column for missing value (impute) statistics before datasets expand
   dpmsr_set$data$norm_data <<- add_imputed_column(dpmsr_set$data$norm_data)
   dpmsr_set$data$data_to_norm <<- add_imputed_column(dpmsr_set$data$data_to_norm)
   dpmsr_set$y$info_columns <<- ncol(dpmsr_set$data$norm_data)-dpmsr_set$y$sample_number
   dpmsr_set$y$info_columns_final <<- dpmsr_set$y$info_columns
+  
+  #save original copy of norm_data so filter function can be rerun from original
+  dpmsr_set$data$original_norm_data <<- dpmsr_set$data$norm_data
+}
+
+
+
+#Normalize Filter: use only not nor use specific grep
+#--------------------------------------------------------------------------------------
+filter_norm <- function(){
+    #revert to original norm data in case rerunning filter
+    dpmsr_set$data$norm_data <<- dpmsr_set$data$original_norm_data
+    #if include checked then only normalize filter results
+    if (as.logical(dpmsr_set$x$norm_include)){
+      cat(file=stderr(), str_c("Norm include filter = ", dpmsr_set$x$include_norm_grep), "\n")
+      dpmsr_set$data$norm_data <<- dpmsr_set$data$norm_data[grepl(paste(dpmsr_set$x$include_norm_grep, collapse="|"),
+                                                                   dpmsr_set$data$norm_data$Description, ignore.case = TRUE),]
+    }
+    #if exclude checked then only normalize filter results
+    if (as.logical(dpmsr_set$x$norm_exclude)){
+      cat(file=stderr(), str_c("Norm exclude filter = ", dpmsr_set$x$exclude_norm_grep), "\n")
+      dpmsr_set$data$norm_data <<- dpmsr_set$data$norm_data[!grepl(paste(dpmsr_set$x$exclude_norm_grep, collapse="|"),
+                                                                  dpmsr_set$data$norm_data$Description, ignore.case = TRUE),]
+    }
+    
+    Simple_Excel(dpmsr_set$data$norm_data,  str_c(dpmsr_set$file$extra_prefix, "_norm_data.xlsx", collapse = " "))
 }
 
 
@@ -241,7 +268,56 @@ protein_normalize <- function(data_to_norm, data_title, info_columns){
 
 
 #TMM Normalized 
-tmm_normalize <- function(norm_data, data_to_norm, data_title, info_columns){
+tmm_normalize <- function(data_to_norm, data_title, info_columns){
+  norm_data <- TMM_norm_data(data_to_norm)
+  annotation_data <- data_to_norm[1:info_columns]
+  data_to_norm <- data_to_norm[(info_columns+1):ncol(data_to_norm)]
+  norm_data <- norm_data[(info_columns+1):ncol(norm_data)]
+  norm_data[is.na(norm_data)] <- 0.0
+  tmm_factor <- calcNormFactors(norm_data, method = "TMM", sumTrim = 0.1)
+  data_out <- sweep(data_to_norm, 2, tmm_factor, FUN = "/") # this is data after SL and TMM on original scale
+  data_out <- cbind(annotation_data, data_out)
+  Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_tmm_norm.xlsx", collapse = " "))
+  return(data_out)
+}
+
+
+#function that recreates norm_data for TMM normalization
+TMM_norm_data <- function(data_in){
+  cat(file=stderr(), "TMM Filter norm_prep started...", "\n")
+    
+    if (dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Peptide"){ 
+      data_in <- remove_duplicates(data_in)  
+    }
+      
+    if (as.logical(dpmsr_set$x$peptide_ptm_norm)){
+      data_in <<- data_in[grep(dpmsr_set$x$peptide_norm_grep, data_in$Modifications),]
+    }
+    
+    #if include checked then only normalize filter results
+    if (as.logical(dpmsr_set$x$norm_include)){
+      data_in <- data_in[grepl(paste(dpmsr_set$x$include_norm_grep, collapse="|"),
+                                                                  data_in$Description, ignore.case = TRUE),]
+    }
+    #if exclude checked then only normalize filter results
+    if (as.logical(dpmsr_set$x$norm_exclude)){
+      data_in <- data_in[!grepl(paste(dpmsr_set$x$exclude_norm_grep, collapse="|"),
+                                                                   data_in$Description, ignore.case = TRUE),]
+    }
+    
+    return(data_in)
+}
+
+
+
+
+
+
+
+
+
+#TMM Normalized 
+tmm_normalize_old <- function(norm_data, data_to_norm, data_title, info_columns){
   annotation_data <- data_to_norm[1:info_columns]
   data_to_norm <- data_to_norm[(info_columns+1):ncol(data_to_norm)]
   norm_data <- norm_data[(info_columns+1):ncol(norm_data)]

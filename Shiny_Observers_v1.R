@@ -78,8 +78,26 @@ update_dpmsr_set_from_widgets <- function(session, input, output){
   })
   
   observe({
+    dpmsr_set$x$include_norm_grep <<-  input$include_norm_grep
+  })
+  
+  observe({
+    dpmsr_set$x$exclude_norm_grep <<-  input$exclude_norm_grep
+  })
+  
+  observe({
     if (input$checkbox_impute_ptm){dpmsr_set$x$peptide_ptm_impute <<- TRUE
     }else{dpmsr_set$x$peptide_ptm_impute <<- FALSE}
+  })
+  
+  observe({
+    if (input$checkbox_norm_include){dpmsr_set$x$norm_include <<- TRUE
+    }else{dpmsr_set$x$norm_include <<- FALSE}
+  })
+  
+  observe({
+    if (input$checkbox_norm_exclude){dpmsr_set$x$norm_exclude <<- TRUE
+    }else{dpmsr_set$x$norm_exclude <<- FALSE}
   })
   
   observe({
@@ -134,7 +152,7 @@ update_dpmsr_set_from_widgets <- function(session, input, output){
   observe({
     dpmsr_set$x$protein_norm_list <<-  as.list(strsplit(input$protein_norm_list, ",")[[1]])
   })
-  
+
   #-impute-----------------------------------------------------------------------------------------------------      
   observe({
     if (input$radio_impute ==1){dpmsr_set$x$impute_method <<-"Duke"}

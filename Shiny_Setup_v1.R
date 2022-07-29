@@ -24,6 +24,10 @@ load_dpmsr_set <- function(session, input, volumes){
   dpmsr_set$x$new_path <<- new_path
   dpmsr_set$x$volumes <<- volumes
   dpmsr_set$x$design_name <<- design_data$datapath
+  
+  #set default values for parameters not in sample list file
+  dpmsr_set$x$checkbox_norm_include <<- FALSE
+  dpmsr_set$x$checkbox_norm_exclude <<- FALSE
   cat(file=stderr(), "dpmsr_set created...", "\n")
   
 
