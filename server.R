@@ -59,6 +59,7 @@ shinyServer(function(input, output, session) {
     cat(file=stderr(), "Shiny Server started ...3", "\n")
     
     output$text_n1 <- renderText("Check all Normalization Strategies")
+    output$text_f1 <- renderText("Normalization Filters")
     output$text_i1 <- renderText("Select Imputation Method")
     output$text_impute_ptm <- renderText("Impute Distributions using Impute PTM grep (Load Data)")
     
@@ -208,14 +209,16 @@ shinyServer(function(input, output, session) {
           #check info columns for rerun of filter (impute column could be added
           dpmsr_set$y$info_columns <<- ncol(dpmsr_set$data$data_peptide) - dpmsr_set$y$sample_number
           
+          #display raw peptide data
           bar_plot(dpmsr_set$data$data_peptide[(dpmsr_set$y$info_columns+1):ncol(dpmsr_set$data$data_peptide)],"Raw", dpmsr_set$file$qc_dir)
           box_plot(dpmsr_set$data$data_peptide[(dpmsr_set$y$info_columns+1):ncol(dpmsr_set$data$data_peptide)],"Raw", dpmsr_set$file$qc_dir)
           
-          if(as.logical(dpmsr_set$x$peptide_ptm_norm) ){
-            info_columns <- ncol(dpmsr_set$data$norm_data) - dpmsr_set$y$sample_number
-            bar_plot(dpmsr_set$data$norm_data[(info_columns+1):ncol(dpmsr_set$data$norm_data)],"Raw_PTM_Only", dpmsr_set$file$qc_dir)
-            box_plot(dpmsr_set$data$norm_data[(info_columns+1):ncol(dpmsr_set$data$norm_data)],"Raw_PTM_Only", dpmsr_set$file$qc_dir)         
-          }
+          #change to always display norm data
+          info_columns <- ncol(dpmsr_set$data$norm_data) - dpmsr_set$y$sample_number
+          bar_plot(dpmsr_set$data$norm_data[(info_columns+1):ncol(dpmsr_set$data$norm_data)],"Normalization_Data", dpmsr_set$file$qc_dir)
+          box_plot(dpmsr_set$data$norm_data[(info_columns+1):ncol(dpmsr_set$data$norm_data)],"Normalization_Data", dpmsr_set$file$qc_dir)         
+          
+          
           removeModal()
           
           showModal(modalDialog("Preparing Data for Histogram Plot...", footer = NULL))
@@ -234,6 +237,26 @@ shinyServer(function(input, output, session) {
       }
     
   })
+
+    
+#------------------------------------------------------------------------------------------------------  
+#------------------------------------------------------------------------------------------------------  
+  observeEvent(input$include_exclude, {
+    cat(file=stderr(), "norm include/exclude filter triggered", "\n")    
+    
+    filter_norm()
+    
+    #recalculate these from above: change to always display norm data
+    info_columns <- ncol(dpmsr_set$data$norm_data) - dpmsr_set$y$sample_number
+    bar_plot(dpmsr_set$data$norm_data[(info_columns+1):ncol(dpmsr_set$data$norm_data)],"Normalization_Data", dpmsr_set$file$qc_dir)
+    box_plot(dpmsr_set$data$norm_data[(info_columns+1):ncol(dpmsr_set$data$norm_data)],"Normalization_Data", dpmsr_set$file$qc_dir)         
+    
+    inputfilterapply_render(session, input, output)
+    
+  })
+  
+  
+  
   
 #------------------------------------------------------------------------------------------------------  
 #------------------------------------------------------------------------------------------------------  

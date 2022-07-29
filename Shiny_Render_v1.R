@@ -68,8 +68,8 @@ inputfilterapply_render <- function(session, input, output){
     list(src=str_c(dpmsr_set$file$qc_dir,"Raw_barplot.png"), contentType = 'image/png', width=600, height=500, alt="this is alt text")
   }, deleteFile = FALSE)
   
-  output$raw_ptm_bar <- renderImage({
-    list(src=str_c(dpmsr_set$file$qc_dir,"Raw_PTM_Only_barplot.png"), contentType = 'image/png', width=600, height=500, alt="No PTM Only barplot!")
+  output$norm_data_bar <- renderImage({
+    list(src=str_c(dpmsr_set$file$qc_dir,"Normalization_Data_barplot.png"), contentType = 'image/png', width=600, height=500, alt="No PTM Only barplot!")
   }, deleteFile = FALSE)
   
   

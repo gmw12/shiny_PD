@@ -1,4 +1,5 @@
 protein_to_peptide <- function(){
+  cat(file=stderr(), "protein_to_peptide", "\n")
   protein <- dpmsr_set$data$data_raw_protein
   peptide_groups <- dpmsr_set$data$data_raw_peptide
   
@@ -40,7 +41,7 @@ protein_to_peptide <- function(){
   peptide_out <- peptide_final %>% dplyr::select(Confidence, Master.Protein.Accessions, Master.Protein.Descriptions, 
                                                  Sequence, Modifications,
                                                  contains('RT.in.min.by.Search.Engine.'), 
-                                                 contains('mz.in.Da.by.Search.Engine.'), 
+                                                 starts_with('mz.in.Da.by.Search.Engine.'), 
                                                  contains('Charge.by.Search.Engine.'), 
                                                  contains('Percolator.SVM'), 
                                                  contains("Percolator.q.Value"), contains("Abundance.F"))
@@ -48,7 +49,7 @@ protein_to_peptide <- function(){
   
   if(ncol(peptide_out) != (10 + dpmsr_set$y$sample_number))
   {
-    shinyalert("Oops!", "Number of columns extracted is not as expected", type = "error")  
+    shinyalert("Oops!", str_c("Number of columns extracted is not as expected ", ncol(peptide_out), "/", (10+dpmsr_set$y$sample_number)), type = "error")  
   }
   
   colnames(peptide_out)[1:10] <- c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Retention.Time","Da","mz", "Ion.Score", "q-Value")
@@ -60,6 +61,7 @@ protein_to_peptide <- function(){
 
 #----------------------------------------------------------------------------------------
 protein_to_protein <- function(){
+  cat(file=stderr(), "protein_to_protein", "\n")
   protein <- dpmsr_set$data$data_raw_protein
   protein <- subset(protein, Master %in% ("IsMasterProtein"))
   protein <- subset(protein, Protein.FDR.Confidence.Combined %in% ("High"))
