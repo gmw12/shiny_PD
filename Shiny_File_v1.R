@@ -141,6 +141,7 @@ create_dir <- function(name){
   return(name)
 }
 
+#----------------------------------------------------------------------------------------
 create_dir_old <- function(name){
   if(is_dir(name)) { 
     unlink(file.path(".", name), recursive = TRUE, force=TRUE)} 

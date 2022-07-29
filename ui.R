@@ -617,6 +617,7 @@ shinyUI(
                                             textInput("peptide_report_grep", label="Report PTM grep", value = "Enter value here"),
                                             checkboxInput("checkbox_report_accession", label = "Report Specific Accession(s) Only"),
                                             textInput("report_accession", label="Protein Accessions for Final Report", value = "Enter value"),
+                                            checkboxInput("checkbox_add_gene_column", label = "Add gene name column"),
                                             circle = TRUE, status = "info", icon = icon("gear"), width = "300px", size = "sm",
                                             tooltip = tooltipOptions(title = "Click to see more options!")
                                      )
@@ -915,6 +916,25 @@ shinyUI(
                                           actionButton("create_stats_volcano", label = "Create Volcano Plots", width = 300,
                                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
                                    ), 
+                                   column(width=2, offset = 0,
+                                          textInput("volcano_highlight", label = "Highlight search term (description)")
+                                   ),
+                                   
+                                   column(width=1, offset =0,
+                                          dropdownButton(
+                                            h3('Highlight Proteins'),
+                                            h5('Enter list of strings to search in protein descriptions.'),
+                                            h5('Beware of extra trailing spaces'),
+                                            h5('Search is NOT case sensitive'),
+                                            colourpicker::colourInput("volcano_highlight_color", "Select Color", "red"),
+                                            sliderInput("volcano_highlight_dot_size", label = h5("Point Size"), min = 1, 
+                                                        max = 10, value = 3),
+                                            sliderInput("volcano_highlight_alpha", label = h5("Transparency"), min = 0.1, 
+                                                        max = 1, value = 0.5),
+                                            circle = TRUE, status = "warning", icon = icon("question-circle"), width = "300px", size = "sm",
+                                            tooltip = tooltipOptions(title = "Click for help on Volcano protein highlights")
+                                          )
+                                   ),
                                    column(width=2, offset = 0,
                                           checkboxInput("stats_volcano_fixed_axis", label = "Fix x and y axis for all plots?")
                                           ),
@@ -1274,7 +1294,10 @@ shinyUI(
                                    ),
                                    column(width=1, offset =0,
                                           actionButton("stats_data_save", label = "Save Data", width = 100,
-                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                                          br(),
+                                          br(),
+                                          downloadButton('download_stats_data_save')
                                    )
                                  ),
                                  
@@ -1331,7 +1354,10 @@ shinyUI(
                                    ),
                                    column(width=1, offset =0,
                                           actionButton("stats_oneprotein_data_save", label = "Save Data", width = 100,
-                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                                          br(),
+                                          br(),
+                                          downloadButton('download_stats_oneprotein_data_save')
                                    )
                                  ),
                                  fluidRow(
@@ -1509,7 +1535,7 @@ shinyUI(
                  tags$h1("Select organism for pathway analysis/enrichment..."),
                  hr(),
                  selectInput("select_organism", label = "organism", 
-                             choices = list("Human", "Mouse"), #, "Rat", "Danio", "Arabidopsis", "Ecoli"), 
+                             choices = list("Human", "Mouse", "Rat"), #, "Rat", "Danio", "Arabidopsis", "Ecoli"), 
                              selected = "Human"),
                  br(),
                  actionButton("set_pathway", label = "Set Pathway", width = 300, 
@@ -1754,7 +1780,7 @@ shinyUI(
     
     tabPanel("Phos", value = "tp_phos",
              navbarPage("Phosphorylation:", id ="np_phos",
-                        tabPanel("Format Fasta", id="motif",
+                        tabPanel("Format Fasta", value = "fasta", id="fasta",
                                  fluidRow(
                                    shinyFilesButton('motif_fasta', label='Select Motif-X FASTA', title='Please select motif-x formated text file', multiple=FALSE,
                                                     style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),

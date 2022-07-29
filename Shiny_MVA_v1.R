@@ -53,6 +53,7 @@ stat_prep_collapse <- function(data_in) {
   
   info_columns_final <- ncol(data_in)-dpmsr_set$y$sample_number
   annotate_in <- data_in[1:info_columns_final]
+
   data_in <- data_in[(info_columns_final+1):ncol(data_in)]
   #start df for stats
   stat_df <- annotate_in[1:1]
@@ -235,7 +236,6 @@ set_stat_groups <- function(session, input, output){
 #--------------------------------------------------------------------------------------------------------------------------------
 #Fold change, pvalue, export volcano, return organized table for output-------------------------------------------------
 stat_calc2 <- function(session, input, output) {
-  #data_in <- dpmsr_set$data$impute$sltmm
   #single shot observers
   dpmsr_set$data$stats$final_comp <<- input$select_final_data_stats
   dpmsr_set$y$stats$pvalue_cutoff <<- input$stats_pvalue_cutoff
@@ -254,7 +254,6 @@ stat_calc2 <- function(session, input, output) {
   
   for(i in 1:nrow(dpmsr_set$y$stats$groups)) 
   {
-    #data_in <- dpmsr_set$data$impute$sl
     cat(file=stderr(), str_c("Calculating stats...", i, " of ", nrow(dpmsr_set$y$stats$groups)), "\n")
     data_in <- dpmsr_set$data$impute[[input$select_final_data_stats]]
     info_columns <- ncol(data_in) - dpmsr_set$y$sample_number
@@ -275,6 +274,8 @@ stat_calc2 <- function(session, input, output) {
     comp_D_imputed <- mutate_all(comp_D_imputed, function(x) as.numeric(x))
     spqc_impute_data <- mutate_all(spqc_impute_data, function(x) as.numeric(x))
     
+    sample_count <- ncol(comp_N_data) + ncol(comp_D_data) + ncol(spqc_data)
+    
     #--reduce peptide PD imputed column to only samples of comparison----------------------------------------------------------
     if(dpmsr_set$x$final_data_output == "Peptide"){
       df_impute_peptide <- cbind(comp_N_imputed, comp_D_imputed, spqc_impute_data)
@@ -290,6 +291,8 @@ stat_calc2 <- function(session, input, output) {
     #--section for peptide to protein final data----------------------------------------------------------
     if(dpmsr_set$x$final_data_output == "Protein"){
 
+      cat(file=stderr(), str_c("Final data output is ", dpmsr_set$x$final_data_output), "\n")
+      
       mf <- missing_factor_gw(comp_N_imputed, comp_D_imputed)
       N_CV <- percentCV_gw(comp_N_data)
       D_CV <- percentCV_gw(comp_D_data)
@@ -341,21 +344,27 @@ stat_calc2 <- function(session, input, output) {
         df$PD_Detected_Peptides <- df_impute_summary
         dpmsr_set$data$stats$peptide[[dpmsr_set$y$stats$groups$comp_name[i]]] <<- df
         
+        #collapse peptide data and imputed peptide info, this is done with only the stat groups
         df <- collapse_peptide_stats(df, info_columns)
         df_impute <- collapse_peptide_stats(df_impute, info_columns)
       
         #xdf <<- df
         #xdf_impute <<- df_impute
         
-        test2 <- df_impute[4:ncol(df_impute)]
+        #create string column with imputed peptide info
+        info_columns <- ncol(df) - sample_count
+        test2 <- df_impute[(info_columns+1):ncol(df_impute)]
+        
         test2[test2==0] <- "-"
         test2 <- test2 %>% mutate_all(as.character)
         while (ncol(test2)>1) {
           test2[,1] <- str_c(test2[,1], ".", test2[,2])
           test2[,2] <- NULL
         }
+        
         df <- add_column(df, test2[,1] , .after = "Peptides")
         names(df)[4] <- "PD_Detected_Peptides"
+        #xdf2 <<- df
         
         #xdfimpute2 <<- df_impute
         imputed_df <- df_impute[4:ncol(df_impute)]  
@@ -368,6 +377,16 @@ stat_calc2 <- function(session, input, output) {
       #xdf2 <<- df
       
       annotate_in <- df[1:dpmsr_set$y$info_columns_final]
+      
+      if(input$checkbox_add_gene_column) {
+        add_gene <- str_extract(annotate_in$Description, "GN=\\w*")
+        add_gene <- gsub("GN=", "", add_gene)
+        annotate_in <- annotate_in %>% add_column(Gene = add_gene, .before = 3)
+        dpmsr_set$data$final[[input$select_final_data_stats]] <<- dpmsr_set$data$final[[input$select_final_data_stats]] %>% 
+          add_column(Gene = annotate_in$Gene, .before = 3)
+        
+      }
+      
       data_in <- df[(dpmsr_set$y$info_columns_final+1):(ncol(df))]
       
       comp_N_data <- data_in[1:dpmsr_set$y$stats$groups$N_count[i]]
@@ -423,7 +442,12 @@ stat_calc2 <- function(session, input, output) {
     data_table$Stats <- ""
     data_table_cols <- ncol(data_table)
     
-    data_table$pval <- ifelse(data_table[[dpmsr_set$y$stats$groups$pval[i]]]  <= input$pvalue_cutoff, 0, 1)
+    if (!input$checkbox_filter_adjpval) {
+      data_table$pval <- ifelse(data_table[[dpmsr_set$y$stats$groups$pval[i]]]  <= input$pvalue_cutoff, 0, 1)
+    }else{
+      data_table$pval <- ifelse(data_table[[dpmsr_set$y$stats$groups$adjpval[i]]]  <= input$pvalue_cutoff, 0, 1)
+    }
+    
     if (!as.logical(dpmsr_set$x$tmt_spqc_norm)){
       data_table$mf <- ifelse(data_table[[dpmsr_set$y$stats$groups$mf[i]]]  >= input$missing_factor, 0, 1)
     }
@@ -441,15 +465,12 @@ stat_calc2 <- function(session, input, output) {
     
     data_table$sum <- rowSums(data_table[(data_table_cols+1):ncol(data_table)])
     
-
     data_table$Stats <- ifelse(data_table$sum == 0 & data_table[[dpmsr_set$y$stats$groups$fc[i]]] >= input$foldchange_cutoff, "Up", 
                          ifelse(data_table$sum == 0 & data_table[[dpmsr_set$y$stats$groups$fc[i]]] <= -input$foldchange_cutoff, "Down", ""))       
     
     data_table <- data_table[1:data_table_cols]
     
     data_table <- data_table[order(data_table$Stats, -data_table[[dpmsr_set$y$stats$groups$pval[i]]], decreasing = TRUE),]
-    
-    #xdt <<- data_table
     
     #filter stats by ptm or accession if needed
     if(dpmsr_set$x$final_data_output == "Peptide" &  input$checkbox_report_ptm){
@@ -460,10 +481,10 @@ stat_calc2 <- function(session, input, output) {
       data_table <-subset(data_table, Accession %in% dpmsr_set$x$accession_report_list )
     }
     
-    dpmsr_set$data$stats[[dpmsr_set$y$stats$groups$comp_name[i] ]] <<- data_table
+    dpmsr_set$data$stats[[dpmsr_set$y$stats$groups$comp_name[i]]] <<- data_table
   } 
     
-  
+  cat(file=stderr(), str_c(dpmsr_set$y$stats$groups$comp_name[i], " data has ", nrow(dpmsr_set$data$stats[[dpmsr_set$y$stats$groups$comp_name[i]]]), " rows"), "\n")
   cat(file=stderr(), "Calculating stats complete...", "\n")
   return()
 }
@@ -477,7 +498,15 @@ stats_Final_Excel <- function(session, input, output) {
   cat(file=stderr(), "Creating Excel Output File...1", "\n")
   require(openxlsx)
     
-    filename <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", input$final_stats_name)
+    file_dir <- str_c(dpmsr_set$file$output_dir, input$select_final_data_stats) 
+    filename <- str_c(dpmsr_set$file$output_dir, input$select_final_data_stats, "//", input$final_stats_name)
+    
+    if(!is_dir(file_dir)) {
+      cat(file=stderr(), str_c("create_dir...", file_dir), "\n")
+      dir_create(file_dir)
+    }
+    
+    
     df <- dpmsr_set$data$final[[input$select_final_data_stats]]
     
     #testing
@@ -526,14 +555,14 @@ stats_Final_Excel <- function(session, input, output) {
      #raw_peptide <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_Isoform_to_Isoform_Raw.xlsx"))
      #raw_peptide <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_Peptide_to_Peptide_Raw.xlsx"))
   
-    if(as.logical(dpmsr_set$x$peptide_isoform) ){
-        raw_peptide <- dpmsr_set$data$data_peptide_isoform_start
-      }else{
-        raw_peptide <- dpmsr_set$data$data_peptide_start
-      }
-
+      if(as.logical(dpmsr_set$x$peptide_isoform) ){
+          raw_peptide <- dpmsr_set$data$data_peptide_isoform_start
+        }else{
+          raw_peptide <- dpmsr_set$data$data_peptide_start
+        }
+  
       peptide_impute <- dpmsr_set$data$impute$impute
-      
+        
       addWorksheet(wb, "Sample Info")
       writeData(wb, sheet = nextsheet, dpmsr_set$protocol)
       nextsheet <- nextsheet +1
@@ -546,7 +575,7 @@ stats_Final_Excel <- function(session, input, output) {
     }
     
     if(site_user == "dpmsr" && dpmsr_set$x$raw_data_input == "Protein"){
-      raw_protein <- pmsr_set$data$data_protein_start
+      raw_protein <- dpmsr_set$data$data_protein_start
       protein_impute <- dpmsr_set$data$impute$impute
       
       addWorksheet(wb, "Sample Info")
@@ -579,23 +608,28 @@ stats_Final_Excel <- function(session, input, output) {
     }
     cat(file=stderr(), "writting excel to disk...", "\n")
     saveWorkbook(wb, filename, overwrite = TRUE)
-    cat(file=stderr(), "Creating Excel Output File...end", "\n")
+    cat(file=stderr(), str_c("Creating Excel Output File...", filename), "\n")
 }
 
 # data table filter ------------------------------------------------------
 
 stats_data_table_filter <- function(session, input, output) {
+  cat(file=stderr(), "stats_data_table_filter... start", "\n")
   
   comp_string <- input$stats_select_data_comp
   comp_number <- which(grepl(comp_string, dpmsr_set$y$stats$groups$comp_name))
   sample_number <- dpmsr_set$y$stats$groups$N_count[comp_number] + dpmsr_set$y$stats$groups$D_count[comp_number]
   
+  cat(file=stderr(), "stats_data_table_filter... 1", "\n")
   df_filter <- dpmsr_set$data$stats[[comp_string]]
-
+  test_df_filter <<- df_filter
+  
+  cat(file=stderr(), "stats_data_table_filter... 2", "\n")
   if(input$stats_add_filters){
     df_filter <- df_filter %>% filter(df_filter$Stats == "Up" | df_filter$Stats == "Down")
   }
   
+  cat(file=stderr(), "stats_data_table_filter... 3", "\n")
   
   if(input$stats_data_topn != 0 ){
     df_filter$sum <- rowSums(df_filter[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+sample_number)])
@@ -604,6 +638,8 @@ stats_data_table_filter <- function(session, input, output) {
     df_filter$sum <- NULL
   }
   
+  cat(file=stderr(), "stats_data_table_filter... 4", "\n")
+  
   if(input$stats_data_accession != "0" ){
     df_filter <-subset(df_filter, Accession %in% as.character(input$stats_data_accession)  )
   }
@@ -611,7 +647,7 @@ stats_data_table_filter <- function(session, input, output) {
   if(input$stats_data_description != "0") {
     df_filter <-df_filter[grep(as.character(input$stats_data_description), df_filter$Description), ]
   }
-  
+  cat(file=stderr(), "stats_data_table_filter... end", "\n")
   return(df_filter)
 }
 
@@ -633,6 +669,40 @@ peptide_zscore <- function(df_peptide, info_columns) {
   
 }
 
+# TMT IRS data ------------------------------------------------------
+
+TMT_IRS_protein_data <- function(session, input, output) {
+  
+  cat(file=stderr(), "TMT IRS Protein stats and plots..." , "\n")
+  
+  comp_string <- input$stats_oneprotein_plot_comp
+  comp_number <- which(dpmsr_set$y$stats$groups$comp_name == comp_string)
+  
+  df <- dpmsr_set$data$stats[[comp_string]]
+  df <-subset(df, Accession %in% as.character(input$stats_oneprotein_accession)  )
+  sample_number <- dpmsr_set$y$stats$groups$N_count[comp_number] + dpmsr_set$y$stats$groups$D_count[comp_number]
+  
+  #add spqc to plots
+  if(input$stats_oneprotein_plot_spqc){
+    df <- df[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final + sample_number + dpmsr_set$y$stats$comp_spqc_number)]
+  }else{
+    df <- df[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final + sample_number)]
+  }
+  
+  comp_rows <- c(dpmsr_set$y$stats$groups$sample_numbers_N[comp_number],dpmsr_set$y$stats$groups$sample_numbers_D[comp_number] )
+  #add spqc to plots
+  if(input$stats_oneprotein_plot_spqc){
+    comp_rows <- c(comp_rows, dpmsr_set$y$stats$comp_spqc_sample_numbers)
+  }
+  
+  comp_rows <- unlist(comp_rows)
+  namex <- dpmsr_set$design$Label[comp_rows]
+  color_list <- dpmsr_set$design$colorlist[comp_rows]
+  groupx <- dpmsr_set$design$Group[comp_rows]
+
+  
+  return(list("df"=df, "namex"=namex, "color_list"=color_list, "comp_string"=comp_string))
+}
 
 # one protein data ------------------------------------------------------
 

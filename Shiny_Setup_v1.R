@@ -102,7 +102,7 @@ load_data <- function(session, input, volumes){
       cat(file=stderr(), "loading raw peptide data...", "\n")
       temp_df <- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
       dpmsr_set$data$data_raw_peptide <<- temp_df %>% dplyr::select(contains(
-        c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Abundance.F", "Retention.Time", "Ion.Score", "Percolator.SVM",
+        c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Positions", "Abundance.F", "Retention.Time", "Ion.Score", "Percolator.SVM",
           "q.Value", "RT.in.min", "mz.in.Da.by.Search.Engine.", "Charge.by.Search.Engine.", "Quan.Info")
       ))
       save_data(raw_name)
@@ -143,7 +143,7 @@ load_data <- function(session, input, volumes){
       cat(file=stderr(), "loading raw peptide isoform data...", "\n")
       temp_df <- read.delim(raw_name, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
       dpmsr_set$data$data_raw_isoform <<- temp_df %>% dplyr::select(contains(
-        c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Abundance.F", "Retention.Time", "Ion.Score", "Percolator.SVM",
+        c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Positions", "Abundance.F", "Retention.Time", "Ion.Score", "Percolator.SVM",
           "q.Value", "RT.in.min", "mz.in.Da.by.Search.Engine.", "Charge.by.Search.Engine.", "Quan.Info")
       ))
       save_data(raw_name)
@@ -271,14 +271,16 @@ set_sample_groups<- function(){
   first_group<- NULL
   second_group<- NULL
   third_group<- NULL
+  fourth_group<- NULL
   
   for(i in 1:length(dpmsr_set$y$sample_groups$Group)){
     groups <-  unlist(str_split(dpmsr_set$y$sample_groups$Group[i], "_"))
     first_group <- c(first_group, groups[1])
     second_group <-  c(second_group, groups[2])
     third_group <-  c(third_group, groups[3])
+    fourth_group <-  c(fourth_group, groups[4])
   }
-  dpmsr_set$y$uniquegroups <<- unique(c(first_group, second_group, third_group, "All.Samples")) #, "/^((?!SPQC).)*$/"  ))
+  dpmsr_set$y$uniquegroups <<- unique(c(first_group, second_group, third_group, fourth_group, "All.Samples")) #, "/^((?!SPQC).)*$/"  ))
   dpmsr_set$y$uniquegroups <<- dpmsr_set$y$uniquegroups[!is.na(dpmsr_set$y$uniquegroups)]
 
   

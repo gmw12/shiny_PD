@@ -1,6 +1,68 @@
+
+
+
+#creates protein list and gets stringId's
+string_id_call <- function(content_type, df, row_start, row_stop)
+  {
+      cat(file=stderr(), "function string_id_call", "\n")
+      proteins <- df$Accession[row_start]
+      for(i in (row_start+1):row_stop)
+      {
+        proteins <- str_c(proteins,"%0d", df$Accession[i])
+      } 
+      string_id_api <- str_c("https://string-db.org/api/", content_type, "/get_string_ids?identifiers=", 
+                     proteins,
+                     "&species=", dpmsr_set$string$string_db$species, 
+                     "&limit=1", "&echo_query=1",
+                     "&caller_identity=DukeProteomics" )
+      res_id <- GET(string_id_api)
+      test_id <- rawToChar(res_id$content)
+      df_temp <- read_delim(test_id, delim="\t", col_names = TRUE)
+      return(df_temp)
+  }
+
+
+#---------------------------------------------------------------------
+
+
+  
+
 setup_string <- function(session, input, output){
+  cat(file=stderr(), str_c("string setup...1"), "\n")
+  require(httr)
+  #get stringIDs for all proteins in set
+  df <- dpmsr_set$data$final$impute
+  
+  #get first 500 or all if less than 500
+  if (nrow(df) < 501) {
+    cat(file=stderr(), "get string id's, less than 500 in set", "\n")
+    dpmsr_set$string$IDs <<- string_id_call("tsv", df, 1, nrow(df))
+  }else{
+    dpmsr_set$string$IDs <<- string_id_call("tsv", df, 1, 500)
+  }
+  
+  cat(file=stderr(), str_c("string setup...2"), "\n")
+  row_start = 501
+  row_stop = min(row_start + 499, nrow(df))
+  
+  while (row_start < row_stop)
+  {
+    cat(file=stderr(), str_c("get stringid's ", row_start, "-", row_stop), "\n")
+    df_temp <- string_id_call("tsv", df, row_start, row_stop)
+    dpmsr_set$string$IDs <<- rbind(dpmsr_set$string$IDs, df_temp)
+    row_start = row_stop + 1
+    row_stop = min(row_start + 499, nrow(df))
+  }
+  
+  #set String Background
+  cat(file=stderr(), str_c("string setup...3"), "\n")
+  backgroundV <- dpmsr_set$string$IDs$stringId 
+  cat(file=stderr(), str_c("background data has ", nrow(dpmsr_set$string$IDs), " lines"), "\n")
+  dpmsr_set$string$string_db$set_background(backgroundV)
+  
   
   for (i in 1:dpmsr_set$x$comp_number){
+    cat(file=stderr(), str_c("string setup comp #  ", i), "\n")
     comp_name <- dpmsr_set$y$stats$groups$comp_name[i]
     data_in <- dpmsr_set$data$stats[[comp_name]]
     pval_col <- dpmsr_set$y$stats$groups$pval[i]
@@ -10,15 +72,16 @@ setup_string <- function(session, input, output){
     df$logFC <- as.numeric(df$logFC)
     df$pvalue <- as.numeric(df$pvalue)
     df$logFC <- log(df$logFC, 2)
-    #assign(str_c("dpmsr_set$string$comp", i), df, envir=.GlobalEnv)
-    dpmsr_set$string[[comp_name]]  <<- dpmsr_set$string$string_db$map(df, "Uniprot", removeUnmappedRows = TRUE )
+  
+    df <- left_join(df, dpmsr_set$string$IDs[, c("queryItem", "stringId")], by=c("Uniprot" = "queryItem"))
+    dpmsr_set$string[[comp_name]] <<- df[complete.cases(df),]
+    
+    #dpmsr_set$string[[comp_name]]  <<- dpmsr_set$string$string_db$map(df, "Uniprot", removeUnmappedRows = TRUE )
     cat(file=stderr(), "", "\n")
     cat(file=stderr(), str_c("data for ", comp_name, " has ", nrow(df), " lines"), "\n")
   }
   
-  backgroundV <- dpmsr_set$string[[dpmsr_set$y$stats$groups$comp_name[1] ]]$STRING_id 
-  cat(file=stderr(), str_c("background data has ", nrow(df), " lines"), "\n")
-  dpmsr_set$string$string_db$set_background(backgroundV)
+
   cat(file=stderr(), "function setup_string complete...", "\n")
 }  
   
@@ -38,7 +101,9 @@ run_string <- function(session, input, output){
   cat(file=stderr(), "run string step 2", "\n")
   
   df <- dpmsr_set$string[[input_comp]]
+  test1 <<- df
   df <- subset(df, pvalue < input_pval)
+  test2 <<-df
   
   cat(file=stderr(), str_c("length of dataframe...", nrow(df)), "\n")
   
@@ -53,14 +118,15 @@ run_string <- function(session, input, output){
   }
   
   df <- df[order(-df$logFC),]
+  test3 <<-df
   
   cat(file=stderr(), str_c("length of dataframe...", nrow(df)), "\n")
   cat(file=stderr(), "run string step 4", "\n")
   
   if (nrow(df) > as.numeric(input$protein_number)){
-    hits <- df$STRING_id[1:as.numeric(input$protein_number)]
+    hits <- df$stringId[1:as.numeric(input$protein_number)]
   }else{
-    hits <- df$STRING_id
+    hits <- df$stringId
   }
   
   cat(file=stderr(), str_c("number of hits searched...", length(hits)), "\n")
@@ -79,6 +145,7 @@ run_string <- function(session, input, output){
   
   cat(file=stderr(), "run string step 7", "\n")
 
+  test_hits <<- hit_list  
   string_api <- str_c("https://string-db.org/api/highres_image/network?identifiers=",
                         hit_list,
                         "&species=", dpmsr_set$string$string_db$species, 
@@ -153,7 +220,7 @@ run_string_enrich <- function(input, output){
 
   df <- df[order(-df$logFC),]
   
-  hits <- df$STRING_id
+  hits <- df$stringId
   cat(file=stderr(), str_c("number of hits searched...", length(hits)), "\n")
   
   enrichment <- dpmsr_set$string$string_db$get_enrichment(hits) #, category = input$select_string_enrich )

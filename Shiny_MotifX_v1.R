@@ -27,49 +27,65 @@ run_motifx <- function(input, output, data_in){
   
   cat(file=stderr(), "motifx up..." , "\n") 
     filter_df <- subset(data_in, data_in$Stats == "Up" ) 
-    FC <- "Up"
-    ptm_data <- create_motifx_input(filter_df, parsed_ref)
-    cat(file=stderr(), str_c("ptm_data has ", nrow(ptm_data), " entries") , "\n") 
-    motifx_S <- motifx_calc(s, "S", w, "Up", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
-    cat(file=stderr(), str_c("motifx_S has ", nrow(motifx_S), " entries") , "\n") 
-    motifx_T <- motifx_calc(s, "T", w, "Up", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
-    cat(file=stderr(), str_c("motifx_T has ", nrow(motifx_T), " entries") , "\n") 
-    motifx_Y <- motifx_calc(s, "Y", w, "Up", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
-    cat(file=stderr(), str_c("motifx_Y has ", nrow(motifx_Y), " entries") , "\n") 
-    motifx_up <- rbind(motifx_S, motifx_T, motifx_Y)
-    cat(file=stderr(), str_c("motifx_up has ", nrow(motifx_up), " entries") , "\n") 
+      if (nrow(filter_df > 0)){
+        FC <- "Up"
+        ptm_data <- create_motifx_input(filter_df, parsed_ref, input$select_data_comp_motif, "Up")
+        cat(file=stderr(), str_c("ptm_data has ", nrow(ptm_data), " entries") , "\n") 
+        motifx_S <- motifx_calc(s, "S", w, "Up", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+        cat(file=stderr(), str_c("motifx_S has ", nrow(motifx_S), " entries") , "\n") 
+        motifx_T <- motifx_calc(s, "T", w, "Up", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+        cat(file=stderr(), str_c("motifx_T has ", nrow(motifx_T), " entries") , "\n") 
+        motifx_Y <- motifx_calc(s, "Y", w, "Up", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+        cat(file=stderr(), str_c("motifx_Y has ", nrow(motifx_Y), " entries") , "\n") 
+        motifx_up <- rbind(motifx_S, motifx_T, motifx_Y)
+        cat(file=stderr(), str_c("motifx_up has ", nrow(motifx_up), " entries") , "\n") 
+      }else{
+        motifx_up <- NULL
+        shinyalert("Oops!", "No peptides passed stats for Up", type = "error")
+      }
+    
     
   cat(file=stderr(), "motifx down..." , "\n")     
     filter_df <- subset(data_in, data_in$Stats == "Down" )
-    FC <<- "Down"
-    ptm_data <- create_motifx_input(filter_df, parsed_ref)
-    motifx_S <- motifx_calc(s, "S", w, "Down", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
-    motifx_T <- motifx_calc(s, "T", w, "Down", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
-    motifx_Y <- motifx_calc(s, "Y", w, "Down", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
-    motifx_down <- rbind(motifx_S, motifx_T, motifx_Y)
+    if (nrow(filter_df > 0)){
+      FC <<- "Down"
+      ptm_data <- create_motifx_input(filter_df, parsed_ref, input$select_data_comp_motif, "Down")
+      motifx_S <- motifx_calc(s, "S", w, "Down", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+      motifx_T <- motifx_calc(s, "T", w, "Down", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+      motifx_Y <- motifx_calc(s, "Y", w, "Down", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+      motifx_down <- rbind(motifx_S, motifx_T, motifx_Y)
+    }else{
+      motifx_down <- NULL
+      shinyalert("Oops!", "No peptides passed stats for Down", type = "error")
+    }
     
   cat(file=stderr(), "motifx updown..." , "\n")  
     filter_df<- subset(data_in, data_in$Stats == "Up" | data_in$Stats == "Down") 
-    FC <- "UpDown"
-    ptm_data <- create_motifx_input(filter_df, parsed_ref)
-    motifx_S <- motifx_calc(s, "S", w, "UpDown", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
-    motifx_T <- motifx_calc(s, "T", w, "UpDown", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
-    motifx_Y <- motifx_calc(s, "Y", w, "UpDown", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
-    motifx_updown <- rbind(motifx_S, motifx_T, motifx_Y)
+    if (nrow(filter_df > 0)){
+      FC <- "UpDown"
+      ptm_data <- create_motifx_input(filter_df, parsed_ref, input$select_data_comp_motif, "UpDown")
+      motifx_S <- motifx_calc(s, "S", w, "UpDown", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+      motifx_T <- motifx_calc(s, "T", w, "UpDown", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+      motifx_Y <- motifx_calc(s, "Y", w, "UpDown", ptm_data, parsed_ref, pval_motif, min_seq, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
+      motifx_updown <- rbind(motifx_S, motifx_T, motifx_Y)
+    }else{
+      motifx_updown <- NULL
+      shinyalert("Oops!", "No peptides passed stats for UpDown", type = "error")
+    }
     
   cat(file=stderr(), str_c("compiling motifs... ", nrow(motifx_up), "... ", nrow(motifx_down), "... ", nrow(motifx_updown)) , "\n")   
-  
-  test1 <<- motifx_up
-  test2 <<- motifx_down
-  test3 <<- motifx_updown
+
   
     motifx_all <- rbind(motifx_up, motifx_down, motifx_updown)
     
-    cat(file=stderr(), "write motifx excel..." , "\n")  
-    # save filename to dpmsr_set so downloadhandler can grab it
-    dpmsr_set$data$phos$filename <<- str_c("MotifX_", input$select_data_comp_motif, ".xlsx")
-    Simple_Excel(motifx_all, str_c(dpmsr_set$file$phos, "MotifX_", input$select_data_comp_motif, ".xlsx"))
-
+    if(is.null(motifx_all)){
+      shinyalert("Oops!", "No motifx found", type = "error")
+    }else {
+      cat(file=stderr(), "write motifx excel..." , "\n")  
+      # save filename to dpmsr_set so downloadhandler can grab it
+      dpmsr_set$data$phos$filename <<- str_c("MotifX_", input$select_data_comp_motif, ".xlsx")
+      Simple_Excel(motifx_all, str_c(dpmsr_set$file$phos, "MotifX_", input$select_data_comp_motif, ".xlsx"))
+    }
   
   return(motifx_all)
 }
@@ -87,6 +103,7 @@ motifx_calc <- function(s, c, w, FC, ptm_data, parsed_ref, pval_motif, min_seq, 
   
   # Locate PTMs within full-length proteins and extract neighboring motifs
   phindPTMs_Example <- phindPTMs(ptm_data, parsed_ref)
+
   
   # Reformat foreground sequences for motif-x
   foreground_Seqs <- unlist(strsplit(phindPTMs_Example[,"Flank_Seq"], split = "[.]"))
@@ -111,6 +128,8 @@ motifx_calc <- function(s, c, w, FC, ptm_data, parsed_ref, pval_motif, min_seq, 
   
   cat(file=stderr(), str_c("Number of motifs for ", c," = ", nrow(motifx_data)), "\n") 
   
+  Simple_Excel(phindPTMs_Example, str_c(dpmsr_set$file$phos, "MotifX_phindPTM_", comparison, "_", FC, ".xlsx"))
+  
   return(motifx_data)
 } 
 
@@ -119,7 +138,7 @@ motifx_calc <- function(s, c, w, FC, ptm_data, parsed_ref, pval_motif, min_seq, 
 #--------------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------------
 
-create_motifx_input <- function(filter_df, parsed_ref){
+create_motifx_input <- function(filter_df, parsed_ref, comparison, direction_filter){
   #---------Create input file for PTM data ----------------------------------------
 
   MotifPhos <- data.frame(cbind(filter_df$Accession, filter_df$Sequence, filter_df$Modifications))
@@ -162,6 +181,11 @@ create_motifx_input <- function(filter_df, parsed_ref){
   ptm_data$Protein_ID <- gsub( " .*$", "", ptm_data$Protein_ID)
   ptm_data <-subset(ptm_data, Protein_ID %in% parsed_ref$Accession)
 
+  cat(file=stderr(), "write ptm_data to excel..." , "\n")  
+  
+  Simple_Excel(ptm_data, str_c(dpmsr_set$file$phos, "MotifX_ptmdata_", comparison, "_", direction_filter, ".xlsx"))
+  
+  
   return(ptm_data)
 }
 
@@ -175,12 +199,17 @@ create_phos_database <- function(session, input, output){
   require(stringr)
 
   fasta_path <- parseFilePaths(dpmsr_set$x$volumes, input$motif_fasta)
+  cat(file=stderr(), str_c("fasta_path... ",fasta_path), "\n")
+  
+  #direct read for legacy dpmsr_set files
+  #fasta_txt_file <- "/home/dpmsr/shared/mouse.fasta"
   fasta_txt_file <- fasta_path$datapath
   
   #raw_fasta <- read.csv2(fasta_txt_file, header=FALSE)
   raw_fasta <- data.frame(read_lines(fasta_txt_file)  )
   
-  
+  raw_fasta <- data.frame(lapply(raw_fasta, function(x) gsub(">sp\\|", ">", x)), stringsAsFactors=F)
+             
   if(input$accession_split == "Bar"){
     split_char <- "\\|"
   }else  if(input$accession_split == "Space"){
@@ -312,3 +341,74 @@ testonly <- function(){
   
 }
 #--------------------------------------------------------------------------------------------
+
+create_padded_seq <- function(){
+  
+  filter_df <- dpmsr_set$data$final$sltmm
+  
+  parsed_ref <- dpmsr_set$data$phos$background
+  
+  #---------Create input file for PTM data ----------------------------------------
+  
+  MotifPhos <- data.frame(cbind(filter_df$Accession, filter_df$Sequence, filter_df$Modifications))
+  
+  colnames(MotifPhos) <- c("Accession", "Sequence", "Modifications")
+  MotifPhos$Accession <- as.character(MotifPhos$Accession)
+  MotifPhos$Sequence <- as.character(MotifPhos$Sequence)
+  MotifPhos$Modifications <- as.character(MotifPhos$Modifications)
+  
+  MotifPhos$Accession <- gsub(";.*", "", MotifPhos$Accession)
+  MotifPhos <- subset(MotifPhos, Accession != 1000 )
+  
+  MotifPhos$PhosOnly <- str_extract(MotifPhos$Modifications, "\\dxP.+\\]")
+  MotifPhos$Total_Sites <- substr(MotifPhos$PhosOnly,0,1)
+  MotifPhos$PTM_Loc <- str_extract_all(MotifPhos$PhosOnly, "[STY]\\d+")
+  MotifPhos$PTM_Loc <- gsub("[(]", "", MotifPhos$PTM_Loc)
+  MotifPhos$PTM_Loc <- gsub("[)]", "", MotifPhos$PTM_Loc)
+  MotifPhos$PTM_Loc <- gsub("[\"]", "", MotifPhos$PTM_Loc)
+  MotifPhos$PTM_Loc <- gsub(",", ";", MotifPhos$PTM_Loc)
+  MotifPhos <- subset(MotifPhos, PTM_Loc != 'character0')
+  MotifPhos$PTM_Loc <- gsub("c", "", MotifPhos$PTM_Loc)
+  MotifPhos$PTM_Loc <- gsub(" ", "", MotifPhos$PTM_Loc)
+  
+  MotifPhos$PTM_Score <- str_extract_all(MotifPhos$PhosOnly, "[(]\\d+\\.*\\d*")
+  MotifPhos$PTM_Score <- gsub("[(]", "", MotifPhos$PTM_Score)
+  MotifPhos$PTM_Score <- gsub("[)]", "", MotifPhos$PTM_Score)
+  MotifPhos$PTM_Score <- gsub("[\"]", "", MotifPhos$PTM_Score)
+  MotifPhos$PTM_Score <- gsub(",", ";", MotifPhos$PTM_Score)
+  MotifPhos <- subset(MotifPhos, PTM_Score != 'character0')
+  MotifPhos$PTM_Score <- gsub("c", "", MotifPhos$PTM_Score)
+  MotifPhos$PTM_Score <- gsub(" ", "", MotifPhos$PTM_Score)
+  
+  MotifPhos$Identifier <- str_c("PhosPeptide", seq.int(nrow(MotifPhos)))
+  
+  df <- data.frame(cbind(MotifPhos$Identifier, MotifPhos$Accession, MotifPhos$Sequence, 
+                         MotifPhos$Total_Sites, MotifPhos$PTM_Loc, MotifPhos$PTM_Score))
+  colnames(df) <- c("Identifier", "Protein_ID", "Peptide_Seq", "Total_Sites", "PTM_Loc", "PTM_Score")
+  
+  #--------- Subset to insure proteins are in database ----------------------------------------
+  ptm_data <- df
+  ptm_data$Protein_ID <- gsub( " .*$", "", ptm_data$Protein_ID)
+  ptm_data <-subset(ptm_data, Protein_ID %in% parsed_ref$Accession)
+  
+  cat(file=stderr(), "write ptm_data to excel..." , "\n")  
+  
+  Simple_Excel(ptm_data, str_c(dpmsr_set$file$phos, "Padded_Seq.xlsx"))
+  
+  phindPTMs_Example <- phindPTMs(ptm_data, parsed_ref)
+  df_PTMs <- data.frame(phindPTMs_Example)
+  
+  ptm_data$Prot_Loc <- df_PTMs$Prot_Loc
+  ptm_data$Flank_Seq <- df_PTMs$Flank_Seq
+  ptm_data$Ambiguity <- df_PTMs$Ambiguity
+  ptm_data$Prot_Seq <- df_PTMs$Prot_Seq
+  
+  Simple_Excel(ptm_data, str_c(dpmsr_set$file$phos, "Padded_Seq.xlsx"))
+  
+  return(ptm_data)
+}
+
+
+
+
+

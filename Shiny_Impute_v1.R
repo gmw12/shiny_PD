@@ -63,6 +63,9 @@ check_impute_parallel <- function(norm_list){
 #norm_name <-
 #--------------------------------------------------------------------------------
 impute_only <-  function(data_in, norm_name){
+  cat(file=stderr(), str_c("impute_only... ", norm_name), "\n")
+  cat(file=stderr(), str_c("impute method... ", dpmsr_set$x$impute_method), "\n")
+  
   info_columns <- ncol(data_in) - dpmsr_set$y$sample_number
   distribution_data <- data_in
   annotation_data <- data_in[1:info_columns]
@@ -114,70 +117,78 @@ impute_multi <- function(data_in, distribution_in, info_columns){
     #assign(dpmsr_set$y$sample_groups$Group[i], data.frame(data_in[c(dpmsr_set$y$sample_groups$start[i]:dpmsr_set$y$sample_groups$end[i])]))
     #df <- get(dpmsr_set$y$sample_groups$Group[i])
     df <- data.frame(data_in[c(dpmsr_set$y$sample_groups$start[i]:dpmsr_set$y$sample_groups$end[i])])
-    df$sum <- rowSums(df, na.rm = TRUE)
-    df$rep <- dpmsr_set$y$sample_groups$Count[i]
-    #df$min <- dpmsr_set$y$sample_groups$Count[i]/2
-    df$max_missing <- dpmsr_set$y$sample_groups$Count[i]*((100-as.numeric(dpmsr_set$x$missing_cutoff))/100)
-    df$max_misaligned <- dpmsr_set$y$sample_groups$Count[i]*(as.numeric(dpmsr_set$x$misaligned_cutoff)/100)
-    df$missings <- rowSums(is.na(df[1:dpmsr_set$y$sample_groups$Count[i]]))
-    df$average <- apply(df[1:dpmsr_set$y$sample_groups$Count[i]], 1, FUN = function(x) {mean(x, na.rm=TRUE)})
     
-    #separate calc for distribution data - for low ptm sets where impute cold be skewed if keep the high abundance data
-    df2 <- data.frame(distribution_data[c(dpmsr_set$y$sample_groups$start[i]:dpmsr_set$y$sample_groups$end[i])])
-    #df2$sum <- rowSums(df2, na.rm = TRUE)
-    #df2$rep <- dpmsr_set$y$sample_groups$Count[i]
-    #df2$min <- dpmsr_set$y$sample_groups$Count[i]/2
-    #df2$missings <- rowSums(is.na(df2[1:dpmsr_set$y$sample_groups$Count[i]]))
-    df2$average <- apply(df2[1:dpmsr_set$y$sample_groups$Count[i]], 1, FUN = function(x) {mean(x, na.rm=TRUE)})
-    df2$sd <- apply(df2[1:dpmsr_set$y$sample_groups$Count[i]], 1, FUN = function(x) {sd(x, na.rm=TRUE)})
-    df2$bin <- ntile(df2$average, 20)  
-    #sd_info <- subset(df2, missings ==0) %>% group_by(bin) %>% summarize(min = min(average), max = max(average), sd = mean(sd))
-    sd_info <- subset(df2, !is.na(sd)) %>% group_by(bin) %>% summarize(min = min(average), max = max(average), sd = mean(sd))
-    for (x in 1:19){sd_info$max[x] <- sd_info$min[x+1]}
-    sd_info$max[nrow(sd_info)] <- 100
-    sd_info$min2 <- sd_info$min
-    sd_info$min2[1] <- 0
-    sd_info <- sd_info[-21,]
-    
-    
-    # if the number of missing values <= minimum then will impute based on normal dist of measured values
-    if (dpmsr_set$x$impute_method == "Duke"){  
-      find_rows <- which(df$missings > 0 & df$missings <= df$max_missing)
-        for (j in find_rows){
-          findsd <- sd_info %>% filter(df$average[j] >= min2, df$average[j]<= max)
-          for (k in 1:dpmsr_set$y$sample_groups$Count[i]){
-            if (is.na(df[j,k])) {
-              #nf <-  rnorm(1, 0, 1)
-              #nf <- mean(runif(4, min=-1, max=1))
-              df[j,k] = df$average[j] + (dpmsr_set$y$rand_impute[rand_count] * findsd$sd[1])
-              rand_count <- rand_count + 1
+    # adding if statement incase there are non quant groups (1 sample)
+    if (ncol(df) >1){
+      
+      df$sum <- rowSums(df, na.rm = TRUE)
+      df$rep <- dpmsr_set$y$sample_groups$Count[i]
+      #df$min <- dpmsr_set$y$sample_groups$Count[i]/2
+      df$max_missing <- dpmsr_set$y$sample_groups$Count[i]*((100-as.numeric(dpmsr_set$x$missing_cutoff))/100)
+      df$max_misaligned <- dpmsr_set$y$sample_groups$Count[i]*(as.numeric(dpmsr_set$x$misaligned_cutoff)/100)
+      df$missings <- rowSums(is.na(df[1:dpmsr_set$y$sample_groups$Count[i]]))
+      df$average <- apply(df[1:dpmsr_set$y$sample_groups$Count[i]], 1, FUN = function(x) {mean(x, na.rm=TRUE)})
+      
+      #separate calc for distribution data - for low ptm sets where impute cold be skewed if keep the high abundance data
+      df2 <- data.frame(distribution_data[c(dpmsr_set$y$sample_groups$start[i]:dpmsr_set$y$sample_groups$end[i])])
+      #df2$sum <- rowSums(df2, na.rm = TRUE)
+      #df2$rep <- dpmsr_set$y$sample_groups$Count[i]
+      #df2$min <- dpmsr_set$y$sample_groups$Count[i]/2
+      #df2$missings <- rowSums(is.na(df2[1:dpmsr_set$y$sample_groups$Count[i]]))
+      df2$average <- apply(df2[1:dpmsr_set$y$sample_groups$Count[i]], 1, FUN = function(x) {mean(x, na.rm=TRUE)})
+      df2$sd <- apply(df2[1:dpmsr_set$y$sample_groups$Count[i]], 1, FUN = function(x) {sd(x, na.rm=TRUE)})
+      df2$bin <- ntile(df2$average, 20)  
+      #sd_info <- subset(df2, missings ==0) %>% group_by(bin) %>% summarize(min = min(average), max = max(average), sd = mean(sd))
+      sd_info <- subset(df2, !is.na(sd)) %>% group_by(bin) %>% summarize(min = min(average), max = max(average), sd = mean(sd))
+      for (x in 1:19){sd_info$max[x] <- sd_info$min[x+1]}
+      sd_info$max[nrow(sd_info)] <- 100
+      sd_info$min2 <- sd_info$min
+      sd_info$min2[1] <- 0
+      sd_info <- sd_info[-21,]
+      
+      
+      # if the number of missing values <= minimum then will impute based on normal dist of measured values
+      if (dpmsr_set$x$impute_method == "Duke"){  
+        find_rows <- which(df$missings > 0 & df$missings <= df$max_missing)
+          for (j in find_rows){
+            findsd <- sd_info %>% filter(df$average[j] >= min2, df$average[j]<= max)
+            for (k in 1:dpmsr_set$y$sample_groups$Count[i]){
+              if (is.na(df[j,k])) {
+                #nf <-  rnorm(1, 0, 1)
+                #nf <- mean(runif(4, min=-1, max=1))
+                df[j,k] = df$average[j] + (dpmsr_set$y$rand_impute[rand_count] * findsd$sd[1])
+                rand_count <- rand_count + 1
+              }
             }
           }
         }
-      }
-    
-    
-    # if number of missing greater than minimum and measured value is above intensity cuttoff then remove measured value
-    df$missings <- rowSums(is.na(df[1:dpmsr_set$y$sample_groups$Count[i]]))  #recalc if Duke filled, filters may overlap
-   
-     if (as.logical(dpmsr_set$x$duke_misaligned)){
-      find_rows <- which(df$missings > df$max_misaligned  & df$average >= log(dpmsr_set$x$int_cutoff,2) )
-      for (j in find_rows){
-        for (k in 1:dpmsr_set$y$sample_groups$Count[i]){
-              df[j,k] <- NA
-         }
+      
+      
+      # if number of missing greater than minimum and measured value is above intensity cuttoff then remove measured value
+      df$missings <- rowSums(is.na(df[1:dpmsr_set$y$sample_groups$Count[i]]))  #recalc if Duke filled, filters may overlap
+     
+       if (as.logical(dpmsr_set$x$duke_misaligned)){
+        find_rows <- which(df$missings > df$max_misaligned  & df$average >= log(dpmsr_set$x$int_cutoff,2) )
+        for (j in find_rows){
+          for (k in 1:dpmsr_set$y$sample_groups$Count[i]){
+                df[j,k] <- NA
+           }
+          }
         }
-      }
-   
-
+    } # end of if ncol(df)>1
+    
     #save group dataframe
     assign(dpmsr_set$y$sample_groups$Group[i], df[1:dpmsr_set$y$sample_groups$Count[i]])
     gc()
   }
   
-  #saving original data with imputed data frame for return
+
+  #get first group
   df3 <- get(dpmsr_set$y$sample_groups$Group[1])
-  for(i in 2:dpmsr_set$y$group_number)  {df3 <- cbind(df3, get(dpmsr_set$y$sample_groups$Group[i]))}
+  #add remaining groups
+  for(i in 2:dpmsr_set$y$group_number)  {
+    df3 <- cbind(df3, get(dpmsr_set$y$sample_groups$Group[i]))
+    }
   
   if (dpmsr_set$x$impute_method == "LocalLeastSquares"){df3 <- impute_lls(df3)}
   if (dpmsr_set$x$impute_method == "KNN"){df3 <- impute_knn(df3)}  
@@ -185,7 +196,9 @@ impute_multi <- function(data_in, distribution_in, info_columns){
   
   df3 <- data.frame(2^df3)
 
-  if (dpmsr_set$x$impute_method == "Duke"){df3 <- impute_bottomx(df3, distribution_in, info_columns)}
+  if (dpmsr_set$x$impute_method == "Duke"){
+    df3 <- impute_bottomx(df3, distribution_in, info_columns)
+    }
   
   return(df3)
 }

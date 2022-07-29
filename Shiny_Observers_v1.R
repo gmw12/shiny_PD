@@ -150,7 +150,7 @@ update_dpmsr_set_from_widgets <- function(session, input, output){
   })
   
   observe({
-    dpmsr_set$x$protein_norm_list <<-  input$protein_norm_list
+    dpmsr_set$x$protein_norm_list <<-  as.list(strsplit(input$protein_norm_list, ",")[[1]])
   })
 
   #-impute-----------------------------------------------------------------------------------------------------      
@@ -279,10 +279,7 @@ update_dpmsr_set_from_widgets <- function(session, input, output){
     dpmsr_set$y$organism <<-  input$select_organism
   })
 
- 
-  
 
-  
   
    
 }

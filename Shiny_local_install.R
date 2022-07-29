@@ -1,4 +1,4 @@
-cat(file=stderr(), "Shiny_install.R.... starting....", "\n")
+
 
 package_list <- c('devtools', 'tidyr', 'httr', 'png', 'tidyverse', 'dplyr', 'fs', 'effsize',
                   'colourpicker', 'tibble', 'stringr', 'readxl', 'randomcoloR', 'gplots',
@@ -14,7 +14,16 @@ biocmanager_list = c('impute', 'ViSEAGO', 'topGO', 'clusterProfiler', 'GSEABase'
                      'preprocessCore', 'org.Hs.eg.db', 'org.Mm.eg.db', 'org.Rn.eg.db')
 
 
-cat(file=stderr(), "Shiny_install.R.... package_list", "\n")
+#devtools::install_github('omarwagih/rmotifx', dependencies = TRUE, library="/home/dpmsr/R/library") 
+#remotes::install_github("jmwozniak/PTMphinder", dependencies = TRUE)
+
+library(devtools)
+withr::with_libpaths(new = "/home/dpmsr/R/library", install_github('omarwagih/rmotifx'))
+withr::with_libpaths(new = "/home/dpmsr/R/library", install_github('jmwozniak/PTMphinder'))
+
+devtools::install_github('omarwagih/rmotifx', args = c('--lib="/home/dpmsr/R/library"'))
+
+
 # loop to install require packages
 for (pack in package_list){
   print(pack)
@@ -22,12 +31,11 @@ for (pack in package_list){
     print("not installing")
   }else{
     print("installing")
-    install.packages(pack, dependencies = TRUE) 
+    install.packages(pack, dependencies = TRUE, lib="/home/dpmsr/R/library") 
   }
 }
 
 
-cat(file=stderr(), "Shiny_install.R.... bioconductor_list", "\n")
 #loop to install required BioConductor packages
 for (pack in biocmanager_list){
   print(pack)
@@ -35,21 +43,35 @@ for (pack in biocmanager_list){
     print("not installing")
   }else{
     print("installing")
-    BiocManager::install(pack, dependencies = TRUE) 
+    BiocManager::install(pack, dependencies = TRUE, lib="/home/dpmsr/R/library") 
   }
 }        
 
-
-cat(file=stderr(), "Shiny_install.R.... github", "\n")
-library(devtools)
-
-devtools::install_github('omarwagih/rmotifx', dependencies = TRUE) 
-
-devtools::install_github("jmwozniak/PTMphinder", dependencies = TRUE)
+#BiocManager::install("org.Rn.eg.db", dependencies = TRUE, lib="/home/dpmsr/R/library")
+#sudo su - -c "R -e \"BiocManager::install('org.Rn.eg.db')\""
 
 
+# loop to check require packages
+for (pack in package_list){
+  if(pack %in% rownames(installed.packages())) {   
+    print(" ")
+  }else{
+    print(pack)
+    print("not found")
+  }
+}
 
- 
-cat(file=stderr(), "Shiny_install.R.... END", "\n")
+
+
+#loop to install required BioConductor packages
+for (pack in biocmanager_list){
+  if(pack %in% rownames(installed.packages())) {   
+    print(" ")
+  }else{
+    print(pack)
+    print("not found")
+  }
+} 
+
 
                               
