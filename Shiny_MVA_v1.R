@@ -107,10 +107,10 @@ set_stat_groups <- function(session, input, output){
   color_choices <- distinctColorPalette(as.numeric(input$comp_number)*2)
   color_choices_N <- color_choices[c(TRUE, FALSE)]
   color_choices_D <- color_choices[c(FALSE, TRUE)]
-  cat(file=stderr(), "set_stats_groups....2", "\n")
+  cat(file=stderr(), "set_stat_groups....2", "\n")
   
   for (i in 1:input$comp_number){
-    cat(file=stderr(), str_c("stats_comp ", i, " of ", input$comp_number), "\n")
+    cat(file=stderr(), str_c("begin stat_comp ", i, " of ", input$comp_number), "\n")
     stats_data_N <- stats_data
     stats_data_D <- stats_data
     
@@ -119,17 +119,77 @@ set_stat_groups <- function(session, input, output){
     #for(stats_group in input[[str_c('comp_',i,'N')]]){stats_data_N <- stats_data_N %>% dplyr::select(contains(stats_group))   }
     #for(stats_group in input[[str_c('comp_',i,'D')]]){stats_data_D <- stats_data_D %>% dplyr::select(contains(stats_group))   }
  
-    for(stats_group in input[[str_c('comp_',i,'N')]]){
+    # adding section to reduce complexity of grouping, Min.Samples will not allow other factors into the comparision
+    factorsN <- input[[str_c('comp_',i,'N')]]
+    factorsD <- input[[str_c('comp_',i,'D')]]
+    
+    #trouble shooting
+    #dfD <<- stats_data_D
+    #dfN <<- stats_data_N
+    #fN <<- factorsN
+    #fD <<- factorsD
+    # stats_data_D <- dfD
+    # stats_data_N <- dfN
+    # factorsN <- fN
+    # factorsD <- fD
+    # rm(stats_data_D, stats_data_N, factorsN, factorsD, n_max, n_min, d_max, d_min)
+    
+    n_min <- FALSE
+    d_min <- FALSE
+    
+    if (!is_empty(grep("Min.Samples", factorsN))) {
+      cat(file=stderr(), "set_stats_groups...minimize N", "\n")
+      n_min <- TRUE
+      factorsN <- factorsN[!factorsN %in% grep("Min.Samples", factorsN, value = T)]
+      n_max <- length(factorsN)
+    }
+    
+    if (!is_empty(grep("Min.Samples", factorsD))) {
+      cat(file=stderr(), "set_stats_groups...minimize D", "\n")
+      d_min <- TRUE
+      factorsD <- factorsD[!factorsD %in% grep("Min.Samples", factorsD, value = T)]
+      d_max <- length(factorsD)
+    }     
+    
+    for(stats_group in factorsN){
       grep_comp <- paste("[ _]", stats_group, "[ _$]", sep="")
       stats_data_N <- stats_data_N[,grepl(grep_comp, colnames(stats_data_N))]
       }
     
-    for(stats_group in input[[str_c('comp_',i,'D')]]){
+    for(stats_group in factorsD){
       grep_comp <- paste("[ _]", stats_group, "[ _$]", sep="")
       stats_data_D <- stats_data_D[,grepl(grep_comp, colnames(stats_data_D))]
      }
 
-      
+    #if Min.Samples now have to remove extra columns that we don't want by count _'s
+    if(n_min){
+      new_columns <- list()
+      for(col in colnames(stats_data_N)){
+        count_comps <- length(unlist(str_locate_all(col, "_")))/2
+        if (count_comps < n_max){
+          new_columns <- c(new_columns, col)
+        }
+      }
+      new_columns <- unlist(new_columns)
+      stats_data_N <- stats_data_N[, new_columns]
+      cat(file=stderr(), str_c("stats_data_n columns=", ncol(stats_data_N)), "\n")
+    }
+    
+    
+    if(d_min){
+      new_columns <- list()
+      for(col in colnames(stats_data_D)){
+        count_comps <- length(unlist(str_locate_all(col, "_")))/2
+        if (count_comps < d_max){
+          new_columns <- c(new_columns, col)
+        }
+      }
+      new_columns <- unlist(new_columns)
+      stats_data_D <- stats_data_D[, new_columns]
+      cat(file=stderr(), str_c("stats_data_d columns=", ncol(stats_data_D)), "\n")
+    }
+    
+    
     #work around to get all samples into a comparison for graphs
     if( input[[str_c('comp_',i,'N')]] == "All.Samples"){
       stats_data_N <- stats_data %>% dplyr::select(!contains(input$comp_spqc))
@@ -138,8 +198,11 @@ set_stat_groups <- function(session, input, output){
       stats_data_D <- stats_data %>% dplyr::select(!contains(input$comp_spqc))
     }
     
-    comp_groups$comp_N[i] <- paste(input[[str_c('comp_',i,'N')]], collapse = "_")
-    comp_groups$comp_D[i] <- paste(input[[str_c('comp_',i,'D')]], collapse = "_")
+
+    comp_groups$comp_N[i] <- paste(factorsN, collapse = "_")
+    if (n_min){comp_groups$comp_N[i] <- str_c(comp_groups$comp_N[i], "<")}
+    comp_groups$comp_D[i] <- paste(factorsD, collapse = "_")
+    if (d_min){comp_groups$comp_D[i] <- str_c(comp_groups$comp_D[i], "<")}
     comp_groups$comp_name[i] <- str_c(comp_groups$comp_N[i], "_v_", comp_groups$comp_D[i])
     comp_groups$com_N_headers[i] <- list(colnames(stats_data_N))
     comp_groups$com_D_headers[i] <- list(colnames(stats_data_D))
@@ -164,9 +227,10 @@ set_stat_groups <- function(session, input, output){
     dpmsr_set$y$stats[[str_c("comp", i, "_D")]] <<- input[[str_c('comp_',i,'D')]]
     comp_groups$sample_numbers_N[i] <- list(match(colnames(stats_data_N), names(stats_data)))
     comp_groups$sample_numbers_D[i] <- list(match(colnames(stats_data_D), names(stats_data)))
+    cat(file=stderr(), str_c("end stat_comp ", i, " of ", input$comp_number), "\n")
   }
   
-  cat(file=stderr(), "set_stats_groups....4", "\n")
+  cat(file=stderr(), "set_stats_groups....3", "\n")
   dpmsr_set$y$stats$groups <<- comp_groups
   dpmsr_set$y$stats$comp_number <<- input$comp_number
   
@@ -174,6 +238,7 @@ set_stat_groups <- function(session, input, output){
   updateTextInput(session, "stats_barplot_title", value = str_c("Barplot ", dpmsr_set$y$stats$groups$comp_name[input$mva_plot_comp]))
   updateTextInput(session, "stats_boxplot_title", value = str_c("Boxplot ", dpmsr_set$y$stats$groups$comp_name[input$mva_plot_comp]))
   update_comparisons(session, input, output)
+  cat(file=stderr(), "set_stat_groups....end", "\n")
 }
 
 

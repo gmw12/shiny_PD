@@ -272,6 +272,7 @@ set_sample_groups<- function(){
   second_group<- NULL
   third_group<- NULL
   fourth_group<- NULL
+  fifth_group<- NULL
   
   for(i in 1:length(dpmsr_set$y$sample_groups$Group)){
     groups <-  unlist(str_split(dpmsr_set$y$sample_groups$Group[i], "_"))
@@ -279,8 +280,9 @@ set_sample_groups<- function(){
     second_group <-  c(second_group, groups[2])
     third_group <-  c(third_group, groups[3])
     fourth_group <-  c(fourth_group, groups[4])
+    fifth_group <- c(fifth_group, groups[5])
   }
-  dpmsr_set$y$uniquegroups <<- unique(c(first_group, second_group, third_group, fourth_group, "All.Samples")) #, "/^((?!SPQC).)*$/"  ))
+  dpmsr_set$y$uniquegroups <<- unique(c(first_group, second_group, third_group, fourth_group, fifth_group, "Min.Samples", "All.Samples")) #, "/^((?!SPQC).)*$/"  ))
   dpmsr_set$y$uniquegroups <<- dpmsr_set$y$uniquegroups[!is.na(dpmsr_set$y$uniquegroups)]
 
   

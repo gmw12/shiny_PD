@@ -1,17 +1,18 @@
 norm_prep <- function(){
   cat(file=stderr(), "norm_prep started...", "\n")
+  # not isoform data
   if ((dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Peptide") 
       && !as.logical(dpmsr_set$x$peptide_isoform)) {
     dpmsr_set$data$norm_data <<- remove_duplicates(dpmsr_set$data$data_peptide)  
     if (as.logical(dpmsr_set$x$peptide_ptm_norm)){
       dpmsr_set$data$norm_data <<- dpmsr_set$data$norm_data[grep(dpmsr_set$x$peptide_norm_grep, 
-                                      dpmsr_set$data$norm_data$Modifications),]
+                                                                 dpmsr_set$data$norm_data$Modifications),]
     }
     Simple_Excel(dpmsr_set$data$norm_data,  str_c(dpmsr_set$file$extra_prefix, "_norm_data.xlsx", collapse = " "))
     dpmsr_set$data$data_to_norm <<- dpmsr_set$data$data_peptide 
   }
   
-  
+  #isoform data
   if ((dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Peptide") 
       && as.logical(dpmsr_set$x$peptide_isoform)) {
     dpmsr_set$data$norm_data <<- remove_duplicates(dpmsr_set$data$data_peptide)
@@ -23,7 +24,7 @@ norm_prep <- function(){
     dpmsr_set$data$data_to_norm <<- dpmsr_set$data$data_peptide_isoform
   }
   
-  
+  #protein only data
   if (dpmsr_set$x$raw_data_input=="Protein") {
     dpmsr_set$data$norm_data <<- dpmsr_set$data$data_protein
     Simple_Excel(dpmsr_set$data$norm_data,  str_c(dpmsr_set$file$extra_prefix, "_norm_data.xlsx", collapse = " "))
