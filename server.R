@@ -2,7 +2,7 @@ options(shiny.maxRequestSize=4000*1024^2)
 
 source("Shiny_Startup_v1.R")
 
-cat(file=stderr(), "Server.R line 1", "\n")
+cat(file=stderr(), "Server.R started", "\n")
 
 library(shiny)
 library(shinyFiles)
@@ -12,9 +12,6 @@ library(rhandsontable)
 library(rgl)
 library(DT)
 library(shinyalert)
-
-cat(file=stderr(), "Server.R line 11", "\n")
-cat(file=stderr(), "Server.R line 15", "\n")
 
 
 if(Sys.info()["sysname"]=="Darwin" ){
@@ -38,11 +35,17 @@ if(Sys.info()["sysname"]=="Darwin" ){
   #for greg linux laptop
   volumes <- c(dd='/home/dpmsr/shared', wd='.', Home = fs::path_home(), getVolumes()())
   site_user <<- "dpmsr"
+}else if (Sys.info()["nodename"] == "mascot"){
+  #for mascot search pc
+  volumes <- c(h1='/mnt/h_black1', h2='/mnt/h_black2', dc='/mnt/DataCommons', wd='.', Home = fs::path_home(), getVolumes()())
+  site_user <<- "dpmsr"
 }else{
   #for public website
   volumes <- c(dd='/data', wd='.', Home = fs::path_home(), getVolumes()())
   site_user <<- "not_dpmsr"
 }
+
+cat(file=stderr(), str_c("volumes = ", volumes), "\n")
 
 #force setting when testing customer version
 #site_user <<- "not_dpmsr"
@@ -69,26 +72,7 @@ shinyServer(function(input, output, session) {
     output$text_impute_ptm <- renderText("Impute Distributions using Impute PTM grep (Load Data)")
     
     cat(file=stderr(), "Shiny Server started ...4", "\n")
-    
-    if(Sys.info()["sysname"]=="Darwin" ){
-      volumes <- c(dd='/Users/gregwaitt/Documents/Data', wd='.', Home = fs::path_home(),  getVolumes()())
-      #volumes <- c(wd='.', Home = fs::path_home(), "R Installation" = R.home(), getVolumes()())
-    }else if (Sys.info()["nodename"] == "titan_shiny"){
-      #for titan_black VM
-      volumes <- c(dd='/home/dpmsr/shared', wd='.', Home = fs::path_home(), getVolumes()())
-    }else if (Sys.info()["nodename"] == "titanshinyu20"){
-      #for titan_black VM
-      volumes <- c(dd='/home/dpmsr/shared', wd='.', Home = fs::path_home(), getVolumes()())
-    }else if (Sys.info()["nodename"] == "greg-GS63VR-7RF"){
-      #for greg linux laptop
-      volumes <- c(dd='/home/dpmsr/shared', wd='.', Home = fs::path_home(), getVolumes()())
-    }else{
-      #for public website
-      volumes <- c(dd='/data', wd='.', Home = fs::path_home(), getVolumes()())
-    }
-    
-    cat(file=stderr(), "Shiny Server started ...5", "\n")
-    
+
     shinyFileChoose(input, 'design_file', session=session, roots=volumes, filetypes=c('', 'xlsx'))
     
     shinyFileChoose(input,'raw_files', roots=volumes, session=session, 

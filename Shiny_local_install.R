@@ -18,10 +18,10 @@ biocmanager_list = c('impute', 'ViSEAGO', 'topGO', 'clusterProfiler', 'GSEABase'
 #remotes::install_github("jmwozniak/PTMphinder", dependencies = TRUE)
 
 library(devtools)
-withr::with_libpaths(new = "/home/dpmsr/R/library", install_github('omarwagih/rmotifx'))
-withr::with_libpaths(new = "/home/dpmsr/R/library", install_github('jmwozniak/PTMphinder'))
+withr::with_libpaths(new = "/home/mascot/R/library", install_github('omarwagih/rmotifx'))
+withr::with_libpaths(new = "/home/mascot/R/library", install_github('jmwozniak/PTMphinder'))
 
-devtools::install_github('omarwagih/rmotifx', args = c('--lib="/home/dpmsr/R/library"'))
+devtools::install_github('omarwagih/rmotifx', args = c('--lib="/home/mascot/R/library"'))
 
 
 # loop to install require packages
@@ -31,7 +31,7 @@ for (pack in package_list){
     print("not installing")
   }else{
     print("installing")
-    install.packages(pack, dependencies = TRUE, lib="/home/dpmsr/R/library") 
+    install.packages(pack, dependencies = TRUE, lib="/home/mascot/R/library") 
   }
 }
 
@@ -43,7 +43,7 @@ for (pack in biocmanager_list){
     print("not installing")
   }else{
     print("installing")
-    BiocManager::install(pack, dependencies = TRUE, lib="/home/dpmsr/R/library") 
+    BiocManager::install(pack, dependencies = TRUE, lib="/home/mascot/R/library") 
   }
 }        
 
