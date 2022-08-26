@@ -19,13 +19,9 @@ if(Sys.info()["sysname"]=="Darwin" ){
   #version determines website content
   site_user <<- "dpmsr"
   #volumes <- c(wd='.', Home = fs::path_home(), "R Installation" = R.home(), getVolumes()())
-}else if (Sys.info()["nodename"] == "titan_shiny"){
-  #for titan_black VM
-  volumes <- c(dd='/home/dpmsr/shared', wd='.', Home = fs::path_home(), getVolumes()())
-  site_user <<- "dpmsr"
 }else if (Sys.info()["nodename"] == "titanshinyu20"){
   #for titan_black VM
-  volumes <- c(dd='/home/dpmsr/shared', wd='.', Home = fs::path_home(), getVolumes()())
+  volumes <- c(dd='/home/dpmsr/shared/h_drive', dd2='/home/dpmsr/shared/other_black', RawData='/home/dpmsr/shared/RawData', wd='.', Home = fs::path_home(), getVolumes()())
   site_user <<- "dpmsr"
 }else if (Sys.info()["nodename"] == "greg-GS63VR-7RF"){
   #for greg linux laptop
