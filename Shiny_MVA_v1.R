@@ -687,7 +687,7 @@ stats_data_table_filter <- function(session, input, output) {
   
   cat(file=stderr(), "stats_data_table_filter... 1", "\n")
   df_filter <- dpmsr_set$data$stats[[comp_string]]
-  test_df_filter <<- df_filter
+  #test_df_filter <<- df_filter
   
   cat(file=stderr(), "stats_data_table_filter... 2", "\n")
   if(input$stats_add_filters){

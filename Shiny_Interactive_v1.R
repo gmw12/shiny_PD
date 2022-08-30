@@ -140,7 +140,7 @@ interactive_barplot <- function(session, input, output, df, namex, color_list, o
 #------------------------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------------------------
 
-interactive_boxplot <- function(session, input, output, df, namex, color_list, comp_name)
+interactive_boxplot <- function(session, input, output, df, namex, color_list, comp_string)
 {
   cat(file=stderr(), "interactive_boxplot" , "\n")
   
@@ -169,7 +169,7 @@ interactive_boxplot <- function(session, input, output, df, namex, color_list, c
   
   output$download_stats_boxplot <- downloadHandler(
     filename = function(){
-      str_c("stats_Boxplot_", comp_name, ".png", collapse = " ")
+      str_c("stats_Boxplot_", comp_string, ".png", collapse = " ")
     },
     content = function(file){
       req(create_stats_boxplot())
@@ -546,9 +546,10 @@ interactive_stats_volcano <- function(session, input, output, i)
 #------------------------------------------------------------------------------------------------------------------------
 #match(namesdf, names(df))
 
-interactive_grouped_peptide_barplot <- function(session, input, output, comp_string, df, info_columns, comp_name, peptide_pos_lookup, color_list)
+interactive_grouped_peptide_barplot <- function(session, input, output, comp_string, df, info_columns, peptide_pos_lookup, color_list)
 {
-  cat(file=stderr(), "interactive_grouped_peptide_barplot" , "\n")
+  cat(file=stderr(), str_c("interactive_grouped_peptide_barplot, comp_name=", comp_string), "\n")
+  
   # comp_string <<- comp_string 
   # df <<- df
   # dfb <<- df
@@ -618,8 +619,9 @@ interactive_grouped_peptide_barplot <- function(session, input, output, comp_str
     stats_data_spqc$Comp <- dpmsr_set$y$stats$comp_spqc
     stats_data_spqc$Order <- "3"
     stats_data_all <- rbind(stats_data_all, stats_data_spqc)
-    }
+  }
   
+
   cat(file=stderr(), "Interactive group barplot...5" , "\n")
   new_df <- merge(stats_data_all, peptide_pos_lookup, by="Sequence")
   new_df$Position <- str_c(new_df$Start, "-", new_df$Stop)
@@ -632,7 +634,8 @@ interactive_grouped_peptide_barplot <- function(session, input, output, comp_str
   new_df$Sequence <- as.character(new_df$Sequence)
   
   new_df2 <- new_df %>% group_by(Order, Comp, Sequence, Modifications, Position, Start, Stop) %>% summarise(y_mean=mean(y), sd=sd(y))
-
+  
+  cat(file=stderr(), "Interactive group barplot...6" , "\n")
   new_df2 <- data.frame(ungroup(new_df2))
   new_df2$Start<- as.numeric(new_df2$Start)
   new_df2$Stop<- as.numeric(new_df2$Stop)
@@ -645,7 +648,7 @@ interactive_grouped_peptide_barplot <- function(session, input, output, comp_str
   new_df2$Comp <- as.character(new_df2$Comp)
   new_df2_sort2 <- unique(new_df2$Comp)
   new_df2$Comp <- factor(new_df2$Comp, levels = new_df2_sort2)
-  
+  cat(file=stderr(), "Interactive group barplot...7" , "\n")
   new_df2$Label <- str_c(new_df2$Position, "\n", new_df2$Sequence, "\n", new_df2$Modifications)
   new_df2$Label  <- stringr::str_replace_all(new_df2$Label , "Carbamidomethyl", "Carb")
   new_df2$Label  <- stringr::str_replace_all(new_df2$Label , "Oxidation", "Ox")
@@ -655,7 +658,7 @@ interactive_grouped_peptide_barplot <- function(session, input, output, comp_str
   new_df2_sort3 <- unique(new_df2$Label)
   new_df2$Label <- factor(new_df2$Label, levels = new_df2_sort3)
 
-  cat(file=stderr(), "Interactive group barplot...6" , "\n")
+  cat(file=stderr(), "Interactive group barplot...8" , "\n")
   
   color_list <- rep(color_list, nrow(new_df2)/length(color_list))
   xcolor_list <- color_list
@@ -663,7 +666,7 @@ interactive_grouped_peptide_barplot <- function(session, input, output, comp_str
   if (input$stats_onepeptide_residue > 0){
     new_df2 <- new_df2[(new_df2$Start <= input$stats_onepeptide_residue & new_df2$Stop >= input$stats_onepeptide_residue ),]
   }
-  
+  cat(file=stderr(), "Interactive group barplot...9" , "\n")
   # Grouped
   create_stats_barplot <- reactive({
       ggplot(new_df2, aes(fill=Comp, y=y_mean, x=Label   )) + 
@@ -697,7 +700,7 @@ interactive_grouped_peptide_barplot <- function(session, input, output, comp_str
      
      output$download_stats_onepeptide_grouped_barplot <- downloadHandler(
        filename = function(){
-         str_c("Grouped_Barplot_", as.character(input$stats_onepeptide_accession), "_", comp_name,  ".png", collapse = " ")
+         str_c("Grouped_Barplot_", as.character(input$stats_onepeptide_accession), "_", comp_string,  ".png", collapse = " ")
        },
        content = function(file){
          req(create_stats_barplot())

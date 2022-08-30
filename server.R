@@ -881,7 +881,7 @@ observeEvent(input$data_show, {
     #-------------------------------------------------------------------------------------------------------------  
     
     observeEvent(input$create_stats_onepeptide_plots, { 
-      
+      cat(file=stderr(), "Event create_stats_onepeptide_plots", "\n")
       
       comp_test <- try(which(dpmsr_set$data$stats[[input$stats_onepeptide_plot_comp]] == input$stats_onepeptide_accession), silent =TRUE)
       comp_string <- input$stats_onepeptide_plot_comp
@@ -913,7 +913,8 @@ observeEvent(input$data_show, {
         
         peptide_pos_lookup <-  peptide_position_lookup(session, input, output, as.character(input$stats_onepeptide_accession))
         grouped_color <- unique(color_list)
-        interactive_grouped_peptide_barplot(session, input, output, comp_string, df_peptide, info_columns, comp_name, peptide_pos_lookup, grouped_color)
+        #interactive_grouped_peptide_barplot(session, input, output, comp_string, df_peptide, info_columns, comp_name, peptide_pos_lookup, grouped_color)
+        interactive_grouped_peptide_barplot(session, input, output, comp_string, df_peptide, info_columns, peptide_pos_lookup, grouped_color)
         
         sample_col_numbers <- seq(from=12, to = ncol(df_peptide) )
         df_peptide <- cbind(df_peptide, df_peptide_stats)
@@ -1042,28 +1043,6 @@ observeEvent(input$data_show, {
     )
     #-------------------------------------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------------------------------------
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     
     #-------------------------------------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------------------------------------
