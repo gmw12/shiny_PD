@@ -926,17 +926,22 @@ shinyUI(
                                             h5('Enter list of strings to search in protein descriptions.'),
                                             h5('Beware of extra trailing spaces'),
                                             h5('Search is NOT case sensitive'),
-                                            colourpicker::colourInput("volcano_highlight_color", "Select Color", "red"),
+                                            colourpicker::colourInput("volcano_highlight_color", "Description Highlight Color", "red"),
+                                            checkboxInput("stats_volcano_highlight_up", label = "Highlight stat signif up?", value = TRUE),
+                                            checkboxInput("stats_volcano_highlight_down", label = "Highlight stat signif down?", value = TRUE),
+                                            colourpicker::colourInput("volcano_highlight_color_up", "Stat 'Down' Color", "red"),
+                                            colourpicker::colourInput("volcano_highlight_color_down", "Stat 'Up' Color", "red"),
                                             sliderInput("volcano_highlight_dot_size", label = h5("Point Size"), min = 1, 
                                                         max = 10, value = 3),
                                             sliderInput("volcano_highlight_alpha", label = h5("Transparency"), min = 0.1, 
                                                         max = 1, value = 0.5),
-                                            circle = TRUE, status = "warning", icon = icon("question-circle"), width = "300px", size = "sm",
+                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
                                             tooltip = tooltipOptions(title = "Click for help on Volcano protein highlights")
                                           )
                                    ),
-                                   column(width=2, offset = 0,
-                                          checkboxInput("stats_volcano_fixed_axis", label = "Fix x and y axis for all plots?")
+                                   column(width=3, offset = 0,
+                                          checkboxInput("stats_volcano_fixed_axis", label = "Fix x and y axis for all plots?"),
+                                          checkboxInput("stats_volcano_highlight_signif", label = "Highlight statistically signifigant?")
                                           ),
                                    column(width=1, offset = 0,
                                            numericInput("stats_volcano_y_axis", label = "y axis", value=10)

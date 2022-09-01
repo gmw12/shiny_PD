@@ -217,10 +217,10 @@
   
   
   observe({
-    if (!input$checkbox_norm_ptm){
-      hideTab(inputId = "nlp1", target = "tp_phos")
-    }else{
+    if (input$checkbox_norm_ptm & input$peptide_norm_grep == "Phospho"){
       showTab(inputId = "nlp1", target = "tp_phos")
+    }else{
+      hideTab(inputId = "nlp1", target = "tp_phos")
     }
   })
   

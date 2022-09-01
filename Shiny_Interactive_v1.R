@@ -426,6 +426,7 @@ interactive_stats_volcano <- function(session, input, output, i)
   if(input$stats_spqc_cv_filter){
     df <- subset(df, df[ , dpmsr_set$y$stats$groups$mf[i]] >= input$missing_factor )
   }
+  
   df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[i]))
   
   if (!input$checkbox_filter_adjpval) {
@@ -437,12 +438,14 @@ interactive_stats_volcano <- function(session, input, output, i)
   #df_fc <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$fc[1]))
   #df_pval <- df %>% dplyr::select(contains(dpmsr_set$y$stats$groups$pval[1]))
   
-  df <- cbind(df$Accession, df$Description, df_fc, df_pval)
-  colnames(df) <- c("Accession", "Description", "fc", "fc2", "pval")
+  df <- cbind(df$Stats, df$Accession, df$Description, df_fc, df_pval)
+  colnames(df) <- c("Stats", "Accession", "Description", "fc", "fc2", "pval")
   df$Accession <- as.character(df$Accession)
   df$Description <- as.character(df$Description)
   df$log_pvalue <- -log(as.numeric(df$pval), 10)
   df$log_fc <- log(as.numeric(df$fc2), 2)
+  
+  #volcano_df <<- df
   
   if(input$stats_volcano_fixed_axis){
      xmax <- input$stats_volcano_x_axis
@@ -459,11 +462,23 @@ interactive_stats_volcano <- function(session, input, output, i)
     h_list <<- highlight_list
     highlight_df <- df
     highlight_df$Description <- tolower(highlight_df$Description)
-    test1 <<- highlight_df
+    #test1 <<- highlight_df
     highlight_df <- highlight_df %>% filter(str_detect(Description, highlight_list))
-    test2 <<- highlight_df
+    #test2 <<- highlight_df
   }else{
     highlight_df <- df %>% filter(str_detect(Description, "You will find nothing now"))
+  }
+  
+  if (input$stats_volcano_highlight_signif & input$stats_volcano_highlight_up){
+    highlight_stat_up <- df[df$Stats=="Up",]
+  }else{
+    highlight_stat_up <- df %>% filter(str_detect(Description, "You will find nothing now"))
+  }
+  
+  if (input$stats_volcano_highlight_signif & input$stats_volcano_highlight_down){
+    highlight_stat_down <- df[df$Stats=="Down",]
+  }else{
+    highlight_stat_down <- df %>% filter(str_detect(Description, "You will find nothing now"))
   }
   
   volcano_stats_plot <- reactive({
@@ -485,8 +500,11 @@ interactive_stats_volcano <- function(session, input, output, i)
       geom_vline(aes(xintercept = -log(input$foldchange_cutoff, 2)),  linetype = "dotted", color = "black")  + 
       geom_hline(aes(yintercept = -log(input$pvalue_cutoff, 10)),  linetype = "dotted", color = "black") +
     geom_point(data=highlight_df, aes(x=log_fc, y=log_pvalue), color=input$volcano_highlight_color, size=input$volcano_highlight_dot_size, 
+               alpha=input$volcano_highlight_alpha) +
+    geom_point(data=highlight_stat_up, aes(x=log_fc, y=log_pvalue), color=input$volcano_highlight_color_up, size=input$volcano_highlight_dot_size, 
+               alpha=input$volcano_highlight_alpha) +
+    geom_point(data=highlight_stat_down, aes(x=log_fc, y=log_pvalue), color=input$volcano_highlight_color_down, size=input$volcano_highlight_dot_size, 
                alpha=input$volcano_highlight_alpha)
-    
   })
   
   plot_name <- str_c("volcano", i, "_stats_plot")
