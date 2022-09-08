@@ -121,27 +121,29 @@ shinyServer(function(input, output, session) {
     }
   #------------------------------------------------------------------------------------------------------  
     observeEvent(input$action_clear, {
-      cat(file=stderr(), "clean old data", "\n")
-      rm(list = ls(envir = .GlobalEnv), pos = .GlobalEnv, inherits = FALSE)
-      cat(file=stderr(), "reload libraries and functions", "\n")
-      source("Shiny_Startup_v1.R")
+      clear_memory()
     })    
      
 #------------------------------------------------------------------------------------------------------  
   observeEvent(input$action_load_design, {
     cat(file=stderr(), "load design triggered", "\n")
-    load_dpmsr_set(session, input, volumes)
-    #reassign these to update volumes with path from design_file
-    shinyFileChoose(input,'raw_files', roots=dpmsr_set$x$volumes, session=session,
-                    filetypes=c('','txt'), defaultPath='', defaultRoot='wd')
-    set_sample_groups()
-    updateTabsetPanel(session, "nlp1", selected = "tp_load_data")
     dpmsr_present$test <- exists("dpmsr_set")
-    update_widget_startup(session, input, output)
-    update_widget_filter(session, input, output)
-    update_widget_norm(session, input, output)
-    update_widget_impute(session, input, output)
-    update_widget_stats(session, input, output)
+    if (dpmsr_present$test){
+      shinyalert("Oops!", "design info already loaded - Please clear memory", type = "error")
+    }else{
+      load_dpmsr_set(session, input, volumes)
+      #reassign these to update volumes with path from design_file
+      shinyFileChoose(input,'raw_files', roots=dpmsr_set$x$volumes, session=session,
+                      filetypes=c('','txt'), defaultPath='', defaultRoot='wd')
+      set_sample_groups()
+      updateTabsetPanel(session, "nlp1", selected = "tp_load_data")
+      dpmsr_present$test <- exists("dpmsr_set")
+      update_widget_startup(session, input, output)
+      update_widget_filter(session, input, output)
+      update_widget_norm(session, input, output)
+      update_widget_impute(session, input, output)
+      update_widget_stats(session, input, output)
+    }
   })
 
     cat(file=stderr(), "Shiny Server started ...8", "\n")

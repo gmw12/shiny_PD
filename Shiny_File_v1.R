@@ -1,4 +1,14 @@
-
+#----------------------------------------------------------------------------------------
+# clear shiny files and memory
+clear_memory <- function() {
+  cat(file=stderr(), "clean old data", "\n")
+  rm(list = ls(envir = .GlobalEnv), pos = .GlobalEnv, inherits = FALSE)
+  cat(file=stderr(), "reload libraries and functions", "\n")
+  rm(list = ls())
+  gc()
+  #.rs.restartR()
+  source("Shiny_Startup_v1.R")
+}
 
 #----------------------------------------------------------------------------------------
 # create final excel documents
