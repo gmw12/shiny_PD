@@ -789,6 +789,7 @@ observeEvent(input$data_show, {
         if(!dpmsr_set$x$tmt_spqc_norm) {
           
           df_list <- oneprotein_data(session, input, output)
+          #df_peptide is in df_list
           for(j in names(df_list)){assign(j, df_list[[j]]) }
           
           interactive_barplot(session, input, output, df, namex, color_list, "stats_oneprotein_barplot", input$stats_oneprotein_plot_comp)
@@ -909,6 +910,7 @@ observeEvent(input$data_show, {
       if (length(comp_test)!=0 & check_qc){  
         
         df_list <- onepeptide_data(session, input, output)
+        #df_peptide in df_list
         for(j in names(df_list)){assign(j, df_list[[j]]) }
         
         interactive_barplot(session, input, output, df, namex, color_list, "stats_onepeptide_barplot", comp_string)
@@ -916,7 +918,7 @@ observeEvent(input$data_show, {
         peptide_pos_lookup <-  peptide_position_lookup(session, input, output, as.character(input$stats_onepeptide_accession))
         grouped_color <- unique(color_list)
         #interactive_grouped_peptide_barplot(session, input, output, comp_string, df_peptide, info_columns, comp_name, peptide_pos_lookup, grouped_color)
-        interactive_grouped_peptide_barplot(session, input, output, comp_string, df_peptide, info_columns, peptide_pos_lookup, grouped_color)
+        interactive_grouped_peptide_barplot(session, input, output, comp_string, df_peptide, info_columns, input$stats_onepeptide_plot_comp, peptide_pos_lookup, grouped_color)
         
         sample_col_numbers <- seq(from=12, to = ncol(df_peptide) )
         df_peptide <- cbind(df_peptide, df_peptide_stats)
