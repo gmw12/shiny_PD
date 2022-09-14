@@ -99,6 +99,7 @@ shinyServer(function(input, output, session) {
         qc_render(session, input, output)
         inputproteinselect_render(session, input, output)
         update_dpmsr_set_from_widgets(session, input, output)
+        create_design_table(session, input, output)
         cat(file=stderr(), "dpmsr_set loaded...", "\n")
       }else{
         cat(file=stderr(), "dpmsr_set doest not exist...", "\n")
@@ -143,6 +144,8 @@ shinyServer(function(input, output, session) {
       update_widget_norm(session, input, output)
       update_widget_impute(session, input, output)
       update_widget_stats(session, input, output)
+      #load stat design table
+      create_design_table(session, input, output)
     }
   })
 
@@ -492,6 +495,7 @@ observeEvent(input$data_show, {
       #update all of the dropdown stat group choices that are downstream from this point
       update_comparisons(session, input, output)
       updateTextInput(session, "final_stats_name", value = str_c("Final_", input$select_final_data_stats,  "_stats.xlsx"))
+      
       removeModal()
     })  
     
@@ -504,6 +508,8 @@ observeEvent(input$data_show, {
         output$stats_gear1 <- renderText({"Peptide Filters"})
         output$stats_gear2 <- renderText({"Protein Filters"})
       }
+    
+      
     }) 
     
 

@@ -562,6 +562,19 @@ shinyUI(
     
     tabPanel("Stats", value = "tp_stats",
              navbarPage("Stats:", id ="nbp_stats",
+                        tabPanel("Design", id="tp_stats_design",
+                                 fluidRow(
+                                   column(width=12, offset =0,
+                                          hr(),
+                                          tags$head(tags$style("#stats_design_table{color: blue;
+                                                           font-size: 12px;
+                                                           }"
+                                          )
+                                          ),
+                                          DT::dataTableOutput("stats_design_table", width='100%')
+                                   )
+                                 )      
+                        ),
                         tabPanel("Setup", id="tp_stats_setup", 
                                  fluidRow(
                                    column(width=1, offset =0,

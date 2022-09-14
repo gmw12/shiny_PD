@@ -1,3 +1,12 @@
+
+#load stat design table
+create_design_table <- function(session, input, output){
+  cat(file=stderr(), "Creating design table...", "\n")
+  stats_design <- design_table(session, input, output)
+  output$stats_design_table <-  DT::renderDataTable(stats_design)
+}
+
+#------------------------------------------------------------------------------------------------------------------
    
 protein_table <- function(session, input, output, filter_df){
 
@@ -134,3 +143,26 @@ peptide_table <- function(session, input, output, filter_df){
   return(stats_DT)   
   
 }
+
+
+#--------------------------------
+
+design_table <- function(session, input, output){
+  
+  stats_design <- dpmsr_set$design[, c("ID", "Replicate", "Label", "Group")]
+  stats_design_DT <-  DT::datatable(stats_design,
+                             rownames = FALSE,
+                             options=list(
+                               autoWidth = TRUE,
+                               columnDefs = list(list(targets = c(0), visibile = TRUE, "width"='5', className = 'dt-center'),
+                                                 list(targets = c(1), visibile = TRUE, "width"='5', className = 'dt-center'),
+                                                 list(targets = c(2), visibile = TRUE, "width"='5', className = 'dt-center'),
+                                                 list(targets = c(3), visibile = TRUE, "width"='5', className = 'dt-center')
+                                                 ),
+                               pageLength = 100, 
+                               lengthMenu = c(10,50,100,200)
+                             ))
+  return(stats_design_DT)   
+  
+}
+
