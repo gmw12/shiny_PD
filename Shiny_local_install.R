@@ -18,10 +18,20 @@ biocmanager_list = c('impute', 'ViSEAGO', 'topGO', 'clusterProfiler', 'GSEABase'
 #remotes::install_github("jmwozniak/PTMphinder", dependencies = TRUE)
 
 library(devtools)
+library(remotes)
+
 withr::with_libpaths(new = "/home/mascot/R/library", install_github('omarwagih/rmotifx'))
 withr::with_libpaths(new = "/home/mascot/R/library", install_github('jmwozniak/PTMphinder'))
 
-devtools::install_github('omarwagih/rmotifx', args = c('--lib="/home/mascot/R/library"'))
+#devtools::install_github('omarwagih/rmotifx', args = c('--lib="/home/mascot/R/library"'))
+
+devtools::install_github("rgl", "trestletech", "js-class")
+
+withr::with_libpaths(new = "/home/mascot/R/library", install_github('trestletech/shinyRGL'))
+withr::with_libpaths(new = "/home/mascot/R/library", install_github('trestletech/rgl'))
+withr::with_libpaths(new = "/home/mascot/R/library", install_github("trestletech/rgl", "js-class"))
+
+
 
 
 # loop to install require packages
@@ -74,4 +84,5 @@ for (pack in biocmanager_list){
 } 
 
 
-                              
+install.packages('rgl', dependencies = TRUE, lib="/home/mascot/R/library")                            
+devtools::install_version("rgl", version = "0.106.8", repos = "http://cran.us.r-project.org")

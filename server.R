@@ -99,7 +99,6 @@ shinyServer(function(input, output, session) {
         qc_render(session, input, output)
         inputproteinselect_render(session, input, output)
         update_dpmsr_set_from_widgets(session, input, output)
-        create_design_table(session, input, output)
         cat(file=stderr(), "dpmsr_set loaded...", "\n")
       }else{
         cat(file=stderr(), "dpmsr_set doest not exist...", "\n")

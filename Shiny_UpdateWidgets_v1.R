@@ -304,6 +304,7 @@ update_widget_all <- function(session, input, output){
   update_widget_impute(session, input, output)
   update_widget_stats(session, input, output)
   update_widget_post_processing(session, input, output)
+  create_design_table(session, input, output)
 }
 
 

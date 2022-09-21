@@ -188,7 +188,7 @@ heatmap_plot <- function(y,plottitle,plot_dir)
 
 #PCA 2D 3D-------------------------------------------------
 PCA_plot <- function(x,y, plot_dir) {
-  cat(file=stderr(), "PCA_plot", "\n")
+  cat(file=stderr(), "3d PCA_plot", "\n")
   #x <- x[(info_columns_final+1):ncol(x)] # strip off info columns
   require(pca3d)
   require(rgl)
@@ -209,6 +209,7 @@ PCA_plot <- function(x,y, plot_dir) {
   snapshotPCA3d(file=str_c(plot_dir, y, "_PCA3d", ".png"))
   
   #2D PCA
+  cat(file=stderr(), "2d PCA_plot", "\n")
   df_out <- as.data.frame(x_pca$x)
   file_name <- str_c(plot_dir, y, "_PCA2D.png")
   ggplot(df_out,aes(x=PC1,y=PC2,color=x_gr )) +
