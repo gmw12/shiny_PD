@@ -44,7 +44,7 @@ if(Sys.info()["sysname"]=="Darwin" ){
 cat(file=stderr(), str_c("volumes = ", volumes), "\n")
 
 #force setting when testing customer version
-#site_user <<- "not_dpmsr"
+site_user <<- "not_dpmsr"
 
 shinyServer(function(input, output, session) {
   

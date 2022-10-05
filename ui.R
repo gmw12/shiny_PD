@@ -56,7 +56,17 @@ shinyUI(
                         tags$h3("If needed clear data and functions..."),
                         br(),
                        actionButton("action_clear", label = "Clear Data", width = 200, 
-                           style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                           style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                        br(),
+                        br(),
+                        br(),
+                        br(),
+                        br(),
+                        br(),
+                        br(),
+                        br(),
+                        br(),
+                        tags$h6("Last updated 10/5/22")
            ), #end tab panel
   
     tabPanel("Load Data", value = "tp_load_data", align="center",
@@ -556,6 +566,12 @@ shinyUI(
             br(),
             actionButton("load_customer_dpmsr_set", label = "Load dpmsr_set", width = 200, 
                          style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            tags$h6("Last updated 10/5/22")
     ),
     
     
