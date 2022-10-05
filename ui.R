@@ -1,3 +1,4 @@
+last_update <- '10-05-2022'
 
 library(shiny)
 library(shinyFiles)
@@ -66,7 +67,7 @@ shinyUI(
                         br(),
                         br(),
                         br(),
-                        tags$h6("Last updated 10/5/22")
+                        tags$h6(str_c("Last updated ", last_update))
            ), #end tab panel
   
     tabPanel("Load Data", value = "tp_load_data", align="center",
@@ -571,7 +572,7 @@ shinyUI(
             br(),
             br(),
             br(),
-            tags$h6("Last updated 10/5/22")
+            tags$h6(str_c("Last updated ", last_update))
     ),
     
     
