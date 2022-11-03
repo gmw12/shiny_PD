@@ -2,7 +2,7 @@
 
 #----------------------------------------------------------------------
 #----------------------------------------------------------------------
- hide_enable <- function(session, input){
+ hide_enable <- function(session, input, output){
    
    observeEvent(input$design_file, {
       shinyjs::enable("action_load_design")
@@ -94,6 +94,36 @@
     } 
   })   
  
+  #Hide for Protein inpute
+  observe({
+    if (as.numeric(input$radio_input)==2) {
+      shinyjs::hide("peptide_missing_filter")
+      shinyjs::hide("peptide_missing_factor")
+      shinyjs::hide("peptide_cv_filter")
+      shinyjs::hide("peptide_cv_factor")
+      shinyjs::hide("stats_peptide_minimum")
+      shinyjs::hide("stats_peptide_minimum_factor")
+      shinyjs::hide("checkbox_add_gene_column")
+      shinyjs::hide("stats_gear1")
+      hideTab(inputId = "nlp1", target = "tp_overview")
+      hideTab(inputId = "np5", target = "One Peptide")
+      hideTab(inputId = "nbp_stats", target = "tp_stats_oneprotein")
+    }else{
+      shinyjs::show("peptide_missing_filter")
+      shinyjs::show("peptide_missing_factor")
+      shinyjs::show("peptide_cv_filter")
+      shinyjs::show("peptide_cv_factor")
+      shinyjs::show("stats_peptide_minimum")
+      shinyjs::show("stats_peptide_minimum_factor")
+      shinyjs::show("checkbox_add_gene_column")
+      shinyjs::show("stats_gear1")
+      showTab(inputId = "nlp1", target = "tp_overview")
+      showTab(inputId = "np5", target = "One Peptide")
+      showTab(inputId = "nbp_stats", target = "tp_stats_oneprotein")
+    } 
+  })   
+  
+  
    observe({
     if (!as.logical(input$stats_peptide_minimum)){
       shinyjs::hide("stats_peptide_minimum_factor")
@@ -588,13 +618,14 @@
      }
    })
    
-   
    observe({
      if (input$radio_output==2){
+       cat(file=stderr(), "input$radio_output ==2", "\n")
        hideTab(inputId = "nbp_stats", target = "tp_stats_oneprotein")
        showTab(inputId = "nbp_stats", target = "tp_stats_onepeptide")
        hideTab(inputId = "nlp1", target = "pathway")
      }else{
+       cat(file=stderr(), "input$radio_output !=2", "\n")
        showTab(inputId = "nbp_stats", target = "tp_stats_oneprotein")
        hideTab(inputId = "nbp_stats", target = "tp_stats_onepeptide")
        showTab(inputId = "nlp1", target = "pathway")

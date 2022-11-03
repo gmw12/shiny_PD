@@ -16,6 +16,12 @@ update_widget_startup <- function(session, input, output){
     else if(dpmsr_set$x$raw_data_input == "PSM_FDR"){rdi <- 4}
   updateRadioButtons(session, "radio_input", selected = rdi )
   
+  if(dpmsr_set$x$data_source == "SP"){updateRadioButtons(session, "data_source", selected = 2) }
+  if(dpmsr_set$x$data_source == "PD"){updateRadioButtons(session, "data_source", selected = 1) }
+  
+  
+  
+  
   cat(file=stderr(), "update_widget_startup...2", "\n")
 
   updateSelectInput(session, "razor", selected = dpmsr_set$x$peptides_to_use )

@@ -2,8 +2,15 @@
 preprocess_order <- function(){
   # data stat info
   cat(file=stderr(), "preprocess_order()...1", "\n")
-  dpmsr_set$y$total_columns <<- ncol(dpmsr_set$data$data_peptide_start)
+  
+  if(dpmsr_set$x$raw_data_input!="Protein"){
+    dpmsr_set$y$total_columns <<- ncol(dpmsr_set$data$data_peptide_start)
+  }else{
+    dpmsr_set$y$total_columns <<- ncol(dpmsr_set$data$data_protein_start)
+  }
+  
   dpmsr_set$y$info_columns <<- dpmsr_set$y$total_columns - dpmsr_set$y$sample_number
+  cat(file=stderr(), str_c("dpmsr_set$y$info_columns=", dpmsr_set$y$info_columns ), "\n")
   
   cat(file=stderr(), "preprocess_order()...2", "\n")
   if ((dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Peptide") 
@@ -121,14 +128,25 @@ check_sample_id <- function() {
   sample_ids <- dpmsr_set$design[order(dpmsr_set$design$PD_Order),]
   sample_ids <- sample_ids$ID
   sample_ids <- gsub("_.+", "", sample_ids)
-  test_data <- colnames(dpmsr_set$data$data_raw_peptide %>% dplyr::select(contains("Abundance.F")))
+  
+  if(dpmsr_set$x$raw_data_input == "Protein"){
+    if(dpmsr_set$x$data_source == "SP"){
+    test_data <- colnames(dpmsr_set$data$data_raw_protein %>% dplyr::select(contains("Quantity")))
+    }else{
+      test_data <- colnames(dpmsr_set$data$data_raw_peptide %>% dplyr::select(contains("Abundance.F")))
+    }
+  }else{
+    test_data <- colnames(dpmsr_set$data$data_raw_peptide %>% dplyr::select(contains("Abundance.F")))
+    }
+  
   cat(file=stderr(), "check_sample_id...2", "\n")
   for (i in 1:length(sample_ids)){
     confirm_id <- grepl(sample_ids[i], test_data[i])
     if(!confirm_id){
-      shinyalert("Oops!", "Sample ID order does not match samlple list!", type = "error")
+      shinyalert("Oops!", "Sample ID order does not match sample list!", type = "error")
     }
   }
+  
   cat(file=stderr(), "check_sample_id...end", "\n")
   }
 

@@ -74,16 +74,21 @@ shinyUI(
              tags$h1("Choose type and load data file"),
              hr(),
              fluidRow(align = "left",
-                       column(width=4, offset =2,
+                       column(width=3, offset =2,
                          radioButtons("radio_input", label = h3("Select Input Data Type"),
                                       choices = list("Protein_Peptide" = 1, "Protein" = 2, "Peptide" = 3),
                                       selected = 3)
                          ),
-                        column(width=5, offset =0,
+                        column(width=3, offset =0,
                              radioButtons("radio_output", label = h3("Select Output Data Type"),
                                           choices = list("Protein" = 1, "Peptide" = 2),
                                           selected = 2)
-                        )
+                        ),
+                      column(width=3, offset =0,
+                             radioButtons("data_source", label = h3("Select Data Source"),
+                                          choices = list("Proteome Discoverer" = 1, "Spectronaut" = 2),
+                                          selected = 1)
+                      )
                  ),
              hr(),
              fluidRow(align="left",
@@ -145,7 +150,7 @@ shinyUI(
 
 
       tabPanel("Filters", value = "tp_filters", align="center",
-               tags$h1("Apply Raw Peptide Filters"),
+               tags$h1("Apply Raw Filters"),
                hr(),
                fluidRow(
                  column(width=3, offset = 1,

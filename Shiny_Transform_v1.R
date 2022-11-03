@@ -81,12 +81,30 @@ protein_to_peptide <- function(){
 protein_to_protein <- function(){
   cat(file=stderr(), "protein_to_protein", "\n")
   protein <- dpmsr_set$data$data_raw_protein
-  protein <- subset(protein, Master %in% ("IsMasterProtein"))
-  protein <- subset(protein, Protein.FDR.Confidence.Combined %in% ("High"))
   
-  protein_out <- protein %>% dplyr::select(Accession, Description, Number.of.Protein.Unique.Peptides, 
-                                           contains("Abundance"), -contains("Abundance.Count"))
-  colnames(protein_out)[1:3] <- c("Accession", "Description", "Unique.Peptides")
+  if(dpmsr_set$x$data_source == "PD") {
+    protein <- subset(protein, Master %in% ("IsMasterProtein"))
+    protein <- subset(protein, Protein.FDR.Confidence.Combined %in% ("High"))
+    protein_out <- protein %>% dplyr::select(Accession, Description, Number.of.Protein.Unique.Peptides, 
+                                             contains("Abundance"), -contains("Abundance.Count"))
+    colnames(protein_out)[1:3] <- c("Accession", "Description", "Unique.Peptides")
+  }
+  else if (dpmsr_set$x$data_source == "SP"){ 
+    protein_out <- protein %>% dplyr::select(contains("ProteinAccessions"), contains("ProteinDescriptions"), 
+                                             contains("ProteinNames"), contains("Genes"), contains("Quantity"))
+    precursor_col <- protein %>% dplyr::select(contains("Precursors"))
+    precursor_col$average <- round(rowMeans(precursor_col), 1)
+    
+    protein_out <- protein_out %>% add_column(precursor_col$average, .after = "PG.Genes")
+    colnames(protein_out)[1:5] <- c("Accession", "Description", "ProteinName", "Gene", "PrecursorsAvg")
+
+    #in case missing values reported as NaN
+    protein_out[, 5:ncol(protein_out)] <- sapply(protein_out[, 5:ncol(protein_out)], as.numeric)
+    protein_out[5:ncol(protein_out)][protein_out[5:ncol(protein_out)] == "NaN"] <- 0
+
+  }else {
+    cat(file=stderr(), "protein_to_protein data source not recognized", "\n")
+  }
   Simple_Excel(protein_out, str_c(dpmsr_set$file$extra_prefix,"_Protein_to_Protein_Raw.xlsx", collapse = " "))
 return(protein_out)
 }
@@ -302,9 +320,6 @@ psm_set_fdr <- function(){
   return(ion_score_cutoff)
 }
 
-
-
-
 #----------------------------------------------------------------------------------------
 add_imputed_column <- function(df){
   #check to see if this was already completed, if so skip step
@@ -358,8 +373,36 @@ add_imputed_column <- function(df){
   }
 }
 
+#----------------------------------------------------------------------------------------
+add_imputed_column_protein <- function(df){
+  #check to see if this was already completed, if so skip step
+  #df<-dpmsr_set$data$data_protein
+  if("Detected_Proteins" %in% colnames(df)){
+    return(df)
+  }else{
+    #imputed column for protein output
+      protein_data <- df
+      protein_annotate <- protein_data[1:(dpmsr_set$y$info_columns)]
+      protein_data <- protein_data[(dpmsr_set$y$info_columns+1):ncol(protein_data)]
+      test1 <- protein_data
+      test1[is.na(test1)] <- 0
+      test1[test1>0] <- 1
+      test1 <- cbind(protein_annotate, test1)
+      dpmsr_set$data$protein_imputed_df <<- test1
+      test1 <- data.frame(ungroup(test1))
+      test1 <- test1[(dpmsr_set$y$info_columns+1):ncol(protein_data)]
+      test1[test1==0] <- "-"
+      test1 <- test1 %>% mutate_all(as.character)
+      while (ncol(test1)>1) {
+        test1[,1] <- str_c(test1[,1], ".", test1[,2])
+        test1[,2] <- NULL
+      }
+      dpmsr_set$data$protein_missing <<- test1[,1]
+
+      df <- cbind(protein_annotate, dpmsr_set$data$protein_missing, protein_data)
+      colnames(df)[ncol(protein_annotate)+1] <- "Protein_Imputed"
+    return(df)
+  }
+}
 
 
-# df<-dpmsr_set$data$data_to_norm
-# df$PD_Detected_Peptides<-NULL
-# dpmsr_set$y$info_columns<-ncol(df) - dpmsr_set$y$sample_number

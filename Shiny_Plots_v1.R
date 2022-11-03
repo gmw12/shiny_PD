@@ -68,7 +68,7 @@ volcano_plot <- function(df, df_name, plot_dir)  #x, comp_name, title, plot_dir)
 
 #Bar plot-------------------------------------------------
 bar_plot <- function(df,plot_title,plot_dir) {
-  cat(file=stderr(), "bar_plot", "\n")
+  cat(file=stderr(), "Shiny_Plots -> bar_plot", "\n")
   namex <- dpmsr_set$design$Label
   datay <- colSums(df, na.rm = TRUE)
   df2 <- data.frame(namex)

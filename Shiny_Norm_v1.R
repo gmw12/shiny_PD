@@ -26,6 +26,7 @@ norm_prep <- function(){
   
   #protein only data
   if (dpmsr_set$x$raw_data_input=="Protein") {
+    cat(file=stderr(), "norm_prep protein only data...", "\n")
     dpmsr_set$data$norm_data <<- dpmsr_set$data$data_protein
     Simple_Excel(dpmsr_set$data$norm_data,  str_c(dpmsr_set$file$extra_prefix, "_norm_data.xlsx", collapse = " "))
     dpmsr_set$data$data_to_norm <<- dpmsr_set$data$data_protein
@@ -33,13 +34,25 @@ norm_prep <- function(){
   
 
   #add column for missing value (impute) statistics before datasets expand
-  dpmsr_set$data$norm_data <<- add_imputed_column(dpmsr_set$data$norm_data)
-  dpmsr_set$data$data_to_norm <<- add_imputed_column(dpmsr_set$data$data_to_norm)
-  dpmsr_set$y$info_columns <<- ncol(dpmsr_set$data$norm_data)-dpmsr_set$y$sample_number
-  dpmsr_set$y$info_columns_final <<- dpmsr_set$y$info_columns
+  if (dpmsr_set$x$raw_data_input !="Protein") {
+    dpmsr_set$data$norm_data <<- add_imputed_column(dpmsr_set$data$norm_data)
+    dpmsr_set$data$data_to_norm <<- add_imputed_column(dpmsr_set$data$data_to_norm)
+    dpmsr_set$y$info_columns <<- ncol(dpmsr_set$data$norm_data)-dpmsr_set$y$sample_number
+    dpmsr_set$y$info_columns_final <<- dpmsr_set$y$info_columns
+  }
+  
+  #add column for missing value (impute) statistics before datasets expand
+  if (dpmsr_set$x$raw_data_input =="Protein") {
+    dpmsr_set$data$norm_data <<- add_imputed_column_protein(dpmsr_set$data$norm_data)
+    dpmsr_set$data$data_to_norm <<- add_imputed_column_protein(dpmsr_set$data$data_to_norm)
+    dpmsr_set$y$info_columns <<- ncol(dpmsr_set$data$norm_data)-dpmsr_set$y$sample_number
+    dpmsr_set$y$info_columns_final <<- dpmsr_set$y$info_columns
+  }
+  
   
   #save original copy of norm_data so filter function can be rerun from original
   dpmsr_set$data$original_norm_data <<- dpmsr_set$data$norm_data
+  cat(file=stderr(), "norm_prep complete...", "\n")
 }
 
 

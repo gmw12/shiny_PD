@@ -13,6 +13,8 @@ library(rgl)
 library(DT)
 library(shinyalert)
 
+#set default
+site_user <<- "dpmsr"
 
 if(Sys.info()["sysname"]=="Darwin" ){
   volumes <- c(dd='/Users/gregwaitt/Documents/Data', wd='.', Home = fs::path_home(),  getVolumes()())
@@ -108,8 +110,8 @@ shinyServer(function(input, output, session) {
     
     
     # function home to shinyjs hide/enable observers
-    hide_enable(session, input)
- 
+    hide_enable(session, input, output)
+
     cat(file=stderr(), "Shiny Server started ...7", "\n")
     
     hideTab(inputId = "nlp1", target = "load")
@@ -161,16 +163,28 @@ shinyServer(function(input, output, session) {
       file_set()
       cat(file=stderr(), "save design", "\n")
       save_design(session, input)
+      
       cat(file=stderr(), "load data", "\n")
-      load_data(session, input, volumes)
+      if(dpmsr_set$x$data_source=="SP"){
+        load_data_sp(session, input, volumes)
+      }else{
+        load_data(session, input, volumes)
+      }
       cat(file=stderr(), "prepare data", "\n")
       prepare_data(session, input)
       removeModal()
-      showModal(modalDialog("Creating Overview...", footer = NULL))
-      cat(file=stderr(), "project overview", "\n")
-      project_overview()
-      inputloaddata_render(session, input, output)
-      updateTabsetPanel(session, "nlp1", selected = "tp_overview")
+
+      if (dpmsr_set$x$raw_data_input !="Protein") { 
+        showModal(modalDialog("Creating Overview...", footer = NULL))
+        
+        cat(file=stderr(), "project overview", "\n")
+        project_overview()
+        inputloaddata_render(session, input, output)
+        updateTabsetPanel(session, "nlp1", selected = "tp_overview")
+      } else {
+            updateTabsetPanel(session, "nlp1", selected = "tp_filters")
+      }
+      
       cat(file=stderr(), "order data", "\n")
       preprocess_order()
       cat(file=stderr(), "check_sample_id()", "\n")
@@ -198,13 +212,24 @@ shinyServer(function(input, output, session) {
           showModal(modalDialog("Preparing Data for Norm...", footer = NULL))
           cat(file=stderr(), "prepare data for normalization", "\n")
           norm_prep()
+
+          if (dpmsr_set$x$raw_data_input == "Protein"){
+            #check info columns for rerun of filter (impute column could be added
+            dpmsr_set$y$info_columns <<- ncol(dpmsr_set$data$data_protein) - dpmsr_set$y$sample_number
+            
+            #display raw protein data
+            bar_plot(dpmsr_set$data$data_protein[(dpmsr_set$y$info_columns+1):ncol(dpmsr_set$data$data_protein)],"Raw", dpmsr_set$file$qc_dir)
+            box_plot(dpmsr_set$data$data_protein[(dpmsr_set$y$info_columns+1):ncol(dpmsr_set$data$data_protein)],"Raw", dpmsr_set$file$qc_dir)
+          }else{
+            #check info columns for rerun of filter (impute column could be added
+            dpmsr_set$y$info_columns <<- ncol(dpmsr_set$data$data_peptide) - dpmsr_set$y$sample_number
+            
+            #display raw peptide data
+            bar_plot(dpmsr_set$data$data_peptide[(dpmsr_set$y$info_columns+1):ncol(dpmsr_set$data$data_peptide)],"Raw", dpmsr_set$file$qc_dir)
+            box_plot(dpmsr_set$data$data_peptide[(dpmsr_set$y$info_columns+1):ncol(dpmsr_set$data$data_peptide)],"Raw", dpmsr_set$file$qc_dir)
+          }
           
-          #check info columns for rerun of filter (impute column could be added
-          dpmsr_set$y$info_columns <<- ncol(dpmsr_set$data$data_peptide) - dpmsr_set$y$sample_number
           
-          #display raw peptide data
-          bar_plot(dpmsr_set$data$data_peptide[(dpmsr_set$y$info_columns+1):ncol(dpmsr_set$data$data_peptide)],"Raw", dpmsr_set$file$qc_dir)
-          box_plot(dpmsr_set$data$data_peptide[(dpmsr_set$y$info_columns+1):ncol(dpmsr_set$data$data_peptide)],"Raw", dpmsr_set$file$qc_dir)
           
           #change to always display norm data
           info_columns <- ncol(dpmsr_set$data$norm_data) - dpmsr_set$y$sample_number
@@ -215,7 +240,13 @@ shinyServer(function(input, output, session) {
           removeModal()
           
           showModal(modalDialog("Preparing Data for Histogram Plot...", footer = NULL))
-          histogram_plot(dpmsr_set$data$data_peptide, "Intensity_Histogram")
+          
+          if (dpmsr_set$x$raw_data_input == "Protein"){
+            histogram_plot(dpmsr_set$data$data_protein, "Intensity_Histogram")
+          }else{
+            histogram_plot(dpmsr_set$data$data_peptide, "Intensity_Histogram")
+          }
+          
           if(as.logical(dpmsr_set$x$peptide_ptm_norm) ){
              histogram_plot(dpmsr_set$data$norm_data[, -which(names(dpmsr_set$data$norm_data)=='PD_Detected_Peptides')], "PTM_Only_Intensity_Histogram")
           }
@@ -394,6 +425,7 @@ shinyServer(function(input, output, session) {
     
     
     observeEvent(input$oneprotein_show, { 
+      cat(file=stderr(), "observeEvent input$oneprotein_show...", "\n")
       filter_df <- dpmsr_set$data$final[[input$select_oneprotein_norm]]
       
       if(input$oneprotein_accession != "0" ){
@@ -423,17 +455,20 @@ shinyServer(function(input, output, session) {
     
     
     observeEvent(input$onepeptide_show, { 
+      cat(file=stderr(), "observeEvent input$onepeptide_show...", "\n")
       filter_df <- dpmsr_set$data$final[[input$select_onepeptide_norm]]
       
       if(input$onepeptide_sequence != "0" ){
         filter_df <-subset(filter_df, Sequence %in% as.character(input$onepeptide_sequence)  )
       }
+      cat(file=stderr(), "observeEvent input$onepeptide_show...1", "\n")
       stats_df <- filter_df[(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number+1):ncol(filter_df)]
       stats_df <- t(stats_df)
       stats_df <- data.frame(stats_df)
       colnames(stats_df)<- "CV"
       filter_df <- filter_df[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)]
       plot_dir <- str_c(dpmsr_set$file$output_dir, input$select_onepeptide_norm, "//")
+      cat(file=stderr(), "observeEvent input$onepeptide_show...2", "\n")
       bar_plot(filter_df, str_c(input$onepeptide_sequence), plot_dir)
       
       output$onepeptide_plot_select <- renderImage({
@@ -441,10 +476,12 @@ shinyServer(function(input, output, session) {
              contentType = 'image/png', width=500, height=400, alt="this is alt text")
       }, deleteFile = FALSE)
       
+      cat(file=stderr(), "observeEvent input$onepeptide_show...3", "\n")
       output$onepeptide_stats<- renderRHandsontable({
         rhandsontable(stats_df, colHeaders = NULL, rowHeaderWidth = 300) %>%
           hot_cols(colWidths = 80, halign = "htCenter" ) })
       
+      cat(file=stderr(), "observeEvent input$onepeptide_show...end", "\n")
     })
     
     #-------------------------------------------------------------------------------------------------------------      
@@ -889,12 +926,13 @@ observeEvent(input$data_show, {
     #-------------------------------------------------------------------------------------------------------------  
     
     observeEvent(input$create_stats_onepeptide_plots, { 
-      cat(file=stderr(), "Event create_stats_onepeptide_plots", "\n")
+      cat(file=stderr(), "create_stats_onepeptide_plots...", "\n")
       
       comp_test <- try(which(dpmsr_set$data$stats[[input$stats_onepeptide_plot_comp]] == input$stats_onepeptide_accession), silent =TRUE)
       comp_string <- input$stats_onepeptide_plot_comp
       comp_number <- which(dpmsr_set$y$stats$groups$comp_name == comp_string)
       
+      cat(file=stderr(), "create_stats_onepeptide_plots...1", "\n")
       cat(file=stderr(), str_c("comp_number = ", comp_number, " -v- ",  length(dpmsr_set$y$stats$groups$comp_name)  ) , "\n")
       check_qc <- TRUE
       
@@ -906,18 +944,21 @@ observeEvent(input$data_show, {
       # }
       
       #test for SPQC group already in comparison, if so turn off and warn
+      cat(file=stderr(), "create_stats_onepeptide_plots...2", "\n")
       if(input$stats_onepeptide_plot_spqc & grepl(dpmsr_set$y$stats$comp_spqc, dpmsr_set$y$stats$groups$comp_name[comp_number]) ) {
         cat(file=stderr(), "Reset SPQC", "\n")
         updateCheckboxInput(session, "stats_onepeptide_plot_spqc",  value = FALSE)
         check_qc <- FALSE
       }
       
+      cat(file=stderr(), "create_stats_onepeptide_plots...3", "\n")
       if (length(comp_test)!=0 & check_qc){  
         
         df_list <- onepeptide_data(session, input, output)
         #df_peptide in df_list
         for(j in names(df_list)){assign(j, df_list[[j]]) }
         
+        cat(file=stderr(), "create_stats_onepeptide_plots...4", "\n")
         interactive_barplot(session, input, output, df, namex, color_list, "stats_onepeptide_barplot", comp_string)
         
         peptide_pos_lookup <-  peptide_position_lookup(session, input, output, as.character(input$stats_onepeptide_accession))
@@ -925,6 +966,7 @@ observeEvent(input$data_show, {
         #interactive_grouped_peptide_barplot(session, input, output, comp_string, df_peptide, info_columns, comp_name, peptide_pos_lookup, grouped_color)
         interactive_grouped_peptide_barplot(session, input, output, comp_string, df_peptide, info_columns, input$stats_onepeptide_plot_comp, peptide_pos_lookup, grouped_color)
         
+        cat(file=stderr(), "create_stats_onepeptide_plots...5", "\n")
         sample_col_numbers <- seq(from=12, to = ncol(df_peptide) )
         df_peptide <- cbind(df_peptide, df_peptide_stats)
         
@@ -935,6 +977,7 @@ observeEvent(input$data_show, {
         df_peptide <- df_peptide %>% dplyr::select(Start, everything())
         df_peptide <- df_peptide[order(df_peptide$Start, df_peptide$Stop), ]
         
+        cat(file=stderr(), "create_stats_onepeptide_plots...6", "\n")
         onepeptide_peptide_DT <-  DT::datatable(df_peptide,
                                                 rownames = FALSE,
                                                 extensions = c("FixedColumns"), #, "Buttons"),
@@ -991,6 +1034,7 @@ observeEvent(input$data_show, {
         shinyalert("Oops!", "No Accession or SPQC add error", type = "error")
       }
       removeModal()
+      cat(file=stderr(), "create_stats_onepeptide_plots...end", "\n")
       
     })
     

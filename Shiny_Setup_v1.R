@@ -4,8 +4,6 @@ load_dpmsr_set <- function(session, input, volumes){
   design_list <- c("General", "QC", "Fill_Norm", "Filters", "Protein", "TMT_PTM", "Report")
   design_data <- parseFilePaths(volumes, input$design_file)
   new_path <- str_extract(design_data$datapath, "^/.*/")
-  #new_path <- substr(new_path, 1, nchar(new_path)-1)
-  #new_path <- str_c(".", new_path)
   volumes["wd"] <- new_path
   design<-read_excel(design_data$datapath, sheet="SampleList")
   protocol<-read_excel(design_data$datapath, sheet="Protocol", skip = 0)
@@ -28,6 +26,7 @@ load_dpmsr_set <- function(session, input, volumes){
   #set default values for parameters not in sample list file
   dpmsr_set$x$checkbox_norm_include <<- FALSE
   dpmsr_set$x$checkbox_norm_exclude <<- FALSE
+  dpmsr_set$x$data_source <<- 1
   cat(file=stderr(), "dpmsr_set created...", "\n")
   
 
@@ -84,8 +83,8 @@ load_design <- function(session, input){
       }
     }
   }
-  dpmsr_set$x$test <<- "test"
-  
+
+  #dpmsr_set$x$test <<- "test"
   #dpmsr_set$x$peptide_norm_grep <<- str_replace_all(dpmsr_set$x$peptide_norm_grep, "/", "\\\\")
   #dpmsr_set$x$peptide_impute_grep <<- str_replace_all(dpmsr_set$x$peptide_impute_grep, "/", "\\\\")
   #dpmsr_set$x$peptide_report_grep <<- str_replace_all(dpmsr_set$x$peptide_report_grep, "/", "\\\\")
@@ -94,7 +93,7 @@ load_design <- function(session, input){
 
 #----------------------------------------------------------------------------------------
 load_data <- function(session, input, volumes){
-  cat(file=stderr(), "load_data...", "\n")
+  cat(file=stderr(), "load_data (Proteome Discoverer)...", "\n")
   raw_data <- parseFilePaths(dpmsr_set$x$volumes, input$raw_files)
   for (i in 1:nrow(raw_data) ){
     raw_name <- raw_data$datapath[i]
@@ -157,6 +156,22 @@ load_data <- function(session, input, volumes){
   gc()
 }
 
+
+#----------------------------------------------------------------------------------------
+load_data_sp <- function(session, input, volumes){
+  cat(file=stderr(), "load_data (Spectronaut)...", "\n")
+  raw_data <- parseFilePaths(dpmsr_set$x$volumes, input$raw_files)
+  cat(file=stderr(), str_c("file path = ", raw_data), "\n")
+  
+  #design_data <- parseFilePaths(volumes, input$design_file)
+  new_path <- str_extract(raw_data$datapath, "^/.*/")
+  volumes["wd"] <- new_path
+  dpmsr_set$data$data_raw_protein <<- read_excel(raw_data$datapath)
+  save_data(raw_data$datapath)
+  save_data(dpmsr_set$x$design_name)
+  gc()
+  cat(file=stderr(), "Spectronaut data loaded...", "\n")
+}
 
 #----------------------------------------------------------------------------------------
 prepare_data <- function(session, input) {  #function(data_type, data_file_path){

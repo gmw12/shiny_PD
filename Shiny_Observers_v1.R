@@ -14,18 +14,29 @@ update_dpmsr_set_from_widgets <- function(session, input, output){
   observe({
     if (input$radio_output=="1"){
       dpmsr_set$x$final_data_output <<- "Protein"
-      cat(file=stderr(), str_c("output test  ", input$radio_output), "\n")
       }
     else if (input$radio_output=="2"){
       dpmsr_set$x$final_data_output <<-"Peptide"
       updateCheckboxInput(session, "peptide_missing_filter",  value = FALSE)
       updateCheckboxInput(session, "peptide_cv_filter",  value = FALSE)
       updateCheckboxInput(session, "stats_peptide_minimum",  value = FALSE)
-      cat(file=stderr(), str_c("output test  ", input$radio_output), "\n")
       }
   }) 
   
-
+  observe({
+    if (input$data_source=="1"){
+      dpmsr_set$x$data_source <<- "PD"
+      shinyFileChoose(input,'raw_files', roots=dpmsr_set$x$volumes, session=session,
+                      filetypes=c('','txt'), defaultPath='', defaultRoot='wd')
+      updateActionButton(session, 'raw_files', label="Select PD Text Export Files", icon = NULL)
+    }
+    else if (input$data_source=="2"){
+      dpmsr_set$x$data_source <<- "SP"
+      shinyFileChoose(input,'raw_files', roots=dpmsr_set$x$volumes, session=session,
+                      filetypes=c('','xlsx'), defaultPath='', defaultRoot='wd')
+      updateActionButton(session, 'raw_files', label="Select Spectronaut Excel File", icon = NULL)
+    }
+  }) 
   
   observe({
     dpmsr_set$x$peptides_to_use <<- input$razor

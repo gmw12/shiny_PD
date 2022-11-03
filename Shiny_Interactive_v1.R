@@ -91,12 +91,13 @@ interactive_go_volcano <- function(session, input, output)
 
 interactive_barplot <- function(session, input, output, df, namex, color_list, output_name, comp_name)
 {
+  cat(file=stderr(), "interactive_barplot...", "\n")
   # df <<- df
   # namex <<- namex 
   # color_list <<- color_list
   # output_name <<- output_name
   # comp_name <<- comp_name
-  cat(file=stderr(), "interactive_barplot" , "\n")
+  # cat(file=stderr(), "interactive_barplot" , "\n")
   
   datay <- colSums(df, na.rm = TRUE)
   df2 <- data.frame(namex)
@@ -105,6 +106,7 @@ interactive_barplot <- function(session, input, output, df, namex, color_list, o
   df2$Sample <- factor(df2$Sample, levels = df2$Sample)
   ymax <- max(datay)
   
+  cat(file=stderr(), "interactive_barplot...1", "\n")
   create_stats_barplot <- reactive({
     ggplot(data=df2, aes(x=Sample, y=Total_Intensity)) +
       geom_bar(stat="identity", fill=color_list)+ theme_classic() + 
@@ -125,6 +127,7 @@ interactive_barplot <- function(session, input, output, df, namex, color_list, o
     create_stats_barplot()
   })
   
+  cat(file=stderr(), "interactive_barplot...2", "\n")
   output[[str_c("download_", output_name)]] <- downloadHandler(
     filename = function(){
       str_c("Stats_Barplot_", comp_name,  ".png", collapse = " ")
@@ -134,7 +137,7 @@ interactive_barplot <- function(session, input, output, df, namex, color_list, o
       ggsave(file, plot = create_stats_barplot(), device = 'png')
     }
   )
-  
+  cat(file=stderr(), "interactive_barplot...end", "\n")
 }
 
 #------------------------------------------------------------------------------------------------------------------------

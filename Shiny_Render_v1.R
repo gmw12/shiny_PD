@@ -5,7 +5,12 @@ inputloaddata_render <- function(session, input, output){
   cat(file=stderr(), "inputloaddata_render...", "\n")
   output$text1 <- renderText({str_c("Original Data Format:  ",  as.character(dpmsr_set$x$raw_data_input)   )  })
   output$text2 <- renderText({str_c("Current Data Format:  ",  as.character(dpmsr_set$y$state)   )  })
-  output$text3 <- renderText({str_c(as.character(dpmsr_set$y$state), " Count:  ",  nrow(dpmsr_set$data$data_peptide_start) )   })
+  
+  if(dpmsr_set$x$raw_data_input=="Protein"){
+    output$text3 <- renderText({str_c(as.character(dpmsr_set$y$state), " Count:  ",  nrow(dpmsr_set$data$data_protein_start) )   })  
+  }else{
+    output$text3 <- renderText({str_c(as.character(dpmsr_set$y$state), " Count:  ",  nrow(dpmsr_set$data$data_peptide_start) )   })
+  }
   
   output$mass_accuracy<- renderImage({
     list(src=str_c(dpmsr_set$file$qc_dir,"Mass_Accuracy.png"), contentType = 'image/png', width=500, height=300, alt="this is alt text")
@@ -62,7 +67,10 @@ inputloaddata_render <- function(session, input, output){
 
 inputfilterapply_render <- function(session, input, output){
   cat(file=stderr(), "inputfilterapply_render...", "\n")
-  output$text4 <- renderText({str_c("Filtered ", as.character(dpmsr_set$y$state), " Count:  ",  nrow(dpmsr_set$data$data_peptide) )   })
+  
+  if(dpmsr_set$x$raw_data_input != "Protein"){
+      output$text4 <- renderText({str_c("Filtered ", as.character(dpmsr_set$y$state), " Count:  ",  nrow(dpmsr_set$data$data_peptide) )   })
+  }
   
   output$raw_bar <- renderImage({
     list(src=str_c(dpmsr_set$file$qc_dir,"Raw_barplot.png"), contentType = 'image/png', width=600, height=500, alt="this is alt text")
