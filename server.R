@@ -15,6 +15,7 @@ library(shinyalert)
 
 #set default
 site_user <<- "dpmsr"
+cat(file=stderr(), str_c("site_user default --> ", site_user), "\n")
 
 if(Sys.info()["sysname"]=="Darwin" ){
   volumes <- c(dd='/Users/gregwaitt/Documents/Data', wd='.', Home = fs::path_home(),  getVolumes()())
@@ -43,6 +44,7 @@ if(Sys.info()["sysname"]=="Darwin" ){
   site_user <<- "not_dpmsr"
 }
 
+cat(file=stderr(), str_c("site_user set to -->  ", site_user), "\n")
 cat(file=stderr(), str_c("volumes = ", volumes), "\n")
 
 #force setting when testing customer version

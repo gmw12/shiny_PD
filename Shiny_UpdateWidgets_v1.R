@@ -10,6 +10,8 @@ update_widget_startup <- function(session, input, output){
     }
   updateRadioButtons(session, "radio_output", selected = fdo )
   
+  cat(file=stderr(), "update_widget_startup...2", "\n")
+  
   if(dpmsr_set$x$raw_data_input == "Protein_Peptide"){rdi <- 1}
     else if(dpmsr_set$x$raw_data_input == "Protein"){rdi <- 2}
     else if(dpmsr_set$x$raw_data_input == "Peptide"){rdi <- 3}
@@ -22,7 +24,7 @@ update_widget_startup <- function(session, input, output){
   
   
   
-  cat(file=stderr(), "update_widget_startup...2", "\n")
+  cat(file=stderr(), "update_widget_startup...3", "\n")
 
   updateSelectInput(session, "razor", selected = dpmsr_set$x$peptides_to_use )
 
@@ -43,6 +45,8 @@ update_widget_startup <- function(session, input, output){
   
   updateCheckboxInput(session, "checkbox_tmt", value = as.logical(dpmsr_set$x$tmt_spqc_norm)) 
   updateCheckboxInput(session, "checkbox_report_accession", value = as.logical(dpmsr_set$x$accession_report_out)) 
+  
+  cat(file=stderr(), "update_widget_startup...4", "\n")
   
   updateTextInput(session, "report_accession", value = as.character(dpmsr_set$x$accession_report_list))
   
