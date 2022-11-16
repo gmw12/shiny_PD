@@ -48,7 +48,7 @@ cat(file=stderr(), str_c("site_user set to -->  ", site_user), "\n")
 cat(file=stderr(), str_c("volumes = ", volumes), "\n")
 
 #force setting when testing customer version
-#site_user <<- "not_dpmsr"
+site_user <<- "not_dpmsr"
 
 shinyServer(function(input, output, session) {
   
@@ -1661,7 +1661,6 @@ observeEvent(input$data_show, {
     observeEvent(input$load_customer_dpmsr_set, { 
       cat(file=stderr(), "load customer dpmsr_set triggered", "\n")
       
-      
       req(input$customer_dpmsr_set)
       
       if(!is.null(input$customer_dpmsr_set)) {fileUploaded <- TRUE  }  
@@ -1673,13 +1672,8 @@ observeEvent(input$data_show, {
         
         #reload shiny
         cat(file=stderr(), "update widgets", "\n")
-        cat(file=stderr(), "test", "\n")
-        
-        # added to correct for new version of visualizaiton tool that did not include spectronaut
-        if (is.null(dpmsr_set$x$data_source)) {dpmsr_set$x$data_source <- "PD"}
         
         update_widget_all(session, input, output)
-        
         
         cat(file=stderr(), "update dpmsr_set from widgets", "\n")
         update_dpmsr_set_from_widgets(session, input)
@@ -1692,9 +1686,8 @@ observeEvent(input$data_show, {
         
         dpmsr_set$file$tmp_dir <<- str_c("/data/ShinyData/", tmp_dir)
         dpmsr_set$file$data_dir <<- str_c(dpmsr_set$file$tmp_dir, "/", dpmsr_set$x$file_prefix)
+        cat(file=stderr(), str_c("dpmsr_set$file_data_dir set to --->", dpmsr_set$file$data_dir), "\n")
         create_dir(dpmsr_set$file$data_dir)
-        
-        cat(file=stderr(), str_c("data_dir =", dpmsr_set$file$data_dir), "\n")
         
         dpmsr_set$file$output_dir <<- str_replace_all(dpmsr_set$file$data_dir, "/", "//")
         dpmsr_set$file$output_dir <<- str_c(dpmsr_set$file$output_dir, "//")

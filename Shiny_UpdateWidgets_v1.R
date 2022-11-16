@@ -19,9 +19,13 @@ update_widget_startup <- function(session, input, output){
   updateRadioButtons(session, "radio_input", selected = rdi )
   
   cat(file=stderr(), "update_widget_startup...3", "\n")
-  try(if(dpmsr_set$x$data_source == "SP"){updateRadioButtons(session, "data_source", selected = 2) })
-  
-  try(if(dpmsr_set$x$data_source == "PD"){updateRadioButtons(session, "data_source", selected = 1) })
+  if(is.null(dpmsr_set$x$data_source)){
+    dpmsr_set$x$data_source <- "PD"
+    updateRadioButtons(session, "data_source", selected = 1) 
+  }else{
+    try(if(dpmsr_set$x$data_source == "SP"){updateRadioButtons(session, "data_source", selected = 2) })
+    try(if(dpmsr_set$x$data_source == "PD"){updateRadioButtons(session, "data_source", selected = 1) })
+  }
   
   cat(file=stderr(), "update_widget_startup...4", "\n")
 
