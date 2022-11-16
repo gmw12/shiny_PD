@@ -1675,6 +1675,9 @@ observeEvent(input$data_show, {
         cat(file=stderr(), "update widgets", "\n")
         cat(file=stderr(), "test", "\n")
         
+        # added to correct for new version of visualizaiton tool that did not include spectronaut
+        if (is.null(dpmsr_set$x$data_source)) {dpmsr_set$x$data_source <- "PD"}
+        
         update_widget_all(session, input, output)
         
         
