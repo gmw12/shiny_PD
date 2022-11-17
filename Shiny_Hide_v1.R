@@ -254,9 +254,7 @@
     }
   })
   
-  
-  
-  
+
   
   observe({
     if (input$checkbox_n3){
@@ -620,12 +618,10 @@
    
    observe({
      if (input$radio_output==2){
-       cat(file=stderr(), "input$radio_output ==2", "\n")
        hideTab(inputId = "nbp_stats", target = "tp_stats_oneprotein")
        showTab(inputId = "nbp_stats", target = "tp_stats_onepeptide")
        hideTab(inputId = "nlp1", target = "pathway")
      }else{
-       cat(file=stderr(), "input$radio_output !=2", "\n")
        showTab(inputId = "nbp_stats", target = "tp_stats_oneprotein")
        hideTab(inputId = "nbp_stats", target = "tp_stats_onepeptide")
        showTab(inputId = "nlp1", target = "pathway")
@@ -644,7 +640,7 @@
        hideTab(inputId = "nlp1", target = "tp_tmt")
        hideTab(inputId = "nlp1", target = "tp_qc")
        hideTab(inputId = "nlp1", target = "tp_report")
-       hideTab(inputId = "nlp1", target = "fasta")
+       hideTab(inputId = "np_phos", target = "fasta")
        showTab(inputId = "nlp1", target = "tp_customer_load")
      }else if (site_user == "dpmsr") {
        showTab(inputId = "nlp1", target = "tp_load_design")
@@ -655,7 +651,7 @@
        showTab(inputId = "nlp1", target = "tp_impute")
        showTab(inputId = "nlp1", target = "tp_qc")
        showTab(inputId = "nlp1", target = "tp_report")
-       showTab(inputId = "nlp1", target = "fasta")
+       showTab(inputId = "np_phos", target = "fasta")
        hideTab(inputId = "nlp1", target = "tp_customer_load")
      }
    })

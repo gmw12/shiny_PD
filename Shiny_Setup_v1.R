@@ -1,10 +1,41 @@
+set_user <- function(session, input, output){
+  while (site_user == "unknown"){
+    if(Sys.info()["sysname"]=="Darwin" ){
+      volumes <<- c(dd='/Users/gregwaitt/Documents/Data', wd='.', Home = fs::path_home(),  getVolumes()())
+      #version determines website content
+      site_user <<- "dpmsr"
+      #volumes <<- c(wd='.', Home = fs::path_home(), "R Installation" = R.home(), getVolumes()())
+    }else if (Sys.info()["nodename"] == "titanshinyu20"){
+      #for titan_black VM
+      volumes <<- c(dd='/home/dpmsr/shared/h_drive', dd2='/home/dpmsr/shared/other_black', RawData='/home/dpmsr/shared/RawData', wd='.', Home = fs::path_home(), getVolumes()())
+      site_user <<- "dpmsr"
+    }else if (Sys.info()["nodename"] == "greg-GS63VR-7RF"){
+      #for greg linux laptop
+      volumes <<- c(dd='/home/dpmsr/shared', wd='.', Home = fs::path_home(), getVolumes()())
+      site_user <<- "dpmsr"
+    }else if (Sys.info()["nodename"] == "greg-ThinkPad-W550s"){
+      #for greg linux laptop
+      volumes <<- c(dd='/home/dpmsr/shared', wd='.', Home = fs::path_home(), getVolumes()())
+      site_user <<- "dpmsr"
+    }else if (Sys.info()["nodename"] == "mascot"){
+      #for mascot search pc
+      volumes <<- c(h1='/mnt/h_black1', h2='/mnt/h_black2', dc='/mnt/DataCommons', wd='.', Home = fs::path_home(), getVolumes()())
+      site_user <<- "dpmsr"
+    }else{
+      #for public website
+      volumes <<- c(dd='/data', wd='.', Home = fs::path_home(), getVolumes()())
+      site_user <<- "not_dpmsr"
+    }
+  }
+}
 
-load_dpmsr_set <- function(session, input, volumes){
+
+#---------------------------------------------------------------------
+load_dpmsr_set <- function(session, input, output){
   cat(file=stderr(), "load_dpmsr_set...", "\n")
   design_list <- c("General", "QC", "Fill_Norm", "Filters", "Protein", "TMT_PTM", "Report")
   design_data <- parseFilePaths(volumes, input$design_file)
   new_path <- str_extract(design_data$datapath, "^/.*/")
-  volumes["wd"] <- new_path
   design<-read_excel(design_data$datapath, sheet="SampleList")
   protocol<-read_excel(design_data$datapath, sheet="Protocol", skip = 0)
   dpmsr_set <<- list(design = design)

@@ -198,7 +198,7 @@ create_phos_database <- function(session, input, output){
   cat(file=stderr(), "Create MotifX sequences start...", "\n")
   require(stringr)
 
-  fasta_path <- parseFilePaths(dpmsr_set$x$volumes, input$motif_fasta)
+  fasta_path <- parseFilePaths(volumes, input$motif_fasta)
   cat(file=stderr(), str_c("fasta_path... ",fasta_path), "\n")
   
   #direct read for legacy dpmsr_set files

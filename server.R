@@ -13,42 +13,24 @@ library(rgl)
 library(DT)
 library(shinyalert)
 
-#set default
-site_user <<- "dpmsr"
-cat(file=stderr(), str_c("site_user default --> ", site_user), "\n")
+#set user to unkown to force app to find correct usr
+site_user <<- "unknown"
+volumes <<- "unknown"
 
-if(Sys.info()["sysname"]=="Darwin" ){
-  volumes <- c(dd='/Users/gregwaitt/Documents/Data', wd='.', Home = fs::path_home(),  getVolumes()())
-  #version determines website content
-  site_user <<- "dpmsr"
-  #volumes <- c(wd='.', Home = fs::path_home(), "R Installation" = R.home(), getVolumes()())
-}else if (Sys.info()["nodename"] == "titanshinyu20"){
-  #for titan_black VM
-  volumes <- c(dd='/home/dpmsr/shared/h_drive', dd2='/home/dpmsr/shared/other_black', RawData='/home/dpmsr/shared/RawData', wd='.', Home = fs::path_home(), getVolumes()())
-  site_user <<- "dpmsr"
-}else if (Sys.info()["nodename"] == "greg-GS63VR-7RF"){
-  #for greg linux laptop
-  volumes <- c(dd='/home/dpmsr/shared', wd='.', Home = fs::path_home(), getVolumes()())
-  site_user <<- "dpmsr"
-}else if (Sys.info()["nodename"] == "greg-ThinkPad-W550s"){
-  #for greg linux laptop
-  volumes <- c(dd='/home/dpmsr/shared', wd='.', Home = fs::path_home(), getVolumes()())
-  site_user <<- "dpmsr"
-}else if (Sys.info()["nodename"] == "mascot"){
-  #for mascot search pc
-  volumes <- c(h1='/mnt/h_black1', h2='/mnt/h_black2', dc='/mnt/DataCommons', wd='.', Home = fs::path_home(), getVolumes()())
-  site_user <<- "dpmsr"
-}else{
-  #for public website
-  volumes <- c(dd='/data', wd='.', Home = fs::path_home(), getVolumes()())
-  site_user <<- "not_dpmsr"
-}
+cat(file=stderr(), str_c("site_user default --> ", site_user), "\n")
+cat(file=stderr(), str_c("volumes --> ", volumes), "\n")
+
+#set user
+set_user(session, input, output)
 
 cat(file=stderr(), str_c("site_user set to -->  ", site_user), "\n")
-cat(file=stderr(), str_c("volumes = ", volumes), "\n")
+cat(file=stderr(), str_c("volumes --> ", volumes), "\n")
 
 #force setting when testing customer version
-site_user <<- "not_dpmsr"
+#volumes <<- c(dd='/data', wd='.', Home = fs::path_home(), getVolumes()())
+#site_user <<- "not_dpmsr"
+
+
 
 shinyServer(function(input, output, session) {
   
@@ -82,7 +64,7 @@ shinyServer(function(input, output, session) {
                     filetypes=c('','dpmsr_set'), defaultPath='', defaultRoot='wd')
     
     shinyFileChoose(input,'motif_fasta', roots=volumes, session=session, 
-                     filetypes=c('','fasta'), defaultPath='', defaultRoot='dd')
+                     filetypes=c('','fasta'), defaultPath='', defaultRoot='wd')
     
     shinyFileChoose(input,'test', roots=volumes, session=session, 
                     filetypes=c('' , 'xlsx', 'jpg', 'png'), defaultPath='', defaultRoot='wd')
@@ -135,7 +117,7 @@ shinyServer(function(input, output, session) {
     if (dpmsr_present$test){
       shinyalert("Oops!", "design info already loaded - Please clear memory", type = "error")
     }else{
-      load_dpmsr_set(session, input, volumes)
+      load_dpmsr_set(session, input, output)
       #reassign these to update volumes with path from design_file
       shinyFileChoose(input,'raw_files', roots=dpmsr_set$x$volumes, session=session,
                       filetypes=c('','txt'), defaultPath='', defaultRoot='wd')
@@ -1130,7 +1112,7 @@ observeEvent(input$data_show, {
 #          output$fasta <- renderText(fasta_txt_file)
 #        }
 #      })
-#      
+      
  
     
     #-------------------------------------------------------------------------------------------------------------
@@ -1155,7 +1137,7 @@ observeEvent(input$data_show, {
     
     output$fasta <- renderText({
       if (req(typeof(input$motif_fasta)=="list")) {
-        motif_path <- parseFilePaths(dpmsr_set$x$volumes, input$motif_fasta)
+        motif_path <- parseFilePaths(volumes, input$motif_fasta)
         basename(motif_path$datapath)
         #unlist(input$motif_fasta$files[[as.character(0)]][2])
       }
@@ -1601,24 +1583,30 @@ observeEvent(input$data_show, {
     #------------------------------------------------------------------------------------------------------------- 
     observeEvent(input$action_load_dpmsr_set, { 
       cat(file=stderr(), "load dpmsr_set triggered", "\n")
-      showModal(modalDialog("Working...", footer = NULL))  
+      showModal(modalDialog("Working...", footer = NULL))
       dpmsr_file <- parseFilePaths(volumes, input$dpmsr_set_file)
-      load(file = dpmsr_file$datapath, envir = .GlobalEnv)
+
+      load(file = dpmsr_file$datapath, envir = .GlobalEnv)  
+      
+      original_data_dir <- dpmsr_set$file$data_dir
+      cat(file=stderr(), str_c("Original data directory --> ", original_data_dir), "\n")
+      
       #reset file locations
       dpmsr_set$file$data_dir <<- dirname(dpmsr_file$datapath)
       dpmsr_set$file$data_path <<- gsub("(.*)/.*","\\1",dpmsr_set$file$data_dir)
       dpmsr_set$file$output_dir <<- str_replace_all(dpmsr_set$file$data_dir, "/", "//")
-      dpmsr_set$file$output_dir <<- str_c(dpmsr_set$file$output_dir, "//")
+      dpmsr_set$file$output_dir <<- str_c(dpmsr_set$file$output_dir, "//")        
       dpmsr_set$file$backup_dir <<- str_c(dpmsr_set$file$output_dir, "Backup//")
-      dpmsr_set$file$extra_dir <<- str_c(dpmsr_set$file$output_dir, "Extra//")
+      dpmsr_set$file$extra_dir <<- str_c(dpmsr_set$file$output_dir, "Extra//")        
       dpmsr_set$file$qc_dir <<- str_c(dpmsr_set$file$output_dir, "QC//")
       dpmsr_set$file$string <<- str_c(dpmsr_set$file$output_dir, "String//")
       dpmsr_set$file$extra_prefix2 <<- str_c(dpmsr_set$file$extra_dir, dpmsr_set$x$file_prefix)
-      #create dir for excel reports
+      dpmsr_set$file$phos <<- str_c(dpmsr_set$file$output_dir, "Phos//")
+      #create dir for excel reports        
       if(!is_dir(str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp))) {
-        create_dir(str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp))
+          create_dir(str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp))
       }
-      #reload shiny 
+      #reload shiny
       update_widget_all(session, input, output)
       update_dpmsr_set_from_widgets(session, input)
       inputloaddata_render(session, input, output)
@@ -1626,8 +1614,10 @@ observeEvent(input$data_show, {
       inputnorm_render(session, input, output)
       qc_render(session, input, output)
       inputproteinselect_render(session, input, output)
-      updateTabsetPanel(session, "nlp1", selected = "tp8") 
+      updateTabsetPanel(session, "nlp1", selected = "tp8")
       removeModal()
+
+      cat(file=stderr(), str_c("New data directory --> ", dpmsr_set$file$data_dir), "\n")
     })  
     
     
@@ -1668,49 +1658,61 @@ observeEvent(input$data_show, {
       if (fileUploaded){
         showModal(modalDialog("Working...", footer = NULL))  
         cat(file=stderr(), str_c("load file location:  ", input$customer_dpmsr_set$datapath), "\n")
+        
         load(file=input$customer_dpmsr_set$datapath, envir = .GlobalEnv)
         
-        #reload shiny
-        cat(file=stderr(), "update widgets", "\n")
+        original_data_dir <- dpmsr_set$file$data_dir
+        cat(file=stderr(), str_c("Original data directory --> ", original_data_dir), "\n")
         
-        update_widget_all(session, input, output)
-        
-        cat(file=stderr(), "update dpmsr_set from widgets", "\n")
-        update_dpmsr_set_from_widgets(session, input)
-        
-        
-        #reset file locations
-        tmp_dir <- format(Sys.time(), "%Y%m%d%H%M%S")
-        cat(file=stderr(), "update file locations 1", "\n")
-        #dpmsr_set$file$data_dir <<- dirname(dpmsr_file$datapath)
-        
-        dpmsr_set$file$tmp_dir <<- str_c("/data/ShinyData/", tmp_dir)
-        dpmsr_set$file$data_dir <<- str_c(dpmsr_set$file$tmp_dir, "/", dpmsr_set$x$file_prefix)
-        cat(file=stderr(), str_c("dpmsr_set$file_data_dir set to --->", dpmsr_set$file$data_dir), "\n")
-        create_dir(dpmsr_set$file$data_dir)
-        
-        dpmsr_set$file$output_dir <<- str_replace_all(dpmsr_set$file$data_dir, "/", "//")
-        dpmsr_set$file$output_dir <<- str_c(dpmsr_set$file$output_dir, "//")
-        create_dir(dpmsr_set$file$output_dir)
-        cat(file=stderr(), str_c("output_dir =", dpmsr_set$file$output_dir), "\n")
-        
-
-        dpmsr_set$file$string <<- str_c(dpmsr_set$file$output_dir, "String//")
-        create_dir(dpmsr_set$file$string)
-        cat(file=stderr(), str_c("string =", dpmsr_set$file$string), "\n")
-        
-        create_dir(str_c(dpmsr_set$file$output_dir,dpmsr_set$data$stats$final_comp))
-        cat(file=stderr(), str_c("output_dir/final =", str_c(dpmsr_set$file$output_dir,dpmsr_set$data$stats$final_comp)), "\n")
-        
-        cat(file=stderr(), "update file locations... end", "\n")
-        
+        update_try <- 1
+        while(original_data_dir == dpmsr_set$file$data_dir){
+          cat(file=stderr(), str_c("dpmsr_set file update attempt --> ", update_try), "\n")
+          if (update_try > 1){
+            load(file=input$customer_dpmsr_set$datapath, envir = .GlobalEnv)
+          }
+          update_try <- update_try+1
+          
+          #reload shiny
+          cat(file=stderr(), "update widgets", "\n")
+          update_widget_all(session, input, output)
+          
+          cat(file=stderr(), "update dpmsr_set from widgets", "\n")
+          update_dpmsr_set_from_widgets(session, input)
+          
+          
+          #reset file locations
+          tmp_dir <- format(Sys.time(), "%Y%m%d%H%M%S")
+          cat(file=stderr(), "update file locations 1", "\n")
+          #dpmsr_set$file$data_dir <<- dirname(dpmsr_file$datapath)
+          
+          dpmsr_set$file$tmp_dir <<- str_c("/data/ShinyData/", tmp_dir)
+          dpmsr_set$file$data_dir <<- str_c(dpmsr_set$file$tmp_dir, "/", dpmsr_set$x$file_prefix)
+          cat(file=stderr(), str_c("dpmsr_set$file_data_dir set to --->", dpmsr_set$file$data_dir), "\n")
+          create_dir(dpmsr_set$file$data_dir)
+          
+          dpmsr_set$file$output_dir <<- str_replace_all(dpmsr_set$file$data_dir, "/", "//")
+          dpmsr_set$file$output_dir <<- str_c(dpmsr_set$file$output_dir, "//")
+          create_dir(dpmsr_set$file$output_dir)
+          cat(file=stderr(), str_c("output_dir =", dpmsr_set$file$output_dir), "\n")
+  
+          dpmsr_set$file$string <<- str_c(dpmsr_set$file$output_dir, "String//")
+          create_dir(dpmsr_set$file$string)
+          cat(file=stderr(), str_c("string =", dpmsr_set$file$string), "\n")
+          
+          create_dir(str_c(dpmsr_set$file$output_dir,dpmsr_set$data$stats$final_comp))
+          cat(file=stderr(), str_c("output_dir/final =", str_c(dpmsr_set$file$output_dir,dpmsr_set$data$stats$final_comp)), "\n")
+          
+          cat(file=stderr(), "update file locations... end", "\n")
+        } 
         removeModal()
         updateTabsetPanel(session, "nlp1", selected = "tp_stats")
-      } else{
-        shinyalert("Oops!", "Please wait for file to upload...", type = "error")
-      }
+        
+       } else{
+          shinyalert("Oops!", "Please wait for file to upload...", type = "error")
+        }
+        
       
-
+      cat(file=stderr(), str_c("Updated data directory --> ", dpmsr_set$file$data_dir), "\n")
     })  
     
     

@@ -1,4 +1,4 @@
-last_update <- '10-05-2022'
+last_update <- '11-17-2022'
 
 library(shiny)
 library(shinyFiles)
@@ -1822,7 +1822,7 @@ shinyUI(
              navbarPage("Phosphorylation:", id ="np_phos",
                         tabPanel("Format Fasta", value = "fasta", id="fasta",
                                  fluidRow(
-                                   shinyFilesButton('motif_fasta', label='Select Motif-X FASTA', title='Please select motif-x formated text file', multiple=FALSE,
+                                   shinyFilesButton('motif_fasta', label='Select Motif-X FASTA', title='Please select fasta file to format for motif-x', multiple=FALSE,
                                                     style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
                                    br(),
                                    textOutput("fasta"),
