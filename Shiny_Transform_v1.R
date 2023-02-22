@@ -192,6 +192,11 @@ isoform_to_isoform <- function(){
 #peptide_data <- xdf
 #--- collapse peptide to protein-------------------------------------------------------------
 collapse_peptide <- function(peptide_data){
+  
+  #troubleshooting
+  #test_peptide_data <<- peptide_data
+  #peptide_data <- test_peptide_data
+  
   cat(file=stderr(), "starting collapse_peptide...", "\n")
   info_columns <- ncol(peptide_data) - dpmsr_set$y$sample_number
   peptide_annotate <- peptide_data[1:(info_columns)]
@@ -200,22 +205,26 @@ collapse_peptide <- function(peptide_data){
   peptide_annotate <- peptide_annotate[, c("Accession", "Description", "Unique")]
   
   #count number of peptides for each protein
+  cat(file=stderr(), "collapse peptide to protein... 1", "\n")
   peptide_annotate$Peptides <- 1
   peptide_annotate$Peptides <- as.numeric(peptide_annotate$Peptides)
   
   #count number of unique peptides for each protein
+  cat(file=stderr(), "collapse peptide to protein... 2", "\n")
   peptide_annotate$Unique[peptide_annotate$Unique == "Unique"] <- 1
   peptide_annotate$Unique[peptide_annotate$Unique != 1] <- 0
   peptide_annotate$Unique <- as.numeric(peptide_annotate$Unique)
   
   peptide_annotate <- peptide_annotate[, c("Accession", "Description", "Peptides", "Unique")]
   
+  cat(file=stderr(), "collapse peptide to protein... 3", "\n")
   test1 <- cbind(peptide_annotate, peptide_data)
   #test2 <- test1 %>% group_by(Accession, Description) %>% summarise_all(funs(sum))
   test2 <- test1 %>% group_by(Accession, Description) %>% summarise_all(list(sum))
   test2 <- data.frame(ungroup(test2))
   
   #add imputed column info
+  cat(file=stderr(), "collapse peptide to protein... 4", "\n")
   if ((dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Peptide") 
       && dpmsr_set$x$final_data_output == "Protein" && !as.logical(dpmsr_set$x$tmt_spqc_norm)   )
     {

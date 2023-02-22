@@ -597,6 +597,10 @@ observeEvent(input$data_show, {
             cat(file=stderr(), "Stats Plots...2" , "\n")
             comp_rows <- sort(unique(unlist(comp_rows)), decreasing = FALSE)
             df <- df[,comp_rows]
+            
+            #from protein normalization there will be standard deviation of 0 for the normalized protein - this will crash some of the pca/cluster/heatmap calcs
+            df <- df[apply(df, 1, var) != 0, ]
+            
             namex <- dpmsr_set$design$Label[comp_rows]
             color_list <- dpmsr_set$design$colorlist[comp_rows]
             groupx <- dpmsr_set$design$Group[comp_rows]

@@ -186,14 +186,23 @@ interactive_boxplot <- function(session, input, output, df, namex, color_list, c
 
 interactive_pca2d <- function(session, input, output, df, namex, color_list, groupx, comp_name)
 {
+  #test_df <<- df
+  #test_groupx <<- groupx
+  #df<-test_df
+  #groupx <- test_groupx
+  
   cat(file=stderr(), "interactive_pca2d" , "\n")
   x_transpose <- t(df)
   x_transpose <-data.frame(x_transpose)
+  cat(file=stderr(), "interactive_pca2d...1" , "\n")
   row.names(x_transpose) <- NULL
-  x_transpose <-cbind(groupx, x_transpose)
+  x_transpose <- cbind(groupx, x_transpose)
+  
   x_pca <- prcomp(x_transpose[,-1], scale=TRUE)
+
   test_this <-x_transpose[,1]
   x_gr <- factor(unlist(test_this))
+  cat(file=stderr(), "interactive_pca2d...2" , "\n")
   summary(x_gr)
   df_out <- as.data.frame(x_pca$x)
   #df_out_test <<- df_out
@@ -201,6 +210,7 @@ interactive_pca2d <- function(session, input, output, df, namex, color_list, gro
   #df_xgr_test <<- df_xgr
   #df_xgr$x_gr <- as.character(df_xgr$x_gr)
   
+  cat(file=stderr(), "interactive_pca2d...3" , "\n")
   hover_data <- data.frame(cbind(namex, df_out[[input$stats_pca2d_x]], df_out[[input$stats_pca2d_y]]), stringsAsFactors = FALSE  )
   colnames(hover_data) <- c("Sample", "get(input$stats_pca2d_x)", "get(input$stats_pca2d_y)")
   hover_data$`get(input$stats_pca2d_x)` <- as.numeric(hover_data$`get(input$stats_pca2d_x)`)
@@ -280,8 +290,10 @@ interactive_pca3d <- function(session, input, output, df, namex, color_list, gro
   x_transpose <-data.frame(x_transpose)
   row.names(x_transpose) <- NULL
   x_transpose <-cbind(groupx, x_transpose)
+  
   x_pca <- prcomp(x_transpose[,-1], scale=TRUE)
-  test_this <-x_transpose[,1]
+
+    test_this <- x_transpose[,1]
   x_gr <- factor(unlist(test_this))
   summary(x_gr)
 
