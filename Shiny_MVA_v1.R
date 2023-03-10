@@ -807,21 +807,30 @@ TMT_IRS_protein_data <- function(session, input, output) {
 oneprotein_data <- function(session, input, output) {
   
   cat(file=stderr(), "One Protein stats and plots..." , "\n")
-  # comp_string="95_D1_v_3831_D1"  comp_number=1
+
   comp_string <- input$stats_oneprotein_plot_comp
   comp_number <- which(dpmsr_set$y$stats$groups$comp_name == comp_string)
+  cat(file=stderr(), str_c("comp_string=", comp_string, "   comp_number=", comp_number), "\n")
   
   cat(file=stderr(), "One Protein stats and plots...1" , "\n")
   df <- dpmsr_set$data$stats[[comp_string]]
+
+  cat(file=stderr(), str_c("accession=", input$stats_oneprotein_accession), "\n")
   df <-df[grep(as.character(input$stats_oneprotein_accession), df$Accession), ]
   #df <-subset(df, df$Accession %in% as.character(input$stats_oneprotein_accession)  )
   
   sample_number <- dpmsr_set$y$stats$groups$N_count[comp_number] + dpmsr_set$y$stats$groups$D_count[comp_number]
   
   cat(file=stderr(), "One Protein stats and plots...2" , "\n")
-  df_peptide <- dpmsr_set$data$stats$peptide[[comp_string ]]    
-  df_peptide <- subset(df_peptide, Accession %in% as.character(input$stats_oneprotein_accession)  )
   
+  if (dpmsr_set$x$final_data_output=="Peptide"){
+    df_peptide <- dpmsr_set$data$stats[[comp_string]]
+    df_peptide <- df_peptide[1:(dpmsr_set$y$info_columns_final + sample_number + dpmsr_set$y$stats$comp_spqc_number)]
+  }else{
+    df_peptide <- dpmsr_set$data$stats$peptide[[comp_string]]
+  }
+  
+  df_peptide <- subset(df_peptide, Accession %in% as.character(input$stats_oneprotein_accession)  )
   peptide_info_columns <- ncol(df_peptide) - sample_number - dpmsr_set$y$stats$comp_spqc_number
   
   #add spqc to plots
@@ -845,11 +854,12 @@ oneprotein_data <- function(session, input, output) {
   groupx <- dpmsr_set$design$Group[comp_rows]
   
   cat(file=stderr(), "One Protein stats and plots...5" , "\n")
-  colnames(df_peptide)[(peptide_info_columns+1):ncol(df_peptide)] <- 
-    c(dpmsr_set$design$Header1[unlist(dpmsr_set$y$stats$groups$sample_numbers_N[comp_number])],
-      dpmsr_set$design$Header1[unlist(dpmsr_set$y$stats$groups$sample_numbers_D[comp_number])],
-      dpmsr_set$design$Header1[unlist(dpmsr_set$y$stats$comp_spqc_sample_numbers)] )
-  
+  if (dpmsr_set$x$final_data_output != "Peptide"){
+    colnames(df_peptide)[(peptide_info_columns+1):ncol(df_peptide)] <- 
+      c(dpmsr_set$design$Header1[unlist(dpmsr_set$y$stats$groups$sample_numbers_N[comp_number])],
+        dpmsr_set$design$Header1[unlist(dpmsr_set$y$stats$groups$sample_numbers_D[comp_number])],
+        dpmsr_set$design$Header1[unlist(dpmsr_set$y$stats$comp_spqc_sample_numbers)] )
+  } 
   
   #sort peptides by intensity, keep highest abundant peptide
   cat(file=stderr(), "One Protein stats and plots...6" , "\n")

@@ -413,8 +413,12 @@ shinyServer(function(input, output, session) {
       filter_df <- dpmsr_set$data$final[[input$select_oneprotein_norm]]
       
       if(input$oneprotein_accession != "0" ){
+        cat(file=stderr(), str_c("filtering for accession... ", input$oneprotein_accession), "\n")
         filter_df <-subset(filter_df, Accession %in% as.character(input$oneprotein_accession)  )
+      }else{
+        cat(file=stderr(), str_c("filtering for accession... ", input$oneprotein_accession), "\n")
       }
+      
       stats_df <- filter_df[(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number+1):ncol(filter_df)]
       stats_df <- t(stats_df)
       stats_df <- data.frame(stats_df)
@@ -719,7 +723,11 @@ observeEvent(input$data_show, {
             updateSelectInput(session, "stats_onepeptide_plot_comp", selected= input$stats_select_data_comp)
             dpmsr_set$y$stats$accession_stat <<- stats_DT$x$data$Accession[as.numeric(unlist(input$stats_data_final_rows_selected)[1])] 
             dpmsr_set$y$stats$sequence_stat <<- stats_DT$x$data$Sequence[as.numeric(unlist(input$stats_data_final_rows_selected)[1])] 
-            dpmsr_set$y$stats$modification_stat <<- stats_DT$x$data$Modifications[as.numeric(unlist(input$stats_data_final_rows_selected)[1])] 
+            dpmsr_set$y$stats$modification_stat <<- stats_DT$x$data$Modifications[as.numeric(unlist(input$stats_data_final_rows_selected)[1])]
+            #protein plot is still used for peptide output
+            updateTextInput(session, "stats_oneprotein_accession", 
+                            value = stats_DT$x$data$Accession[as.numeric(unlist(input$stats_data_final_rows_selected)[1])]  )
+            updateSelectInput(session, "stats_oneprotein_plot_comp", selected= input$stats_select_data_comp)
           })
         }  
       }else{
@@ -819,7 +827,8 @@ observeEvent(input$data_show, {
         if(!dpmsr_set$x$tmt_spqc_norm) {
           
           df_list <- oneprotein_data(session, input, output)
-          #df_peptide is in df_list
+          test_df_list <<- df_list
+          
           for(j in names(df_list)){assign(j, df_list[[j]]) }
           
           interactive_barplot(session, input, output, df, namex, color_list, "stats_oneprotein_barplot", input$stats_oneprotein_plot_comp)
