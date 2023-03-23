@@ -183,8 +183,9 @@ create_motifx_input <- function(filter_df, parsed_ref, comparison, direction_fil
 
   cat(file=stderr(), "write ptm_data to excel..." , "\n")  
   
-  Simple_Excel(ptm_data, str_c(dpmsr_set$file$phos, "MotifX_ptmdata_", comparison, "_", direction_filter, ".xlsx"))
-  
+  if (site_user=="dpmsr"){
+    Simple_Excel(ptm_data, str_c(dpmsr_set$file$phos, "MotifX_ptmdata_", comparison, "_", direction_filter, ".xlsx"))
+  }
   
   return(ptm_data)
 }
@@ -393,7 +394,9 @@ create_padded_seq <- function(){
   
   cat(file=stderr(), "write ptm_data to excel..." , "\n")  
   
-  Simple_Excel(ptm_data, str_c(dpmsr_set$file$phos, "Padded_Seq.xlsx"))
+  if (site_user=="dpmsr"){
+    Simple_Excel(ptm_data, str_c(dpmsr_set$file$phos, "Padded_Seq.xlsx"))
+  }
   
   phindPTMs_Example <- phindPTMs(ptm_data, parsed_ref)
   df_PTMs <- data.frame(phindPTMs_Example)
@@ -403,7 +406,9 @@ create_padded_seq <- function(){
   ptm_data$Ambiguity <- df_PTMs$Ambiguity
   ptm_data$Prot_Seq <- df_PTMs$Prot_Seq
   
-  Simple_Excel(ptm_data, str_c(dpmsr_set$file$phos, "Padded_Seq.xlsx"))
+  if (site_user=="dpmsr"){
+    Simple_Excel(ptm_data, str_c(dpmsr_set$file$phos, "Padded_Seq.xlsx"))
+  }
   
   return(ptm_data)
 }
