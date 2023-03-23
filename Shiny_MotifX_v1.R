@@ -84,7 +84,9 @@ run_motifx <- function(input, output, data_in){
       cat(file=stderr(), "write motifx excel..." , "\n")  
       # save filename to dpmsr_set so downloadhandler can grab it
       dpmsr_set$data$phos$filename <<- str_c("MotifX_", input$select_data_comp_motif, ".xlsx")
-      Simple_Excel(motifx_all, str_c(dpmsr_set$file$phos, "MotifX_", input$select_data_comp_motif, ".xlsx"))
+      if (site_user=="dpmsr"){
+        Simple_Excel(motifx_all, str_c(dpmsr_set$file$phos, "MotifX_", input$select_data_comp_motif, ".xlsx"))
+      }
     }
   
   return(motifx_all)
@@ -126,9 +128,11 @@ motifx_calc <- function(s, c, w, FC, ptm_data, parsed_ref, pval_motif, min_seq, 
     motifx_data <- NULL
   }
   
-  cat(file=stderr(), str_c("Number of motifs for ", c," = ", nrow(motifx_data)), "\n") 
+  cat(file=stderr(), str_c("Number of motifs for ", c," = ", nrow(motifx_data)), "\n")
   
-  Simple_Excel(phindPTMs_Example, str_c(dpmsr_set$file$phos, "MotifX_phindPTM_", comparison, "_", FC, ".xlsx"))
+  if (site_user=="dpmsr"){
+    Simple_Excel(phindPTMs_Example, str_c(dpmsr_set$file$phos, "MotifX_phindPTM_", comparison, "_", FC, ".xlsx"))
+  }
   
   return(motifx_data)
 } 
@@ -250,7 +254,11 @@ create_phos_database <- function(session, input, output){
   file_name <- str_replace(file_name, ".fasta", ".txt")
   
   dpmsr_set$data$phos$background <<- new_fasta
-  write.csv2(new_fasta, str_c(dpmsr_set$file$phos, file_name), row.names = FALSE)
+  
+  if (site_user=="dpmsr"){
+    write.csv2(new_fasta, str_c(dpmsr_set$file$phos, file_name), row.names = FALSE)
+  }
+  
   cat(file=stderr(), "Create MotifX sequences end...", "\n")
 }
 
@@ -292,7 +300,9 @@ create_phos_database_custom <- function(){
   new_fasta$Accession <- as.character(new_fasta$Accession)
   new_fasta$Description <- as.character(new_fasta$Description)
   new_fasta$Sequence <- as.character(new_fasta$Sequence)
-  Simple_Excel(new_fasta, "5560_crov2_Sep2020.xlsx")
+  if (site_user=="dpmsr"){
+    Simple_Excel(new_fasta, "5560_crov2_Sep2020.xlsx")
+  }
 }
 
 #--------------------------------------------------------------------------------------------
