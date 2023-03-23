@@ -184,10 +184,9 @@ create_motifx_input <- function(filter_df, parsed_ref, comparison, direction_fil
   ptm_data <- df
   ptm_data$Protein_ID <- gsub( " .*$", "", ptm_data$Protein_ID)
   ptm_data <-subset(ptm_data, Protein_ID %in% parsed_ref$Accession)
-
-  cat(file=stderr(), "write ptm_data to excel..." , "\n")  
   
   if (site_user=="dpmsr"){
+    cat(file=stderr(), "write ptm_data to excel..." , "\n")
     Simple_Excel(ptm_data, str_c(dpmsr_set$file$phos, "MotifX_ptmdata_", comparison, "_", direction_filter, ".xlsx"))
   }
   
@@ -328,14 +327,6 @@ testonly <- function(){
   ptm_data <- create_motifx_input(filter_df, parsed_ref)
   motifx_S <- motifx_calc(s, "S", w, "Up", ptm_data, parsed_ref, pval_motif, input$pvalue_cutoff, input$foldchange_cutoff, input$select_data_comp_motif)
   
-  
-  
-  
-  
-  
-  
-  
-  
   test_parsed_ref <- read.table("Mmusculus_110419.txt", header=FALSE, row.names=NULL, sep="\t")                     
   test_s <- unlist(test_parsed_ref[,2])
   extractBack_Example <- extractBackground(test_s, "S", 15)
@@ -402,9 +393,8 @@ create_padded_seq <- function(){
   ptm_data$Protein_ID <- gsub( " .*$", "", ptm_data$Protein_ID)
   ptm_data <-subset(ptm_data, Protein_ID %in% parsed_ref$Accession)
   
-  cat(file=stderr(), "write ptm_data to excel..." , "\n")  
-  
   if (site_user=="dpmsr"){
+    cat(file=stderr(), "write ptm_data to excel..." , "\n") 
     Simple_Excel(ptm_data, str_c(dpmsr_set$file$phos, "Padded_Seq.xlsx"))
   }
   
