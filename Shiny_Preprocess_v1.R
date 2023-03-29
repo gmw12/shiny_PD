@@ -154,9 +154,7 @@ check_sample_id <- function() {
 garbage_cleanup <- function(){
   # reduce size of objects in dpmsr_set
   cat(file=stderr(), "garbage cleanup...", "\n")
- 
-  
-   
-  
+  rm(list=ls())
+  gc(verbose = getOption("verbose"), reset = FALSE, full = TRUE)
 }
 
