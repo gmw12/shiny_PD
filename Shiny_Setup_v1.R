@@ -82,8 +82,12 @@ load_dpmsr_set <- function(session, input, output){
 check_comp_name_length <- function(){
   cat(file=stderr(), "check_comp_name_length...", "\n")
   names <- unique(dpmsr_set$design$Group)
-  names_len <- sort(nchar(names), decreasing = TRUE)
-  longest_comp <- names_len[1] + names_len[2]
+  if (names > 1){
+    names_len <- sort(nchar(names), decreasing = TRUE)
+    longest_comp <- names_len[1] + names_len[2]
+  }else{
+    longest_comp <- names_len[1] + names_len[1]
+  }
   if (longest_comp > 27) {
     return(TRUE)
   }else {
