@@ -6,10 +6,13 @@ apply_impute <- function(session, input, output){
   set.seed(123)
   #get number of missing values
   total_missing <- table(is.na(dpmsr_set$data$normalized$impute))
+  cat(file=stderr(), str_c(total_missing[2], " missing values"), "\n")
   dpmsr_set$y$rand_impute <<- runif(total_missing[2]*2, min=-1, max=1)
+  cat(file=stderr(), "created random number dataframe", "\n")
   dpmsr_set$y$rand_count <<- 1
   
   ncores <- (detectCores()/2)
+  cat(file=stderr(), str_c("ncores = ", ncores), "\n")
   if (is.na(ncores) | ncores < 1) {ncores <- 1}
   norm_list <- dpmsr_set$y$norm_list
   dpmsr_set$data$impute <<- mclapply(norm_list, impute_parallel, mc.cores = ncores)
@@ -67,6 +70,7 @@ impute_only <-  function(data_in, norm_name){
   cat(file=stderr(), str_c("impute_only... ", norm_name), "\n")
   cat(file=stderr(), str_c("impute method... ", dpmsr_set$x$impute_method), "\n")
   
+  #data_in <- dpmsr_set$data$normalized$sl
   info_columns <- ncol(data_in) - dpmsr_set$y$sample_number
   distribution_data <- data_in
   annotation_data <- data_in[1:info_columns]
@@ -97,6 +101,9 @@ impute_only <-  function(data_in, norm_name){
 #--------------------------------------------------------------------------------
 # imputation of missing data
 impute_multi <- function(data_in, distribution_in, info_columns){
+  #distribution_in <- distribution_data
+  #data_in <- data_out
+  
   #Use all data for distribution or only ptm
   if (as.logical(dpmsr_set$x$peptide_ptm_impute)){
     distribution_data <- distribution_in[grep(dpmsr_set$x$peptide_impute_grep, distribution_in$Modifications),]
@@ -141,7 +148,7 @@ impute_multi <- function(data_in, distribution_in, info_columns){
       df2$bin <- ntile(df2$average, 20)  
       #sd_info <- subset(df2, missings ==0) %>% group_by(bin) %>% summarize(min = min(average), max = max(average), sd = mean(sd))
       sd_info <- subset(df2, !is.na(sd)) %>% group_by(bin) %>% summarize(min = min(average), max = max(average), sd = mean(sd))
-      for (x in 1:19){sd_info$max[x] <- sd_info$min[x+1]}
+      for (x in 1:(nrow(sd_info)-1)){sd_info$max[x] <- sd_info$min[x+1]}
       sd_info$max[nrow(sd_info)] <- 100
       sd_info$min2 <- sd_info$min
       sd_info$min2[1] <- 0
@@ -167,15 +174,15 @@ impute_multi <- function(data_in, distribution_in, info_columns){
       
       # if number of missing greater than minimum and measured value is above intensity cuttoff then remove measured value
       df$missings <- rowSums(is.na(df[1:dpmsr_set$y$sample_groups$Count[i]]))  #recalc if Duke filled, filters may overlap
-     
-       if (as.logical(dpmsr_set$x$duke_misaligned)){
+      if (as.logical(dpmsr_set$x$duke_misaligned)){
+        cat(file=stderr(), str_c("finding and removing misaligned values"), "\n")
         find_rows <- which(df$missings > df$max_misaligned  & df$average >= log(dpmsr_set$x$int_cutoff,2) )
         for (j in find_rows){
           for (k in 1:dpmsr_set$y$sample_groups$Count[i]){
                 df[j,k] <- NA
            }
           }
-        }
+      }
     } # end of if ncol(df)>1
     
     #save group dataframe

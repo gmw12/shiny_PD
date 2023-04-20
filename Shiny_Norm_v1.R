@@ -110,6 +110,7 @@ norm_parallel <- function(norm_type){
 #--------------------------------------------------------------------------------------
 # global scaling value, sample loading normalization
 sl_normalize <- function(norm_data, data_to_norm, data_title, info_columns){
+  cat(file=stderr(), str_c("sl_normalize...", data_title), "\n")
   annotation_data <- data_to_norm[1:info_columns]
   data_to_norm <- data_to_norm[(info_columns+1):ncol(data_to_norm)]
   norm_data <- norm_data[(info_columns+1):ncol(norm_data)]
@@ -283,6 +284,7 @@ protein_normalize <- function(data_to_norm, data_title, info_columns){
 
 #TMM Normalized 
 tmm_normalize <- function(data_to_norm, data_title, info_columns){
+  cat(file=stderr(), str_c("TMM normalize started...", data_title), "\n")
   norm_data <- TMM_norm_data(data_to_norm)
   annotation_data <- data_to_norm[1:info_columns]
   data_to_norm <- data_to_norm[(info_columns+1):ncol(data_to_norm)]
@@ -291,7 +293,8 @@ tmm_normalize <- function(data_to_norm, data_title, info_columns){
   tmm_factor <- calcNormFactors(norm_data, method = "TMM", sumTrim = 0.1)
   data_out <- sweep(data_to_norm, 2, tmm_factor, FUN = "/") # this is data after SL and TMM on original scale
   data_out <- cbind(annotation_data, data_out)
-  Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_tmm_norm.xlsx", collapse = " "))
+  Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_", data_title, ".xlsx", collapse = " "))
+  cat(file=stderr(), "TMM normalize complete", "\n")
   return(data_out)
 }
 
@@ -305,7 +308,7 @@ TMM_norm_data <- function(data_in){
     }
       
     if (as.logical(dpmsr_set$x$peptide_ptm_norm)){
-      data_in <<- data_in[grep(dpmsr_set$x$peptide_norm_grep, data_in$Modifications),]
+      data_in <- data_in[grep(dpmsr_set$x$peptide_norm_grep, data_in$Modifications),]
     }
     
     #if include checked then only normalize filter results
@@ -318,7 +321,8 @@ TMM_norm_data <- function(data_in){
       data_in <- data_in[!grepl(paste(dpmsr_set$x$exclude_norm_grep, collapse="|"),
                                                                    data_in$Description, ignore.case = TRUE),]
     }
-    
+  
+    cat(file=stderr(), "TMM Filter norm_prep complete...", "\n")
     return(data_in)
 }
 
