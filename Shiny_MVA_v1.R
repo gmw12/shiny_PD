@@ -11,10 +11,10 @@ stat_prep <- function(){
   
   if (dpmsr_set$y$state=="Peptide" && dpmsr_set$x$final_data_output == "Protein"){
     dpmsr_set$data$finalraw <<- collapse_peptide(dpmsr_set$data$normalized$impute)
-    Simple_Excel(dpmsr_set$data$finalraw, str_c(dpmsr_set$file$extra_prefix, "_final_raw_protein.xlsx", collapse = " "))
+    Simple_Excel(dpmsr_set$data$finalraw, "final_raw_protein", str_c(dpmsr_set$file$extra_prefix, "_final_raw_protein.xlsx", collapse = " "))
   } else{
     dpmsr_set$data$finalraw <<- dpmsr_set$data$normalized$impute
-    Simple_Excel(dpmsr_set$data$finalraw, str_c(dpmsr_set$file$extra_prefix, "_final_raw_peptide.xlsx", collapse = " "))
+    Simple_Excel(dpmsr_set$data$finalraw, "final_raw_peptide", str_c(dpmsr_set$file$extra_prefix,  "_final_raw_peptide.xlsx", collapse = " "))
   }
 }
 
@@ -24,13 +24,13 @@ save_final_nostats <- function(){
   for (name in names(dpmsr_set$data$final)){
     cat(file=stderr(), str_c("Saving final excel w/o stats....", name), "\n")
     filename <- str_c(dpmsr_set$file$output_dir, name, "//Final_", name, "_noStats.xlsx")
-    Simple_Excel_name(dpmsr_set$data$final[[name]], filename, name)
+    Simple_Excel(dpmsr_set$data$final[[name]], name, filename)
   }
   
   for (name in names(dpmsr_set$data$impute)){
     cat(file=stderr(), str_c("Saving imputed peptide excel w/o stats....", name), "\n")
     filename <- str_c(dpmsr_set$file$output_dir, name, "//Imputed_Peptide_", name, ".xlsx")
-    Simple_Excel_name(dpmsr_set$data$impute[[name]], filename, name)
+    Simple_Excel(dpmsr_set$data$impute[[name]], name, filename)
   }
 }
 
@@ -86,6 +86,12 @@ check_stats_prep_parallel <- function(data_list){
  #create data frame for comparisons
 set_stat_groups <- function(session, input, output){
   cat(file=stderr(), "set_stat_groups....1", "\n")
+  
+  # test for comp descriptions over 31 characters - limit for excel sheet name
+  comp_warning <- FALSE
+  comp_warning_list <- list()
+  dpmsr_set$y$uniquegroups <<- unique(dpmsr_set$design$Group)
+  
   stats_data <- dpmsr_set$data$final[[input$select_final_data_stats]]
   stats_data <- stats_data[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)]
   
@@ -134,99 +140,66 @@ set_stat_groups <- function(session, input, output){
     # factorsD <- fD
     # rm(stats_data_D, stats_data_N, factorsN, factorsD, n_max, n_min, d_max, d_min)
     
-    n_min <- FALSE
-    d_min <- FALSE
-    
-    if (!is_empty(grep("Min.Samples", factorsN))) {
-      cat(file=stderr(), "set_stats_groups...minimize N", "\n")
-      n_min <- TRUE
-      factorsN <- factorsN[!factorsN %in% grep("Min.Samples", factorsN, value = T)]
-      n_max <- length(factorsN)
-    }
-    
-    if (!is_empty(grep("Min.Samples", factorsD))) {
-      cat(file=stderr(), "set_stats_groups...minimize D", "\n")
-      d_min <- TRUE
-      factorsD <- factorsD[!factorsD %in% grep("Min.Samples", factorsD, value = T)]
-      d_max <- length(factorsD)
-    }     
-    
-    for(stats_group in factorsN){
-      grep_comp <- paste("[ _]", stats_group, "[ _$]", sep="")
-      stats_data_N <- stats_data_N[,grepl(grep_comp, colnames(stats_data_N))]
-      }
-    
-    for(stats_group in factorsD){
-      grep_comp <- paste("[ _]", stats_group, "[ _$]", sep="")
-      stats_data_D <- stats_data_D[,grepl(grep_comp, colnames(stats_data_D))]
-     }
-
-    #if Min.Samples now have to remove extra columns that we don't want by count _'s
-    if(n_min){
-      new_columns <- list()
-      for(col in colnames(stats_data_N)){
-        count_comps <- length(unlist(str_locate_all(col, "_")))/2
-        if (count_comps < n_max){
-          new_columns <- c(new_columns, col)
-        }
-      }
-      new_columns <- unlist(new_columns)
-      stats_data_N <- stats_data_N[, new_columns]
-      cat(file=stderr(), str_c("stats_data_n columns=", ncol(stats_data_N)), "\n")
-    }
+    # find sample position numbers
+    samples_N <- which(dpmsr_set$design$Group %in% as.list(factorsN))
+    samples_D <- which(dpmsr_set$design$Group %in% as.list(factorsD))
+    cat(file=stderr(), str_c("samples_N = ", samples_N), "\n")
+    cat(file=stderr(), str_c("samples_D = ", samples_D), "\n")
     
     
-    if(d_min){
-      new_columns <- list()
-      for(col in colnames(stats_data_D)){
-        count_comps <- length(unlist(str_locate_all(col, "_")))/2
-        if (count_comps < d_max){
-          new_columns <- c(new_columns, col)
-        }
-      }
-      new_columns <- unlist(new_columns)
-      stats_data_D <- stats_data_D[, new_columns]
-      cat(file=stderr(), str_c("stats_data_d columns=", ncol(stats_data_D)), "\n")
-    }
+    # reduce dataframe to samples of interest
+    stats_data_N <- stats_data_N[c(samples_N)]
+    stats_data_D <- stats_data_D[c(samples_D)]
+    cat(file=stderr(), str_c("stats_data_N = ", ncol(stats_data_N)), "\n")
+    cat(file=stderr(), str_c("stats_data_D = ", ncol(stats_data_D)), "\n")
     
-    
-    #work around to get all samples into a comparison for graphs
-    if( input[[str_c('comp_',i,'N')]] == "All.Samples"){
-      stats_data_N <- stats_data %>% dplyr::select(!contains(input$comp_spqc))
-    }
-    if( input[[str_c('comp_',i,'D')]] == "All.Samples"){
-      stats_data_D <- stats_data %>% dplyr::select(!contains(input$comp_spqc))
-    }
-    
-
-    comp_groups$comp_N[i] <- paste(factorsN, collapse = "_")
-    if (n_min){comp_groups$comp_N[i] <- str_c(comp_groups$comp_N[i], "<")}
-    comp_groups$comp_D[i] <- paste(factorsD, collapse = "_")
-    if (d_min){comp_groups$comp_D[i] <- str_c(comp_groups$comp_D[i], "<")}
+    # set comp group names
+    comp_groups$comp_N[i] <- paste(unique(unlist(str_split(factorsN, "_"))), collapse="_")
+    comp_groups$comp_D[i] <- paste(unique(unlist(str_split(factorsD, "_"))), collapse="_")
     comp_groups$comp_name[i] <- str_c(comp_groups$comp_N[i], "_v_", comp_groups$comp_D[i])
-    comp_groups$com_N_headers[i] <- list(colnames(stats_data_N))
-    comp_groups$com_D_headers[i] <- list(colnames(stats_data_D))
-    comp_groups$fc[i] <- str_c(comp_groups$comp_name[i], "_FC")
-    comp_groups$fc2[i] <- str_c(comp_groups$comp_name[i], "_FC2")
-    comp_groups$pval[i] <- str_c(comp_groups$comp_name[i], "_pval")
-    comp_groups$limma_pval[i] <- str_c(comp_groups$comp_name[i], "_limma_pval")
-    comp_groups$exactTest[i] <- str_c(comp_groups$comp_name[i], "_exactTest")
-    comp_groups$adjpval[i] <- str_c(comp_groups$comp_name[i], "_adjpval")
-    comp_groups$cohensd[i] <- str_c(comp_groups$comp_name[i], "_cohensd")
-    comp_groups$mf[i] <- str_c(comp_groups$comp_name[i], "_MF")
-    comp_groups$cv_N[i] <- str_c(comp_groups$comp_N[i], "_CV")  
-    comp_groups$cv_D[i] <- str_c(comp_groups$comp_D[i], "_CV")  
+    if (nchar(comp_groups$comp_name[i]) > 31) {
+      comp_groups$comp_name[i] <- substr(comp_groups$comp_name[i], 1, 31)
+      comp_warning <- TRUE
+      comp_warning_list = c(comp_warning_list,i)
+      cat(file=stderr(), str_c("Comparison ", i," is over 31 characters"), "\n")
+    }
+    
+    if (dpmsr_set$x$primary_group){
+      comp_groups$primary_comp_N[i] <- str_split(comp_groups$comp_N[i], "_")[[1]][1]
+      comp_groups$primary_comp_D[i] <- str_split(comp_groups$comp_D[i], "_")[[1]][1]
+    }
+    
+
+    # set column headers for comparison stat columns
+    # comp_groups$fc[i] <- str_c(comp_groups$comp_name[i], "_FC")
+    # comp_groups$fc2[i] <- str_c(comp_groups$comp_name[i], "_FC2")
+    # comp_groups$pval[i] <- str_c(comp_groups$comp_name[i], "_pval")
+    # comp_groups$limma_pval[i] <- str_c(comp_groups$comp_name[i], "_limma_pval")
+    # comp_groups$exactTest[i] <- str_c(comp_groups$comp_name[i], "_exactTest")
+    # comp_groups$adjpval[i] <- str_c(comp_groups$comp_name[i], "_adjpval")
+    # comp_groups$cohensd[i] <- str_c(comp_groups$comp_name[i], "_cohensd")
+    # comp_groups$mf[i] <- str_c(comp_groups$comp_name[i], "_MF")
+    # comp_groups$cv_N[i] <- str_c(comp_groups$comp_N[i], "_CV")  
+    # comp_groups$cv_D[i] <- str_c(comp_groups$comp_D[i], "_CV")  
+    
     comp_groups$N_count[i] <- ncol(stats_data_N)
     comp_groups$D_count[i] <- ncol(stats_data_D)
     comp_groups$N_color[i] <- color_choices_N[i] #first i was 1
     comp_groups$D_color[i] <- color_choices_D[i] #first i was 1
-    updatePickerInput(session, inputId = str_c('comp_',i,'N'), label=str_c("Comp",i,"_N  selected -> ", ncol(stats_data_N)) )
-    updatePickerInput(session, inputId = str_c('comp_',i,'D'), label=str_c("Comp",i,"_D  selected -> ", ncol(stats_data_D)) )
-    updateTextInput(session, inputId = str_c("volcano",i,"_stats_plot_title"),  value = str_c("Volcano ", comp_groups$comp_name[i]))
+    
+    #update screen to display the number of samples in the comparison
+    updatePickerInput(session, inputId = str_c('comp_',i,'N'), label=str_c("Numerator selected -> ", ncol(stats_data_N)) )
+    updatePickerInput(session, inputId = str_c('comp_',i,'D'), label=str_c("Denominator selected -> ", ncol(stats_data_D)) )
+    
+    updateTextInput(session, inputId = str_c("comp",i,"_name"),  value = comp_groups$comp_name[i])
+    
+    #save original sample selection
     dpmsr_set$y$stats[[str_c("comp", i, "_N")]] <<- input[[str_c('comp_',i,'N')]]
     dpmsr_set$y$stats[[str_c("comp", i, "_D")]] <<- input[[str_c('comp_',i,'D')]]
-    comp_groups$sample_numbers_N[i] <- list(match(colnames(stats_data_N), names(stats_data)))
-    comp_groups$sample_numbers_D[i] <- list(match(colnames(stats_data_D), names(stats_data)))
+    
+    comp_groups$sample_numbers_N[i] <- list(samples_N)
+    comp_groups$sample_numbers_D[i] <- list(samples_D)
+    
     cat(file=stderr(), str_c("end stat_comp ", i, " of ", input$comp_number), "\n")
   }
   
@@ -238,65 +211,14 @@ set_stat_groups <- function(session, input, output){
   updateTextInput(session, "stats_barplot_title", value = str_c("Barplot ", dpmsr_set$y$stats$groups$comp_name[input$mva_plot_comp]))
   updateTextInput(session, "stats_boxplot_title", value = str_c("Boxplot ", dpmsr_set$y$stats$groups$comp_name[input$mva_plot_comp]))
   update_comparisons(session, input, output)
+  
+  if (comp_warning) {
+    comp_warning_list <- paste(unlist(comp_warning_list), collapse=",")
+    shinyalert("Oops!", str_c("Comparison(", unlist(comp_warning_list), ") too long, max=31"), type = "error")
+    }
+  
   cat(file=stderr(), "set_stat_groups....end", "\n")
 }
-
-
-#----no longer used----------------------------------------------------------------------------------------------------------------------------
-#Fold change, pvalue, export volcano, return organized table for output-------------------------------------------------
-# stat_calc <- function(session, input, output) {
-#   data_in <- dpmsr_set$data$final[[input$select_final_data_stats]]
-# 
-#   annotate_in <- data_in[1:dpmsr_set$y$info_columns_final]
-#   data_in <- data_in[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)]
-#   #start df for stats
-#   stat_df <- annotate_in[1:1]
-#   imputed_df <- dpmsr_set$data$Protein_imputed_df[3:ncol(dpmsr_set$data$Protein_imputed_df)]  
-#   
-#   for(i in 1:nrow(dpmsr_set$y$stats$groups)) 
-#   {
-#     stat_df[ , str_c(dpmsr_set$y$stats$groups$comp_N[i], "_CV")] <- percentCV_gw(data_in[,unlist(dpmsr_set$y$stats$groups$sample_numbers_N[i]) ])
-#     stat_df[ , str_c(dpmsr_set$y$stats$groups$comp_D[i], "_CV")] <- percentCV_gw(data_in[,unlist(dpmsr_set$y$stats$groups$sample_numbers_D[i]) ])
-#   } 
-# 
-#   stat_df[ , str_c(dpmsr_set$y$stats$comp_spqc, "_CV")] <- percentCV_gw(data_in[unlist(dpmsr_set$y$stats$comp_spqc_sample_numbers)])
-#   
-#   #generate pvalue and FC for each comparison
-#   for(i in 1:nrow(dpmsr_set$y$stats$groups))
-#   {
-#     comp_N_data <- data_in[,unlist(dpmsr_set$y$stats$groups$sample_numbers_N[i]) ]
-#     comp_D_data <- data_in[,unlist(dpmsr_set$y$stats$groups$sample_numbers_D[i]) ]
-#     stat_df[ ,dpmsr_set$y$stats$groups$fc[i]] <- foldchange_gw(comp_N_data, comp_D_data)
-#     stat_df[ ,dpmsr_set$y$stats$groups$fc2[i]] <- foldchange_decimal_gw(comp_N_data, comp_D_data)
-#     stat_df[ ,dpmsr_set$y$stats$groups$pval[i]] <- pvalue_gw(comp_N_data, comp_D_data)
-#     #stat_df[ , comp_groups$limma_pval[i]] <- limma_gw(comp_N_data, comp_D_data, comp_groups$comp_name[i], plot_dir)
-#     #stat_df[ , comp_groups$exactTest[i]] <- exactTest_gw(comp_N_data, comp_D_data)
-#     comp_N_imputed <- imputed_df[,unlist(dpmsr_set$y$stats$groups$sample_numbers_N[i]) ]
-#     comp_D_imputed <- imputed_df[,unlist(dpmsr_set$y$stats$groups$sample_numbers_D[i]) ]
-#     stat_df[ ,dpmsr_set$y$stats$groups$mf[i]] <- missing_factor_gw(comp_N_imputed, comp_D_imputed)
-#   } 
-#   
-#   # Create final tables--------------------------------------------------
-#   if(input$select_final_data_stats == "impute"){
-#     colnames(data_in) <- dpmsr_set$design$Header3
-#   }else{
-#     colnames(data_in) <- dpmsr_set$design$Header2
-#   }
-#   data_table <- cbind(annotate_in, data_in, stat_df[2:ncol(stat_df)])
-#   dpmsr_set$data$stats$final <<- data_table
-#   
-#   #single shot observers
-#   dpmsr_set$data$stats$final_comp <<- input$select_final_data_stats
-#   dpmsr_set$y$stats$pvalue_cutoff <<- input$stats_pvalue_cutoff
-#   dpmsr_set$y$stats$foldchange_cutoff <<- input$stats_foldchange_cutoff
-#   dpmsr_set$y$stats$stats_spqc_cv_filter <<- input$stats_spqc_cv_filter
-#   dpmsr_set$y$stats$stats_spqc_cv_filter_factor <<- input$stats_spqc_cv_filter_factor
-#   dpmsr_set$y$stats$stats_comp_cv_filter <<- input$stats_spqc_cv_filter
-#   dpmsr_set$y$stats$stats_comp_cv_filter_factor <<- input$stats_spqc_cv_filter_factor
-#   return()
-# }
-
-
 
 #--------------------------------------------------------------------------------------------------------------------------------
 #Fold change, pvalue, export volcano, return organized table for output-------------------------------------------------
@@ -315,8 +237,16 @@ stat_calc2 <- function(session, input, output) {
   {
     cat(file=stderr(), str_c("Calculating stats...", i, " of ", nrow(dpmsr_set$y$stats$groups)), "\n")
     
+    #transfer new stat group name incase customized
+    dpmsr_set$y$stats$groups$comp_name[i] <<- dpmsr_set$y$stats[[str_c('comp',i,'_name')]]
+    updateTextInput(session, inputId = str_c("volcano",i,"_stats_plot_title"),  value = str_c("Volcano ", dpmsr_set$y$stats$groups$comp_name[i]))
+    
+    #assign headers, group name may have changed since setting stats
+    dpmsr_set$y$stats$groups <<- set_stat_headers(dpmsr_set$y$stats$groups, i)
+  
     #get data for stats
     data_in <- dpmsr_set$data$impute[[input$select_final_data_stats]]
+    #data_in <- dpmsr_set$data$impute$sltmm
     info_columns <- ncol(data_in) - dpmsr_set$y$sample_number
     annotate_in <- data_in[1:info_columns]
     data_in <- data_in[(info_columns+1):ncol(data_in)]
@@ -333,12 +263,12 @@ stat_calc2 <- function(session, input, output) {
     
     #isolate data for comparison (data and imputed)  
     cat(file=stderr(), "stat_calc2...2", "\n")
-    comp_N_data <- data_in[,unlist(dpmsr_set$y$stats$groups$sample_numbers_N[i]) ]
-    comp_D_data <- data_in[,unlist(dpmsr_set$y$stats$groups$sample_numbers_D[i]) ]
+    comp_N_data <- data_in[unlist(dpmsr_set$y$stats$groups$sample_numbers_N[i]) ]
+    comp_D_data <- data_in[unlist(dpmsr_set$y$stats$groups$sample_numbers_D[i]) ]
     spqc_data <- data_in[unlist(dpmsr_set$y$stats$comp_spqc_sample_numbers)]
     spqc_impute_data <- imputed_df[unlist(dpmsr_set$y$stats$comp_spqc_sample_numbers)]
-    comp_N_imputed <- imputed_df[,unlist(dpmsr_set$y$stats$groups$sample_numbers_N[i]) ]
-    comp_D_imputed <- imputed_df[,unlist(dpmsr_set$y$stats$groups$sample_numbers_D[i]) ]
+    comp_N_imputed <- imputed_df[unlist(dpmsr_set$y$stats$groups$sample_numbers_N[i]) ]
+    comp_D_imputed <- imputed_df[unlist(dpmsr_set$y$stats$groups$sample_numbers_D[i]) ]
     comp_N_imputed <- mutate_all(comp_N_imputed, function(x) as.numeric(x))
     comp_D_imputed <- mutate_all(comp_D_imputed, function(x) as.numeric(x))
     spqc_impute_data <- mutate_all(spqc_impute_data, function(x) as.numeric(x))
@@ -486,8 +416,11 @@ stat_calc2 <- function(session, input, output) {
     #start df for stats -----------------------------------------
     cat(file=stderr(), "stat_calc2...11", "\n")
     stat_df <- annotate_in[1:1]
-    stat_df[ , str_c(dpmsr_set$y$stats$groups$comp_N[i], "_CV")] <- percentCV_gw(comp_N_data)
-    stat_df[ , str_c(dpmsr_set$y$stats$groups$comp_D[i], "_CV")] <- percentCV_gw(comp_D_data)
+    #stat_df[ , str_c(dpmsr_set$y$stats$groups$comp_N[i], "_CV")] <- percentCV_gw(comp_N_data)
+    #stat_df[ , str_c(dpmsr_set$y$stats$groups$comp_D[i], "_CV")] <- percentCV_gw(comp_D_data)
+    stat_df[ , dpmsr_set$y$stats$groups$cv_N[i]] <- percentCV_gw(comp_N_data)
+    stat_df[ , dpmsr_set$y$stats$groups$cv_D[i]] <- percentCV_gw(comp_D_data)
+    
     stat_df[ , str_c(dpmsr_set$y$stats$comp_spqc, "_CV")] <- percentCV_gw(spqc_data)
     stat_df[ ,dpmsr_set$y$stats$groups$fc[i]] <- foldchange_gw(comp_N_data, comp_D_data)
     stat_df[ ,dpmsr_set$y$stats$groups$fc2[i]] <- foldchange_decimal_gw(comp_N_data, comp_D_data)
@@ -543,9 +476,10 @@ stat_calc2 <- function(session, input, output) {
     if(input$stats_spqc_cv_filter){
       data_table$spqc <- ifelse(data_table[[str_c(dpmsr_set$y$stats$comp_spqc, "_CV")]] <= input$stats_spqc_cv_filter_factor, 0, 1)
     }
+    
     if(input$stats_comp_cv_filter){
-      data_table$cv <- ifelse(data_table[[str_c(dpmsr_set$y$stats$groups$comp_N[i], "_CV")]] <= input$stats_comp_cv_filter_factor |
-                                data_table[[str_c(dpmsr_set$y$stats$groups$comp_D[i], "_CV")]] <= input$stats_comp_cv_filter_factor, 0, 1)
+      data_table$cv <- ifelse(data_table[[dpmsr_set$y$stats$groups$cv_N[i]]] <= input$stats_comp_cv_filter_factor |
+                                data_table[[dpmsr_set$y$stats$groups$cv_D[i]]] <= input$stats_comp_cv_filter_factor, 0, 1)
     }
     if(input$stats_peptide_minimum){
       data_table$pepmin <- ifelse(data_table$Peptides >= input$stats_peptide_minimum_factor, 0, 1)
@@ -576,9 +510,10 @@ stat_calc2 <- function(session, input, output) {
     #   dpmsr_set$data$stats[[dpmsr_set$y$stats$groups$comp_name[i]]] <<- expand_spectronaut(data_table) 
     # } 
     
+    update_comparisons(session, input, output)
   } 
   # End of Primary Loop
-#---------------------------------------------------------------------------------------------------------------------
+
   
   cat(file=stderr(), str_c(dpmsr_set$y$stats$groups$comp_name[i], " data has ", nrow(dpmsr_set$data$stats[[dpmsr_set$y$stats$groups$comp_name[i]]]), " rows"), "\n")
   cat(file=stderr(), "Calculating stats complete...", "\n")
@@ -587,7 +522,7 @@ stat_calc2 <- function(session, input, output) {
 
 
 
-
+#---------------------------------------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
 # create final excel documents
 stats_Final_Excel <- function(session, input, output) {
@@ -1024,6 +959,31 @@ set_stat_parameters <- function(session, input, output)  {
     dpmsr_set$y$stats$stats_peptide_minimum_factor <<- input$stats_peptide_minimum_factor
 }
 
+  #----------------------------------------------------------------------------------------
+set_stat_headers <- function(comp_groups, i)  {  
+  cat(file=stderr(), "set stat headers...", "\n")
+  #set comp groups names
+  comp_groups$fc[i] <- str_c(comp_groups$comp_name[i], "_FC")
+  comp_groups$fc2[i] <- str_c(comp_groups$comp_name[i], "_FC2")
+  comp_groups$pval[i] <- str_c(comp_groups$comp_name[i], "_pval")
+  comp_groups$limma_pval[i] <- str_c(comp_groups$comp_name[i], "_limma_pval")
+  comp_groups$exactTest[i] <- str_c(comp_groups$comp_name[i], "_exactTest")
+  comp_groups$adjpval[i] <- str_c(comp_groups$comp_name[i], "_adjpval")
+  comp_groups$cohensd[i] <- str_c(comp_groups$comp_name[i], "_cohensd")
+  comp_groups$mf[i] <- str_c(comp_groups$comp_name[i], "_MF")
+  
+  if(dpmsr_set$x$primary_group){
+    comp_groups$cv_N[i] <- str_c(comp_groups$primary_comp_N[i], "_CV")  
+    comp_groups$cv_D[i] <- str_c(comp_groups$primary_comp_D[i], "_CV")
+  }else{
+    comp_groups$cv_N[i] <- str_c(comp_groups$comp_N[i], "_CV")  
+    comp_groups$cv_D[i] <- str_c(comp_groups$comp_D[i], "_CV")
+  }
+  return(comp_groups)
+}
+  
+  
+  
 #----------------------------------------------------------------------------------------  
 expand_spectronaut <- function(df)  {    
     

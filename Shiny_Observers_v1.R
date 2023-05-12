@@ -27,13 +27,13 @@ update_dpmsr_set_from_widgets <- function(session, input, output){
     if (input$data_source=="1"){
       dpmsr_set$x$data_source <<- "PD"
       shinyFileChoose(input,'raw_files', roots=dpmsr_set$x$volumes, session=session,
-                      filetypes=c('','txt'), defaultPath='', defaultRoot='wd')
+                      filetypes=c('','txt'), defaultPath=dpmsr_set$x$default_path, defaultRoot=dpmsr_set$x$default_root)
       updateActionButton(session, 'raw_files', label="Select PD Text Export Files", icon = NULL)
     }
     else if (input$data_source=="2"){
       dpmsr_set$x$data_source <<- "SP"
       shinyFileChoose(input,'raw_files', roots=dpmsr_set$x$volumes, session=session,
-                      filetypes=c('','xlsx'), defaultPath='', defaultRoot='wd')
+                      filetypes=c('','xlsx'), defaultPath=dpmsr_set$x$default_path, defaultRoot=dpmsr_set$x$default_root)
       updateActionButton(session, 'raw_files', label="Select Spectronaut Excel File", icon = NULL)
     }
   }) 
@@ -53,6 +53,11 @@ update_dpmsr_set_from_widgets <- function(session, input, output){
   observe({
     dpmsr_set$x$file_prefix <<-  input$fileprefix
   })
+  
+  observe({
+    if (input$primary_group){dpmsr_set$x$primary_group <<- TRUE}else{dpmsr_set$x$primary_group <<- FALSE}
+  })
+  
   
   #-Filters-----------------------------------------------------------------------------------------------------    
   observe({
@@ -290,9 +295,18 @@ update_dpmsr_set_from_widgets <- function(session, input, output){
     dpmsr_set$y$organism <<-  input$select_organism
   })
 
+  #---comparison info
+  observe({dpmsr_set$y$stats$comp1_name <<- input$comp1_name})
+  observe({dpmsr_set$y$stats$comp2_name <<- input$comp2_name})
+  observe({dpmsr_set$y$stats$comp3_name <<- input$comp3_name})
+  observe({dpmsr_set$y$stats$comp4_name <<- input$comp4_name})
+  observe({dpmsr_set$y$stats$comp5_name <<- input$comp5_name})
+  observe({dpmsr_set$y$stats$comp6_name <<- input$comp6_name})
+  observe({dpmsr_set$y$stats$comp7_name <<- input$comp7_name})
+  observe({dpmsr_set$y$stats$comp8_name <<- input$comp8_name})
+  observe({dpmsr_set$y$stats$comp9_name <<- input$comp9_name})
+  observe({dpmsr_set$y$stats$comp10_name <<- input$comp10_name})   
+  observe({dpmsr_set$y$stats$comp11_name <<- input$comp11_name})
+  observe({dpmsr_set$y$stats$comp12_name <<- input$comp12_name})
 
-  
-   
 }
-
-

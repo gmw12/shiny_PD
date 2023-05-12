@@ -152,21 +152,22 @@ interactive_boxplot <- function(session, input, output, df, namex, color_list, c
   df3$Sample <- factor(df3$Sample, levels = rev(namex))
   
   create_stats_boxplot <- reactive({
-    ggplot(data=df3, aes(x=Sample, y=Intensity)) +
-      geom_boxplot(notch = TRUE, outlier.colour="red", outlier.shape=1,
-                   outlier.size=1, fill=rev(color_list)) + theme_classic() + 
-      coord_flip()+
-      xlab(input$stats_boxplot_x_axis_label) +
-      ggtitle(input$stats_boxplot_title) + 
-      theme(plot.title = element_text(hjust = 0.5, size=input$stats_boxplot_title_size), 
-            axis.title = element_text(size=input$stats_boxplot_label_size, color="black"),
-            axis.text.x = element_text(size=input$stats_boxplot_label_size, angle = 90,  color="black"),
-            axis.text.y = element_text(size=input$stats_boxplot_label_size,  color="black"),
+    ggplot2::ggplot(data=df3, ggplot2::aes(x=Sample, y=Intensity)) +
+      ggplot2::geom_boxplot(notch = TRUE, outlier.colour="red", outlier.shape=1,
+                   outlier.size=1, fill=rev(color_list)) + ggplot2::theme_classic() + 
+      ggplot2::coord_flip()+
+      ggplot2::xlab(input$stats_boxplot_x_axis_label) +
+      ggplot2::ggtitle(input$stats_boxplot_title) + 
+      ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, size=input$stats_boxplot_title_size), 
+            axis.title = ggplot2::element_text(size=input$stats_boxplot_label_size, color="black"),
+            axis.text.x = ggplot2::element_text(size=input$stats_boxplot_label_size, angle = 90,  color="black"),
+            axis.text.y = ggplot2::element_text(size=input$stats_boxplot_label_size,  color="black"),
       ) 
   })
   
   output$stats_boxplot <- renderPlot({
     req(create_stats_boxplot())
+    #callr::r_bg(create_stats_boxplot, args = list(df3=df3), supervise = TRUE)
     create_stats_boxplot()
   })
   
@@ -186,8 +187,8 @@ interactive_boxplot <- function(session, input, output, df, namex, color_list, c
 
 interactive_pca2d <- function(session, input, output, df, namex, color_list, groupx, comp_name)
 {
-  #test_df <<- df
-  #test_groupx <<- groupx
+  test_df <<- df
+  test_groupx <<- groupx
   #df<-test_df
   #groupx <- test_groupx
   
@@ -796,8 +797,14 @@ interactive_grouped_barplot <- function(session, input, output, comp_string, df,
 
   cat(file=stderr(), "Interactive group barplot...4" , "\n")
   
-  stats_data_N$Comp <- dpmsr_set$y$stats$groups$comp_N[comp_number]
-  stats_data_D$Comp <- dpmsr_set$y$stats$groups$comp_D[comp_number]
+  if (dpmsr_set$x$primary_group){
+    stats_data_N$Comp <- dpmsr_set$y$stats$groups$primary_comp_N[comp_number]
+    stats_data_D$Comp <- dpmsr_set$y$stats$groups$primary_comp_D[comp_number]
+  }else{
+    stats_data_N$Comp <- dpmsr_set$y$stats$groups$comp_N[comp_number]
+    stats_data_D$Comp <- dpmsr_set$y$stats$groups$comp_D[comp_number]
+  }
+  
   stats_data_N$Order <- "1"
   stats_data_D$Order <- "2"
   
@@ -874,6 +881,7 @@ interactive_grouped_barplot <- function(session, input, output, comp_string, df,
       geom_hline(yintercept = -1, linetype="dotted", color = "black")
     
   })
+  
   
   output$stats_oneprotein_grouped_barplot <- renderPlot({
     req(create_stats_barplot())

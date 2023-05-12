@@ -42,15 +42,7 @@
     }
   })
   
-  
-  observe({
-    if (is.null(input$dpmsr_set_file)) {               #input$impute1==0
-      shinyjs::enable("start_stats")
-    } else {
-      shinyjs::enable("start_stats")
-    }
-  })
-  
+
   observe({
     if (input$radio_input==1 || input$radio_input==2) {
       shinyjs::hide("checkbox_isoform")
@@ -434,79 +426,123 @@
     if (test_comp<12) {
       shinyjs::hide("comp_12N")
       shinyjs::hide("comp_12D")
+      shinyjs::hide("comp12_text")
+      shinyjs::hide("comp12_name")
     } else {
       shinyjs::show("comp_12N")
       shinyjs::show("comp_12D")
+      shinyjs::show("comp12_text")
+      shinyjs::show("comp12_name")
     }
     if (test_comp<11) {
       shinyjs::hide("comp_11N")
       shinyjs::hide("comp_11D")
+      shinyjs::hide("comp11_text")
+      shinyjs::hide("comp11_name")
     } else {
       shinyjs::show("comp_11N")
       shinyjs::show("comp_11D")
+      shinyjs::show("comp11_text")
+      shinyjs::show("comp11_name")
     }   
     if (test_comp<10) {
       shinyjs::hide("comp_10N")
       shinyjs::hide("comp_10D")
+      shinyjs::hide("comp10_text")
+      shinyjs::hide("comp10_name")
     } else {
       shinyjs::show("comp_10N")
       shinyjs::show("comp_10D")
+      shinyjs::show("comp10_text")
+      shinyjs::show("comp10_name")
     }     
     if (test_comp<9) {
       shinyjs::hide("comp_9N")
       shinyjs::hide("comp_9D")
+      shinyjs::hide("comp9_text")
+      shinyjs::hide("comp9_name")
     } else {
       shinyjs::show("comp_9N")
       shinyjs::show("comp_9D")
+      shinyjs::show("comp9_text")
+      shinyjs::show("comp9_name")
     }   
     if (test_comp<8) {
       shinyjs::hide("comp_8N")
       shinyjs::hide("comp_8D")
+      shinyjs::hide("comp8_text")
+      shinyjs::hide("comp8_name")
     } else {
       shinyjs::show("comp_8N")
       shinyjs::show("comp_8D")
+      shinyjs::show("comp8_text")
+      shinyjs::show("comp8_name")
     }  
     if (test_comp<7) {
       shinyjs::hide("comp_7N")
       shinyjs::hide("comp_7D")
+      shinyjs::hide("comp7_text")
+      shinyjs::hide("comp7_name")
     } else {
       shinyjs::show("comp_7N")
       shinyjs::show("comp_7D")
+      shinyjs::show("comp7_text")
+      shinyjs::show("comp7_name")
     }  
     if (test_comp<6) {
       shinyjs::hide("comp_6N")
       shinyjs::hide("comp_6D")
+      shinyjs::hide("comp6_text")
+      shinyjs::hide("comp6_name")
     } else {
       shinyjs::show("comp_6N")
       shinyjs::show("comp_6D")
+      shinyjs::show("comp6_text")
+      shinyjs::show("comp6_name")
     }  
     if (test_comp<5) {
       shinyjs::hide("comp_5N")
       shinyjs::hide("comp_5D")
+      shinyjs::hide("comp5_text")
+      shinyjs::hide("comp5_name")
     } else {
       shinyjs::show("comp_5N")
       shinyjs::show("comp_5D")
+      shinyjs::show("comp5_text")
+      shinyjs::show("comp5_name")
     }  
     if (test_comp<4) {
       shinyjs::hide("comp_4N")
       shinyjs::hide("comp_4D")
+      shinyjs::hide("comp4_text")
+      shinyjs::hide("comp4_name")
     } else {
       shinyjs::show("comp_4N")
       shinyjs::show("comp_4D")
+      shinyjs::show("comp4_text")
+      shinyjs::show("comp4_name")
     }  
     if (test_comp<3) {
       shinyjs::hide("comp_3N")
       shinyjs::hide("comp_3D")
+      shinyjs::hide("comp3_text")
+      shinyjs::hide("comp3_name")
     } else {
       shinyjs::show("comp_3N")
       shinyjs::show("comp_3D")
+      shinyjs::show("comp3_text")
+      shinyjs::show("comp3_name")
     }  
     if (test_comp<2) {
       shinyjs::hide("comp_2N")
       shinyjs::hide("comp_2D")
+      shinyjs::hide("comp2_text")
+      shinyjs::hide("comp2_name")
     } else {
       shinyjs::show("comp_2N")
       shinyjs::show("comp_2D")
+      shinyjs::show("comp2_text")
+      shinyjs::show("comp2_name")
     }  
   })
     
@@ -518,14 +554,7 @@
     }
   })
   
-  observe({
-    if(input$check_stats==0){
-      shinyjs::disable("start_stats") 
-    }else{
-      shinyjs::enable("start_stats")
-    }
-  })
-  
+
   observe({
     if(input$start_stats==0){
       shinyjs::disable("save_stats") 
@@ -640,7 +669,6 @@
        hideTab(inputId = "nlp1", target = "tp_tmt")
        hideTab(inputId = "nlp1", target = "tp_qc")
        hideTab(inputId = "nlp1", target = "tp_report")
-       hideTab(inputId = "np_phos", target = "fasta")
        showTab(inputId = "nlp1", target = "tp_customer_load")
      }else if (site_user == "dpmsr") {
        showTab(inputId = "nlp1", target = "tp_load_design")
@@ -652,23 +680,32 @@
        showTab(inputId = "nlp1", target = "tp_qc")
        showTab(inputId = "nlp1", target = "tp_report")
        showTab(inputId = "np_phos", target = "fasta")
+       showTab(inputId = "path", target = "tp_save")
        hideTab(inputId = "nlp1", target = "tp_customer_load")
+     }
+   })
+
+}
+
+#-----------------------------------------------------------------------------
+ hide_enable_after_dpmsr <- function(session, input, output) {
+   observe({
+     if (site_user == "not_dpmsr"){
+       if (!is.null(dpmsr_set$x$pathway_set) & !is.null(dpmsr_set$x$motif_set)){
+         hideTab(inputId = "path", target = "tp_save")
+         hideTab(inputId = "np_phos", target = "fasta")
+       }
+     }
+   })
+   
+   observe({
+     if(is.null(dpmsr_set$data$stats)){
+       shinyjs::disable("start_stats") 
+     }else{
+       shinyjs::enable("start_stats")
      }
    })
    
    
    
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
 }
-
-
-

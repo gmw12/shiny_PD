@@ -1,126 +1,76 @@
 #----------------------------------------------------------------------------------------
 # clear shiny files and memory
-clear_memory <- function() {
+clear_memory <- function(input, output, session) {
   cat(file=stderr(), "clean old data", "\n")
   rm(list = ls(envir = .GlobalEnv), pos = .GlobalEnv, inherits = FALSE)
   cat(file=stderr(), "reload libraries and functions", "\n")
   rm(list = ls())
   gc()
-  #.rs.restartR()
-  source("Shiny_Startup_v1.R")
+  source("Shiny_Functions_v1.R")
+  set_user(session, input, output)
+  app_startup(session, input, output)
 }
 
 #----------------------------------------------------------------------------------------
 # create final excel documents
-Simple_Excel <- function(df, filename) {
-  require(openxlsx)
-  wb <- createWorkbook()
-  addWorksheet(wb, deparse(substitute(df)))
-  writeData(wb, sheet =1, df)  
-  saveWorkbook(wb, filename, overwrite = TRUE)
+
+Simple_Excel <- function(df, sheetname, filename) {
+  cat(file=stderr(), str_c("Simple_Excel -> ", filename), "\n")
+  wb <- openxlsx::createWorkbook()
+  openxlsx::addWorksheet(wb, sheetname)
+  openxlsx::writeData(wb, sheet=1, df)  
+  openxlsx::saveWorkbook(wb, filename, overwrite = TRUE)
 }
+
+Simple_Excel_bg <- function(df, sheetname, filename) {
+  cat(file=stderr(), str_c("Simple_Excel_bg -> ", filename), "\n")
+  wb <- openxlsx::createWorkbook()
+  openxlsx::addWorksheet(wb, sheetname)
+  openxlsx::writeData(wb, sheet=1, df)  
+  test <- callr::r_bg(openxlsx::saveWorkbook, args = list(wb, filename, overwrite = TRUE), supervise = TRUE)
+}
+
+
 #----------------------------------------------------------------------------------------
 # create final excel documents
-Simple_Excel_name <- function(df, filename, sheet_name) {
-  require(openxlsx)
-  wb <- createWorkbook()
-  addWorksheet(wb, sheet_name)
-  writeData(wb, sheet =1, df)  
-  saveWorkbook(wb, filename, overwrite = TRUE)
+Simple_read_Excel <- function(path, sheet_name) {
+  data <- readxl::read_excel(path, sheet_name)
+  return(data)
 }
 
+#----------------------------------------------
+# read excel in new backgroup process
+Simple_read_Excel <- function(path, sheet_name, col_names, skip) {
+  readxl::read_excel(path=path, sheet=sheet_name, col_names = col_names, skip=skip)
+} 
 
-# #--No Longer Used--------------------------------------------------------------------------------------
-# 
-# # create final excel documents
-# Final_Excel <- function() {
-#   require(openxlsx)
-#   
-#   #colnames(dpmsr_set$data$finalraw)[(dpmsr_set$y$info_columns_final+1):ncol(dpmsr_set$data$finalraw)] <- dpmsr_set$design$Header1
-#   colnames(dpmsr_set$data$finalraw[(dpmsr_set$y$info_columns_final+1):ncol(dpmsr_set$data$finalraw)]) <- dpmsr_set$design$Header1
-#   
-#   for(df_name in names(dpmsr_set$data$final)){
-#     filename <- str_c(dpmsr_set$file$output_dir, df_name, "//", dpmsr_set$x$file_prefix, "_", df_name, "_final.xlsx")
-#     df <- dpmsr_set$data$final[[df_name]]
-#     #remove FC2 from df for excel
-#     df <- df[,-grep(pattern="_FC2$", colnames(df))]
-#    
-#     if (dpmsr_set$y$state=="Peptide" && dpmsr_set$x$final_data_output == "Protein"){
-#       df_raw <- dpmsr_set$data$finalraw
-#     }else{
-#         df_raw <- dpmsr_set$data$finalraw
-#          #if PTM out need to reduce raw data frame for excel
-#         if (as.logical(dpmsr_set$x$peptide_report_ptm)){
-#           df_raw <- df_raw[grep(dpmsr_set$x$peptide_report_grep, df_raw$Modifications),]
-#         }
-#     }
-#     
-#     # save the option to save normalized table with raw
-#     #df2 <- cbind(df_raw, df[(dpmsr_set$y$info_columns_final+1):ncol(df)])
-#     
-#     df2 <- df
-#     
-#     if (as.logical(dpmsr_set$x$accession_report_out)){
-#       df <-subset(df, Accession %in% dpmsr_set$x$accession_report_list )
-#       df2 <-subset(df2, Accession %in% dpmsr_set$x$accession_report_list )
-#     }
-#     
-#     nextsheet <- 1
-#     
-#     wb <- createWorkbook()
-#     
-#     if(dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Protein"){
-#       
-#       raw_protein <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_Protein_to_Protein_Raw.xlsx"))
-#       raw_peptide <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_ProteinPeptide_to_Peptide_Raw.xlsx"))
-#       
-#       if(as.logical(dpmsr_set$x$peptide_isoform) && dpmsr_set$x$raw_data_input=="Peptide"){
-#         raw_peptide <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_Isoform_to_Isoform_Raw.xlsx"))
-#       }
-#       
-#       if(!as.logical(dpmsr_set$x$peptide_isoform) && dpmsr_set$x$raw_data_input=="Peptide"){
-#         raw_peptide <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_Peptide_to_Peptide_Raw.xlsx"))
-#       }
-#       
-#       addWorksheet(wb, "Raw Peptide Data")
-#       writeData(wb, sheet = nextsheet, raw_peptide)
-#       nextsheet <- nextsheet +1
-#       addWorksheet(wb, "Raw Protein Data")
-#       writeData(wb, sheet = nextsheet, raw_protein) 
-#       nextsheet <- nextsheet +1
-#     }else if (dpmsr_set$x$raw_data_input=="Peptide"){
-#       if(as.logical(dpmsr_set$x$peptide_isoform)){
-#         raw_peptide <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_Isoform_to_Isoform_Raw.xlsx"))
-#       }else{
-#         raw_peptide <- read_excel(str_c(dpmsr_set$file$extra_prefix,"_Peptide_to_Peptide_Raw.xlsx"))
-#       }
-#       addWorksheet(wb, "Raw Peptide Data")
-#       writeData(wb, sheet = nextsheet, raw_peptide) 
-#       nextsheet <- nextsheet +1
-#     }
-#   
-#     #addWorksheet(wb, deparse(substitute(df2)))
-#     addWorksheet(wb, "Normalized Data")
-#     writeData(wb, sheet = nextsheet, df2)  
-#     nextsheet <- nextsheet +1
-#     z=1
-#     for(i in 1:as.numeric(dpmsr_set$x$comp_number))  {
-#       comp_string <- dpmsr_set$y$comp_groups$comp_name[i]
-#       #assign(comp_string, subset(df, get(comp_pval_groups[i])<=pvalue_cutoff & (get(comp_fc_groups[i])>=fc_cutoff | get(comp_fc_groups[i])<= -fc_cutoff)) )
-#       filtered_df <- subset(df, df[ , dpmsr_set$y$comp_groups$pval[i]] <= as.numeric(dpmsr_set$x$pvalue_cutoff) &  
-#                               (df[ , dpmsr_set$y$comp_groups$fc[i]] >= as.numeric(dpmsr_set$x$foldchange_cutoff) | 
-#                                  df[ , dpmsr_set$y$comp_groups$fc[i]] <= -as.numeric(dpmsr_set$x$foldchange_cutoff))) 
-#       addWorksheet(wb, comp_string)
-#       writeData(wb, sheet = nextsheet, filtered_df)
-#       nextsheet <- nextsheet +1
-#       z <- z+2
-#     }
-#     saveWorkbook(wb, filename, overwrite = TRUE)
-#     
-#   }
-# }
-# 
+bg_read_Excel <- function(path, sheet_name, col_names, skip) {
+  output <- callr::r_bg(func=Simple_read_Excel, args=list(path=path, sheet=sheet_name, col_names = col_names, skip=skip), supervise = TRUE)
+  output$wait()
+  return(output$get_result())
+}
 
+bg_read_Excel2 <- function(count) {
+  cat(file=stderr(), str_c("printing this"), "\n")
+  print("printing this")
+  temp_list <- file_args[[count]]
+  output <- callr::r_bg(func=Simple_read_Excel, args=list(path=temp_list$path, sheet=temp_list$sheet, col_names = temp_list$col_names, skip=temp_list$skip), supervise = TRUE)
+  output$wait()
+  return(output$get_result())
+}
+
+parallel_read_Excel <- function(file_count){
+  ncores <- (detectCores()/2)
+  cat(file=stderr(), str_c("ncores = ", ncores), "\n")
+  if (is.na(ncores) | ncores < 1) {ncores <- 1}
+  erase2 <<- mclapply(file_count, bg_read_Excel2, mc.cores = ncores)
+}
+
+Simple_fread <- function(file) {
+  data.table::fread(file=file, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
+} 
+
+#----------------------------------------------------------------------------  
 #----------------------------------------------------------------------------------------
 save_design <- function(session, input){
   design_data <- input$design_file
@@ -131,6 +81,12 @@ save_design <- function(session, input){
 #----------------------------------------------------------------------------------------
 save_data <- function(data_file){
   file.copy(data_file, str_c(dpmsr_set$file$backup_dir, basename(data_file)))
+}
+
+#----------------------------------------------------------------------------------------
+save_data_bg <- function(file1, dir1){
+  file2 <- paste(dir1, basename(file1))
+  file.copy(file1, file2)
 }
 
 #----------------------------------------------------------------------------------------
@@ -209,5 +165,24 @@ save_object <- function(df, file_cust_name) {
 }
 
 
+#----------------------------------------------------------------------------------------
+# log app usuage
+app_log <- function() {
+  cat(file=stderr(), "app_log...", "\n")
+  log_file <- "/data/ShinyData/app_log/app_log.csv"
+  
+  df <- data.frame(Sys.time(), dpmsr_set$x$file_prefix, dpmsr_set$x$raw_data_input, dpmsr_set$x$final_data_output, dpmsr_set$x$peptide_report_ptm,  dpmsr_set$x$tmt_spqc_norm)
+  colnames(df) <- c("Date", "File", "Input", "Output", "PTM", "TMT_norm")
+  
+  if(!is_dir("/data/ShinyData/app_log/")) {
+    dir_create("/data/ShinyData/app_log/")
+  }
+  
+  if(file.exists(log_file)){
+    temp_df <- data.table::fread(file=log_file, header = TRUE, stringsAsFactors = FALSE, sep = ";")
+    df <- rbind(temp_df, df)
+  }
 
-
+  write.csv2(df, log_file, row.names = FALSE)
+  cat(file=stderr(), "app_log...finished", "\n")
+}

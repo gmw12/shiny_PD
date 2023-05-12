@@ -51,6 +51,6 @@ report_templates <- function(session, input){
     comma_pos_last <- comma_pos[nrow(comma_pos), ] 
     str_sub(df$Sample_cv, comma_pos_last[1], comma_pos_last[2]) <- " and" 
     
-    Simple_Excel(df,  str_c(dpmsr_set$file$extra_dir, "Mail_Merge.xlsx", collapse = " "))
+    Simple_Excel(df, "Mail_Merge", str_c(dpmsr_set$file$extra_dir, "Mail_Merge.xlsx", collapse = " "))
 
 }

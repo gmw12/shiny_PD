@@ -1,7 +1,7 @@
 
 apply_impute <- function(session, input, output){
   cat(file=stderr(), "apply_impute function...", "\n")
-  
+
   # save set of random numbers to be used for impute, if reimpute numbers the same
   set.seed(123)
   #get number of missing values
@@ -11,7 +11,7 @@ apply_impute <- function(session, input, output){
   cat(file=stderr(), "created random number dataframe", "\n")
   dpmsr_set$y$rand_count <<- 1
   
-  ncores <- (detectCores()/2)
+  ncores <- detectCores()
   cat(file=stderr(), str_c("ncores = ", ncores), "\n")
   if (is.na(ncores) | ncores < 1) {ncores <- 1}
   norm_list <- dpmsr_set$y$norm_list

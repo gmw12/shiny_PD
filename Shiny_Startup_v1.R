@@ -1,79 +1,73 @@
-#library(tcltk)
-cat(file=stderr(), "load libraries", "\n")
 
-library(cluster)    # clustering algorithms
-library(tidyr)
-library(grid)
-library(tidyverse)
-library(dplyr)
-library(fs)
-library(effsize)
-library(colourpicker)
+app_startup <- function(session, input, output){
+  
+  # check if dpmsr_set file is loaded
+  dpmsr_present <<- reactiveValues()
+  dpmsr_present$test <<- exists("dpmsr_set")
+  
+  cat(file=stderr(), "Shiny Server started ...2", "\n")
+  
+  shinyjs::disable("action_load_design")
+  shinyjs::disable("action_load_dpmsr_set")
+  shinyjs::disable("load_data")
+  
+  cat(file=stderr(), "Shiny Server started ...3", "\n")
+  
+  output$app_version_text <- renderText({str_c('app version = ', app_version)})
+  output$app_version_text2 <- renderText({str_c('app version = ', app_version)})
+  
+  output$text_n1 <- renderText("Check all Normalization Strategies")
+  output$text_f1 <- renderText("Normalization Filters")
+  output$text_i1 <- renderText("Select Imputation Method")
+  output$text_impute_ptm <- renderText("Impute Distributions using Impute PTM grep (Load Data)")
+  
+  cat(file=stderr(), "Shiny Server started ...4", "\n")
+  
+  shinyFileChoose(input, 'design_file', session=session, roots=volumes, filetypes=c('', 'xlsx'))
 
-library(tibble)
-library(stringr)
-library(readxl)
-library(randomcoloR)
-library(gplots) 
-library(ggpubr)
-
-library(rgl)
-library(pca3d)
-
-library(limma)
-library(edgeR)
-library(gridExtra)
-library(MASS)
-library(pcaMethods)
-library(vsn)
-library(robustbase)
-library(factoextra) # clustering algorithms & visualization
-library(shiny)
-library(shinyWidgets)
-library(shinyFiles)
-library(rhandsontable)
-library(shinyjs)
-library(shinyalert)
-library(DT)
-
-library(parallel)
-library(imp4p)
-library(preprocessCore)
-
-library(ViSEAGO)
-library(topGO)
-library(clusterProfiler)
-library(GSEABase)
-library(rWikiPathways)
-library(STRINGdb)
-library(igraph)
-
-
-cat(file=stderr(), "load Shiny functions", "\n")
-source("Shiny_UpdateWidgets_v1.R")
-source("Shiny_Observers_v1.R")
-source("Shiny_Setup_v1.R")
-source("Shiny_Transform_v1.R")
-source("Shiny_Stats_v1.R")
-source("Shiny_Norm_v1.R")
-source("Shiny_Impute_v1.R")
-source("Shiny_Plots_v1.R")
-source("Shiny_Preprocess_v1.R")
-source("Shiny_File_v1.R")
-source("Shiny_QC_v1.R")
-source("Shiny_Hide_v1.R")
-source("Shiny_Render_v1.R")
-source("Shiny_Overview_v1.R")
-source("Shiny_MotifX_v1.R")
-source("Shiny_Wiki_v1.R")
-source("Shiny_ViSEAGO_v1.R")
-source("Shiny_Pathway_v1.R")
-source("Shiny_String_v1.R")
-source("Shiny_MailMerge_v1.R")
-source("Shiny_TMTSPQC_v1.R")
-source("Shiny_Interactive_v1.R")
-source("Shiny_MVA_v1.R")
-source("Shiny_Tables_v1.R")
-
-
-
+  shinyFileChoose(input,'dpmsr_set_file', roots=volumes, session=session, 
+                  filetypes=c('','dpmsr_set'), defaultPath='', defaultRoot='wd')
+  
+  shinyFileChoose(input,'motif_fasta', roots=volumes, session=session, 
+                  filetypes=c('','fasta'), defaultPath='', defaultRoot='wd')
+  
+  shinyFileChoose(input,'test', roots=volumes, session=session, 
+                  filetypes=c('' , 'xlsx', 'jpg', 'png'), defaultPath='', defaultRoot='wd')
+  
+  # shinyDirChoose(input,'new_save_directory', roots=volumes, session=session, 
+  #                 defaultPath='', defaultRoot='wd')
+  
+  cat(file=stderr(), "Shiny Server started ...6", "\n")
+  
+  # test to see if dpmsr_set exisits - if so will update widgets with defaults
+  observe({
+    if (dpmsr_present$test){
+      cat(file=stderr(), "dpmsr_set found...", "\n")
+      update_widget_all(session, input, output)
+      inputloaddata_render(session, input, output)
+      inputfilterapply_render(session, input, output)
+      inputnorm_render(session, input, output)
+      qc_render(session, input, output)
+      inputproteinselect_render(session, input, output)
+      update_dpmsr_set_from_widgets(session, input, output)
+      cat(file=stderr(), "dpmsr_set loaded...", "\n")
+    }else{
+      cat(file=stderr(), "dpmsr_set doest not exist...", "\n")
+    }
+    
+  })
+  
+  
+  # function home to shinyjs hide/enable observers
+  hide_enable(session, input, output)
+  
+  cat(file=stderr(), "Shiny Server started ...7", "\n")
+  
+  hideTab(inputId = "nlp1", target = "load")
+  
+  if (site_user == "dpmsr"){
+    updateTabsetPanel(session, "nlp1", selected = "tp_load_design")
+  }else{
+    updateTabsetPanel(session, "nlp1", selected = "tp_customer_load")
+  }
+}

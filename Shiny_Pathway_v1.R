@@ -1,5 +1,42 @@
-
 set_pathway <- function(input, output, session){
+  
+  cat(file=stderr(), "Set Pathway..." , "\n")
+  tax_choice <- input$select_organism
+  cat(file=stderr(), str_c("Pathway tax choice...", tax_choice), "\n")
+  
+  string_dir <- str_c(getwd(), "/")
+  
+  load(file=str_c(string_dir,"Pathway_wp2gene_",tax_choice), envir = .GlobalEnv)
+  load(file=str_c(string_dir,"Pathway_myGENE2GO_",tax_choice), envir = .GlobalEnv)
+  
+  if (tax_choice == "Human"){
+    cat(file=stderr(), str_c("Load tax library...", tax_choice ), "\n")
+    library(org.Hs.eg.db)
+    tax_db <<- org.Hs.eg.db}
+  
+  if (tax_choice == "Mouse"){
+    cat(file=stderr(), str_c("Load tax library...", tax_choice ), "\n")
+    library(org.Mm.eg.db)
+    tax_db <<- org.Mm.eg.db}
+  
+  if (tax_choice == "Rat"){
+    cat(file=stderr(), str_c("Load tax library...", tax_choice ), "\n")
+    library(org.Rn.eg.db)
+    tax_db <<- org.Rn.eg.db} 
+  
+
+  cat(file=stderr(), "Set String..." , "\n")
+  setup_string(session, input, output)
+  
+  dpmsr_set$x$pathway_set <<- 1
+  gc()
+  cat(file=stderr(), "Pathway/String setup complete..." , "\n")
+}
+
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+set_pathway_old <- function(input, output, session){
   cat(file=stderr(), "Set Pathway...1" , "\n")
   tax_choice <- input$select_organism
   cat(file=stderr(), str_c("Pathway tax choice...", tax_choice), "\n")
@@ -39,7 +76,7 @@ set_pathway <- function(input, output, session){
     if (tax_choice == "Human"){
       wp.gmt <- rWikiPathways::downloadPathwayArchive(date = "20220110", organism="Homo sapiens", format = "gmt", destpath = dpmsr_set$file$string)
       wp2gene <- clusterProfiler::read.gmt(str_c(dpmsr_set$file$string,wp.gmt))
-      }
+    }
     if (tax_choice == "Mouse"){
       wp.gmt <- rWikiPathways::downloadPathwayArchive(date = "20220110", organism="Mus musculus" , format = "gmt", destpath = dpmsr_set$file$string)
       wp2gene <- clusterProfiler::read.gmt(str_c(dpmsr_set$file$string,wp.gmt))
@@ -60,7 +97,7 @@ set_pathway <- function(input, output, session){
   if (version$major < 4){
     dpmsr_set$pathway$wp2gene <<- dpmsr_set$pathway$wp2gene %>% tidyr::separate(ont, c("name","version","wpid","org"), "%")
   }else {
-  dpmsr_set$pathway$wp2gene <<- try(dpmsr_set$pathway$wp2gene %>% tidyr::separate(term, c("name","version","wpid","org"), "%") )
+    dpmsr_set$pathway$wp2gene <<- try(dpmsr_set$pathway$wp2gene %>% tidyr::separate(term, c("name","version","wpid","org"), "%") )
   }
   
   
@@ -77,29 +114,29 @@ set_pathway <- function(input, output, session){
   cat(file=stderr(), "Set Pathway...3" , "\n")
   #---ViseaGo/topGo Setup----------------------------
   dpmsr_set$pathway$Uniprot <<- ViSEAGO::Uniprot2GO()
-
+  
   cat(file=stderr(), "Set Pathway...4" , "\n")
   
-    if (tax_choice == "Human"){
-      dpmsr_set$pathway$myGENE2GO <<- ViSEAGO::annotate(
-        "human", dpmsr_set$pathway$Uniprot)
-    }
-    if (tax_choice == "Mouse"){
-      dpmsr_set$pathway$myGENE2GO <<- ViSEAGO::annotate(
-        "mouse", dpmsr_set$pathway$Uniprot)
-    }
+  if (tax_choice == "Human"){
+    dpmsr_set$pathway$myGENE2GO <<- ViSEAGO::annotate(
+      "human", dpmsr_set$pathway$Uniprot)
+  }
+  if (tax_choice == "Mouse"){
+    dpmsr_set$pathway$myGENE2GO <<- ViSEAGO::annotate(
+      "mouse", dpmsr_set$pathway$Uniprot)
+  }
   if (tax_choice == "Rat"){
     dpmsr_set$pathway$myGENE2GO <<- ViSEAGO::annotate(
       "rat", dpmsr_set$pathway$Uniprot)
   }
-
+  
   #myGENE2GO<-ViSEAGO::annotate("human", Uniprot)
   
   
-# Display table of available organisms with Uniprot
-# connect to Uniprot-GOA
-# Uniprot<-ViSEAGO::Uniprot2GO()
-# ViSEAGO::available_organisms(Uniprot)
+  # Display table of available organisms with Uniprot
+  # connect to Uniprot-GOA
+  # Uniprot<-ViSEAGO::Uniprot2GO()
+  # ViSEAGO::available_organisms(Uniprot)
   
   
   cat(file=stderr(), str_c("Uniprot/ViSEAGO download has ", nrow(dpmsr_set$pathway$myGENE2GO@MF), " entries"), "\n")
@@ -146,6 +183,3 @@ set_pathway <- function(input, output, session){
   
   
 }
-  
-  
-  

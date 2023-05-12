@@ -1,5 +1,3 @@
-
-
 #-----------------------------------------------------------------------------------------
 qc_apply <- function(){
   cat(file=stderr(), "qc_apply...1", "\n")
@@ -29,6 +27,7 @@ qc_apply <- function(){
 
 #-----------------------------------------------------------------------------------------
 qc_spike_start <- function(){
+  cat(file=stderr(), str_c("function qc_spike_start..."), "\n")
   #set up tables for collection of QC Spike Data, and %CV's, and total CV's
   dpmsr_set$data$qc_spike <<- data.frame(dpmsr_set$design$"QC Spike Level")
   colnames(dpmsr_set$data$qc_spike)[1] <<- "SpikeLevel"
@@ -45,6 +44,7 @@ qc_spike_start <- function(){
 #----------------------------------------------------------------------------------------- 
 #collect CV statistics
 cv_stats <- function(data_out, title){
+  cat(file=stderr(), str_c("function cv_stats..."), "\n")
   cv_start <- dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number+1
   avg_cv <- colMeans(data_out[cv_start:(cv_start+dpmsr_set$y$group_number-1)], na.rm = TRUE)
   dpmsr_set$data$summary_cv <<- cbind(dpmsr_set$data$summary_cv, avg_cv)
@@ -58,6 +58,7 @@ cv_stats <- function(data_out, title){
 
 #qc spike metrics ---------------------------------
 qc_spike <- function(data_in, data_title) {
+  cat(file=stderr(), str_c("function qc_spike..."), "\n")
   dpmsr_set$x$qc_spike_id <<- gsub(" ", "", dpmsr_set$x$qc_spike_id, fixed = TRUE)
   qc_spike_id <- unlist(strsplit(as.character(dpmsr_set$x$qc_spike_id), split=","))
   spike_protein <-subset(data_in, Accession %in% qc_spike_id)  
@@ -72,6 +73,7 @@ qc_spike <- function(data_in, data_title) {
 
 #qc spike metrics finalize---------------------------------
 qc_spike_final <- function(data_in) {
+  cat(file=stderr(), str_c("function qc_spike_final...."), "\n")
   data_in <- aggregate(data_in, by=list(Category=data_in$SpikeLevel), FUN=mean)
   data_in$Category <- NULL
   row_count <- nrow(data_in)
@@ -89,13 +91,14 @@ qc_spike_final <- function(data_in) {
   qc_stat <- qc_stat %>% mutate_all(as.character)
   data_out <- rbind(data_in, qc_stat)
   
-  Simple_Excel(data_out, str_c(dpmsr_set$file$qc_dir, "QC_Spike.xlsx"))
+  Simple_Excel(data_out, "QC_Spike", str_c(dpmsr_set$file$qc_dir, "QC_Spike.xlsx"))
   return(data_out)
 }
 
 #-----------------------------------------------------------------------------------------
 #save dataframe with ADH peptides for QC meteric
 adh_spike <- function(){
+  cat(file=stderr(), str_c("function adh_spike...."), "\n")
   ADH_data <-subset(dpmsr_set$data$impute$impute, Accession %in% dpmsr_set$x$adh_list)
   info_columns <- ncol(ADH_data) - dpmsr_set$y$sample_number
   ADH_data$missings <- rowSums(ADH_data[(info_columns+1):ncol(ADH_data)] ==0)
@@ -119,6 +122,7 @@ adh_spike <- function(){
 
 #-----------------------------------------------------------------------------------------
 cv_grouped_plot <- function() {
+  cat(file=stderr(), str_c("creating cv_grouped_plot...."), "\n")
   file_name <- str_c(dpmsr_set$file$qc_dir, "CV_barplot.png")
   
   data_in <- dpmsr_set$data$summary_cv
@@ -134,6 +138,7 @@ cv_grouped_plot <- function() {
 
 #-----------------------------------------------------------------------------------------
 qc_spike_plot <- function() {
+  cat(file=stderr(), str_c("creating qc_spike_plot...."), "\n")
   data_in <- dpmsr_set$data$qc_spike
   data_in$Sample <- dpmsr_set$design$Label
   #data_in <- data_in[order(data_in$SpikeLevel),]
@@ -159,6 +164,7 @@ qc_spike_plot <- function() {
 
 #-----------------------------------------------------------------------------------------
 barplot_adh <- function(data_cv, data_names, plot_title, file_name) {
+  cat(file=stderr(), str_c("creating barplot_adh...."), "\n")
   df2 <- data.frame(data_names)
   df2$CV <- data_cv
   data_av <- mean(data_cv)
@@ -186,6 +192,7 @@ barplot_adh <- function(data_cv, data_names, plot_title, file_name) {
 
 #Box plot-------------------------------------------------
 box_plot_adh <- function(ADH_data)  {
+  cat(file=stderr(), str_c("creating box_plot_adh...."), "\n")
   file_name <- str_c(dpmsr_set$file$qc_dir, "ADH_boxplot.png")
   df <- data.frame(t(ADH_data[3:(2+dpmsr_set$y$sample_number)]), stringsAsFactors = FALSE)
   colnames(df) <- ADH_data$Sequence
@@ -210,7 +217,7 @@ box_plot_adh <- function(ADH_data)  {
 #-----------------------------------------------------------------------------------------
 
 protein_qc_plots<- function(data_in, plot_title, plot_dir) {
- 
+  cat(file=stderr(), str_c("creating protein_qc_plots...."), "\n")
   dpmsr_set$y$protein_list <<- list()
   
   if(!is.null(dpmsr_set$x$adh_list)){
@@ -282,8 +289,9 @@ protein_qc_plots<- function(data_in, plot_title, plot_dir) {
  #------------------------------------------------------------------------------------------
 
 cv_stats_plot <- function(summary_cv, total_cv) {
+  cat(file=stderr(), str_c("creating cv_stats_plot...."), "\n")
   # create summary table for CV's for groups under different normalize conditions
-  Simple_Excel(summary_cv, str_c(file_prefix1, "_Average_CV.xlsx", collapse = " "))
+  Simple_Excel(summary_cv, "Average_CV", str_c(file_prefix1, "_Average_CV.xlsx", collapse = " "))
   
   total_cv <- total_cv[2:ncol(total_cv)]
   png(filename=str_c(output_dir, "CV_Comparison", "_boxplot.png"), width = 800, height = 600)

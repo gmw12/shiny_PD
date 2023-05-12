@@ -1,14 +1,23 @@
 norm_prep <- function(){
+  library(limma)
+  library(preprocessCore)
+  library(miscTools)
+  library(edgeR)
+  library(MASS)
+  
   cat(file=stderr(), "norm_prep started...", "\n")
+  excel_list <- list()
+  
   # not isoform data
   if ((dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Peptide") 
       && !as.logical(dpmsr_set$x$peptide_isoform)) {
-    dpmsr_set$data$norm_data <<- remove_duplicates(dpmsr_set$data$data_peptide)  
+    dpmsr_set$data$norm_data <<- remove_duplicates(dpmsr_set$data$data_peptide)
+    excel_list[["remove_duplicates"]] = dpmsr_set$data$norm_data
     if (as.logical(dpmsr_set$x$peptide_ptm_norm)){
       dpmsr_set$data$norm_data <<- dpmsr_set$data$norm_data[grep(dpmsr_set$x$peptide_norm_grep, 
                                                                  dpmsr_set$data$norm_data$Modifications),]
+      excel_list[["ptm_norm_data"]] <- dpmsr_set$data$norm_data
     }
-    Simple_Excel(dpmsr_set$data$norm_data,  str_c(dpmsr_set$file$extra_prefix, "_norm_data.xlsx", collapse = " "))
     dpmsr_set$data$data_to_norm <<- dpmsr_set$data$data_peptide 
   }
   
@@ -20,7 +29,7 @@ norm_prep <- function(){
       dpmsr_set$data$norm_data <<- dpmsr_set$data$norm_data[grep(dpmsr_set$x$peptide_norm_grep, 
                                                                  dpmsr_set$data$norm_data$Modifications),]
     }
-    Simple_Excel(dpmsr_set$data$norm_data,  str_c(dpmsr_set$file$extra_prefix, "_norm_data.xlsx", collapse = " "))
+    excel_list[["isoform_norm_data"]] = dpmsr_set$data$norm_data
     dpmsr_set$data$data_to_norm <<- dpmsr_set$data$data_peptide_isoform
   }
   
@@ -28,7 +37,7 @@ norm_prep <- function(){
   if (dpmsr_set$x$raw_data_input=="Protein") {
     cat(file=stderr(), "norm_prep protein only data...", "\n")
     dpmsr_set$data$norm_data <<- dpmsr_set$data$data_protein
-    Simple_Excel(dpmsr_set$data$norm_data,  str_c(dpmsr_set$file$extra_prefix, "_norm_data.xlsx", collapse = " "))
+    excel_list[["protein_norm_data"]] <- dpmsr_set$data$norm_data
     dpmsr_set$data$data_to_norm <<- dpmsr_set$data$data_protein
   }
   
@@ -49,10 +58,17 @@ norm_prep <- function(){
     dpmsr_set$y$info_columns_final <<- dpmsr_set$y$info_columns
   }
   
-  
   #save original copy of norm_data so filter function can be rerun from original
   dpmsr_set$data$original_norm_data <<- dpmsr_set$data$norm_data
   cat(file=stderr(), "norm_prep complete...", "\n")
+
+  # write excel in parallel in background
+  x <- foreach(i=1:length(excel_list)) %dopar% {
+    excel_name <- names(excel_list[i])
+    Simple_Excel_bg(excel_list[[excel_name]], excel_name, str_c(dpmsr_set$file$extra_prefix, "_", excel_name, ".xlsx", collapse = " "))
+  }
+  
+  gc()
 }
 
 
@@ -75,16 +91,23 @@ filter_norm <- function(){
                                                                   dpmsr_set$data$norm_data$Description, ignore.case = TRUE),]
     }
     
-    Simple_Excel(dpmsr_set$data$norm_data,  str_c(dpmsr_set$file$extra_prefix, "_norm_data.xlsx", collapse = " "))
+    Simple_Excel(dpmsr_set$data$norm_data, "data", str_c(dpmsr_set$file$extra_prefix, "_norm_data.xlsx", collapse = " "))
 }
 
 
 #--------------------------------------------------------------------------------------
 apply_norm <- function(){
   ncores <- detectCores()
-  if (is.na(ncores)) {ncores <- 1}
+  if (is.na(ncores) | ncores < 1) {ncores <- 1}
   norm_list <- dpmsr_set$y$norm_list
   dpmsr_set$data$normalized <<- mclapply(norm_list, norm_parallel, mc.cores = ncores)
+  
+  #record normalized step to extra folder
+  x <- foreach(i=1:length(norm_list)) %dopar% {
+    norm_name <- names(norm_list[i])
+    Simple_Excel_bg(dpmsr_set$data$normalized[[norm_name]], norm_name, str_c(dpmsr_set$file$extra_prefix, "_", norm_name, "_norm.xlsx", collapse = " "))
+  }
+  
   gc()
   }
 
@@ -103,7 +126,7 @@ norm_parallel <- function(norm_type){
   else if(norm_type==9){data_mi <- mi_normalize(norm_data, data_to_norm, "MI_Norm", info_columns)} 
   else if(norm_type==10){data_ai <- ai_normalize(norm_data, data_to_norm, "AI_Norm", info_columns)} 
   else if(norm_type==99){data_impute <- data_to_norm} 
-}
+  }
 
 
 
@@ -119,7 +142,7 @@ sl_normalize <- function(norm_data, data_to_norm, data_title, info_columns){
   norm_facs <- target / colSums(norm_data,na.rm=TRUE)
   data_out <- sweep(data_to_norm, 2, norm_facs, FUN = "*")
   data_out <- cbind(annotation_data, data_out)
-  Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_sl_norm.xlsx", collapse = " "))
+  Simple_Excel(data_out, "data", str_c(dpmsr_set$file$extra_prefix, "_sl_norm.xlsx", collapse = " "))
   return(data_out)
 }
 
@@ -133,11 +156,11 @@ ai_normalize <- function(norm_data, data_to_norm, data_title, info_columns){
   norm_facs <- target / colMeans(norm_data, na.rm=TRUE)
   data_out <- sweep(data_to_norm, 2, norm_facs, FUN = "*")
   data_out <- cbind(annotation_data, data_out)
-  Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_ai_norm.xlsx", collapse = " "))
+  #Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_ai_norm.xlsx", collapse = " "))
   return(data_out)
 }
 
-# intensity / sum of intensities then * median of sum of intensitites
+# intensity / sum of intensities then * median of sum of intensities
 ti_normalize <- function(norm_data, data_to_norm, data_title, info_columns){
   annotation_data <- data_to_norm[1:info_columns]
   data_to_norm <- data_to_norm[(info_columns+1):ncol(data_to_norm)]
@@ -147,7 +170,7 @@ ti_normalize <- function(norm_data, data_to_norm, data_title, info_columns){
   norm_facs <- target / colSums(norm_data, na.rm=TRUE)
   data_out <- sweep(data_to_norm, 2, norm_facs, FUN = "*")
   data_out <- cbind(annotation_data, data_out)
-  Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_ti_norm.xlsx", collapse = " "))
+  #Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_ti_norm.xlsx", collapse = " "))
   return(data_out)
 }
 
@@ -162,7 +185,7 @@ mi_normalize <- function(norm_data, data_to_norm, data_title, info_columns){
   norm_facs <- target / intensity_medians
   data_out <- sweep(data_to_norm, 2, norm_facs, FUN = "*")
   data_out <- cbind(annotation_data, data_out)
-  Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_mi_norm.xlsx", collapse = " "))
+  #Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_mi_norm.xlsx", collapse = " "))
   return(data_out)
 }
 
@@ -181,7 +204,7 @@ vsn_normalize <- function(data_to_norm, data_title, info_columns){
   data_out[data_out==0] <- NA
   data_out <- data_out / 10
   data_out <- cbind(annotation_data, data_out)
-  Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_vsn_norm.xlsx", collapse = " "))
+  #Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_vsn_norm.xlsx", collapse = " "))
   return(data_out)
 }
 
@@ -194,7 +217,7 @@ quantile_normalize <- function(data_to_norm, data_title, info_columns){
   data_out <- normalize.quantiles(data.matrix(data_to_norm))
   data_out <- data.frame(data_out)
   data_out <- cbind(annotation_data, data_out)
-  Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_quantile_norm.xlsx", collapse = " "))
+  #Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_quantile_norm.xlsx", collapse = " "))
   return(data_out)
 }
 
@@ -212,7 +235,7 @@ loess_normalize <- function(data_to_norm, data_title, info_columns){
   #data_out[is.na(data_out)] <- 0.0
   data_out[data_out==0] <- NA
   data_out <- cbind(annotation_data, data_out)
-  Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_loess_norm.xlsx", collapse = " "))
+  #Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_loess_norm.xlsx", collapse = " "))
   return(data_out)
 }
 
@@ -258,7 +281,7 @@ lr_normalize <- function(data_in, data_title, info_columns) {
   data_out[data_out==0] <- NA
   #data_out[is.na(data_out)] <- 0.0
   data_out <- cbind(annotation_data, data_out)
-  Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_lr_norm.xlsx", collapse = " "))
+  #Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_lr_norm.xlsx", collapse = " "))
   return(data_out)
 }
 
@@ -277,7 +300,7 @@ protein_normalize <- function(data_to_norm, data_title, info_columns){
   data_out <- sweep(data_to_norm, 2, norm_facs, FUN = "*")
   #data_out <- finish_norm(data_out, excel_name, data_title)
   data_out <- cbind(annotation_data, data_out)
-  Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_protein_norm.xlsx", collapse = " "))
+  #Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_protein_norm.xlsx", collapse = " "))
   return(data_out)
 }
 
@@ -293,7 +316,7 @@ tmm_normalize <- function(data_to_norm, data_title, info_columns){
   tmm_factor <- calcNormFactors(norm_data, method = "TMM", sumTrim = 0.1)
   data_out <- sweep(data_to_norm, 2, tmm_factor, FUN = "/") # this is data after SL and TMM on original scale
   data_out <- cbind(annotation_data, data_out)
-  Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_", data_title, ".xlsx", collapse = " "))
+  #Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_", data_title, ".xlsx", collapse = " "))
   cat(file=stderr(), "TMM normalize complete", "\n")
   return(data_out)
 }
@@ -326,14 +349,6 @@ TMM_norm_data <- function(data_in){
     return(data_in)
 }
 
-
-
-
-
-
-
-
-
 #TMM Normalized 
 tmm_normalize_old <- function(norm_data, data_to_norm, data_title, info_columns){
   annotation_data <- data_to_norm[1:info_columns]
@@ -352,7 +367,7 @@ tmm_normalize_old <- function(norm_data, data_to_norm, data_title, info_columns)
   #colnames(data_out) <- sample_header_final_norm
   #Simple_Excel(data_out, str_c(file_prefix3, "_", data_title, "_final.xlsx", collapse = " "))
   data_out <- cbind(annotation_data, data_out)
-  Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_tmm_norm.xlsx", collapse = " "))
+  #Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_tmm_norm.xlsx", collapse = " "))
   return(data_out)
 }
 
@@ -366,19 +381,19 @@ sltmm_normalize <- function(norm_data, data_to_norm, data_title, info_columns){
   target <- mean(colSums(norm_data))
   norm_facs <- target / colSums(norm_data)
   sl <- sweep(data_to_norm, 2, norm_facs, FUN = "*")
-  Simple_Excel(cbind(annotate_df, sl), str_c(file_prefix3, "_Peptide_SLTMM1_Norm.xlsx", collapse = " "))
+  Simple_Excel(cbind(annotate_df, sl), "data",str_c(file_prefix3, "_Peptide_SLTMM1_Norm.xlsx", collapse = " "))
   sl <- impute_only(sl)
-  Simple_Excel(cbind(annotate_df, sl), str_c(file_prefix3, "_Peptide_SLTMM_Norm_Impute.xlsx", collapse = " ")) 
+  Simple_Excel(cbind(annotate_df, sl), "data", str_c(file_prefix3, "_Peptide_SLTMM_Norm_Impute.xlsx", collapse = " ")) 
   #sl_tmm <- calcNormFactors(norm_data, method = "TMM", sumTrim = 0.1) # this is data after SL and TMM on original scale
   sl_tmm <- calcNormFactors(sl, method = "TMM", sumTrim = 0.1) # this is data after SL and TMM on original scaledata_out <- sweep(sl, 2, sl_tmm, FUN = "/")
   data_out <- sweep(sl, 2, sl_tmm, FUN = "/") # this is data after SL and TMM on original scale
-  Simple_Excel(cbind(annotate_df, data_out), str_c(file_prefix3, "_Peptide_SLTMM2_Norm.xlsx", collapse = " "))
+  Simple_Excel(cbind(annotate_df, data_out), "data", str_c(file_prefix3, "_Peptide_SLTMM2_Norm.xlsx", collapse = " "))
   Plot_All_gw(data_out, data_title)
   data_out <- cbind(annotate_df, data_out)
   if (peptide_to_protein){data_out <- collapse_peptide(data_out)}
   colnames(data_out) <- sample_header_final_norm
   data_out <- cbind(annotation_data, data_out)
-  Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_sltmm_norm.xlsx", collapse = " "))
+  #Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_sltmm_norm.xlsx", collapse = " "))
   return(data_out)
 }
 
@@ -389,8 +404,6 @@ remove_duplicates <- function(data_in){
   data_in$dup <- str_c(data_in$Sequence, "_", data_in$Modifications)
   data_out <- distinct(data_in, dup, .keep_all = TRUE)
   data_out$dup <- NULL
-  Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_remove_duplicates.xlsx", collapse = " "))
-  #data_out <- data_out[(info_columns+1):ncol(data_out)]
   return(data_out)
 }
 

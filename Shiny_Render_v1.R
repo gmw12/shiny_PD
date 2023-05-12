@@ -38,28 +38,73 @@ inputloaddata_render <- function(session, input, output){
   }, deleteFile = FALSE)
   
   output$faims_psm_cv <- renderImage({
-    list(src=str_c(dpmsr_set$file$qc_dir,"FAIMS_PSM_CV.png"), contentType = 'image/png', width=500, height=300, alt="this is alt text")
+    list(src=str_c(dpmsr_set$file$qc_dir,"FAIMS_PSM_CV.png"), contentType = 'image/png', width=500, height=300, alt="No FAIMS plot available")
   }, deleteFile = FALSE) 
   
-  output$peptide_PI <- renderImage({
-    list(src=str_c(dpmsr_set$file$qc_dir,"Peptide_PI.png"), contentType = 'image/png', width=500, height=300, alt="this is alt text")
-  }, deleteFile = FALSE)
+
+    observe({
+    if (file.exists(str_c(dpmsr_set$file$qc_dir,"Peptide_PI.png"))){
+      output$peptide_PI <- renderImage({
+        list(src=str_c(dpmsr_set$file$qc_dir,"Peptide_PI.png"), contentType = 'image/png', width=500, height=300, alt="this is alt text")
+      }, deleteFile = FALSE)
+    }else{
+      invalidateLater(50000, session)
+    }
+  }) 
   
-  output$peptide_cruc <- renderImage({
-    list(src=str_c(dpmsr_set$file$qc_dir,"Peptide_Cruc.png"), contentType = 'image/png', width=500, height=300, alt="this is alt text")
-  }, deleteFile = FALSE)
+  observe({
+    if (file.exists(str_c(dpmsr_set$file$qc_dir,"Peptide_Cruc.png"))){
+      output$peptide_cruc <- renderImage({
+        list(src=str_c(dpmsr_set$file$qc_dir,"Peptide_Cruc.png"), contentType = 'image/png', width=500, height=300, alt="this is alt text")
+      }, deleteFile = FALSE)
+    }else{
+      invalidateLater(50000, session)
+    }
+  }) 
   
-  output$peptide_aainfo <- renderImage({
-    list(src=str_c(dpmsr_set$file$qc_dir,"Peptide_AAInfo.png"), contentType = 'image/png', width=500, height=300, alt="this is alt text")
-  }, deleteFile = FALSE)
+  observe({
+    if (file.exists(str_c(dpmsr_set$file$qc_dir,"Peptide_AAInfo.png"))){
+      output$peptide_aainfo <- renderImage({
+        list(src=str_c(dpmsr_set$file$qc_dir,"Peptide_AAInfo.png"), contentType = 'image/png', width=500, height=300, alt="this is alt text")
+      }, deleteFile = FALSE)
+    }else{
+      invalidateLater(1000, session)
+    }
+  }) 
   
-  output$peptide_ai <- renderImage({
-    list(src=str_c(dpmsr_set$file$qc_dir,"Peptide_AI.png"), contentType = 'image/png', width=500, height=300, alt="this is alt text")
-  }, deleteFile = FALSE)
+  observe({
+    if (file.exists(str_c(dpmsr_set$file$qc_dir,"Peptide_AI.png"))){
+      output$peptide_ai <- renderImage({
+        list(src=str_c(dpmsr_set$file$qc_dir,"Peptide_AI.png"), contentType = 'image/png', width=500, height=300, alt="this is alt text")
+      }, deleteFile = FALSE)
+    }else{
+      invalidateLater(1000, session)
+    }
+  }) 
   
-  output$feature_width <- renderImage({
-    list(src=str_c(dpmsr_set$file$qc_dir,"Feature_Peak_Width.png"), contentType = 'image/png', width=500, height=300, alt="this is alt text")
-  }, deleteFile = FALSE)
+  observe({
+    if (file.exists(str_c(dpmsr_set$file$qc_dir,"Feature_Peak_Width.png"))){
+      output$feature_width <- renderImage({
+        list(src=str_c(dpmsr_set$file$qc_dir,"Feature_Peak_Width.png"), contentType = 'image/png', width=500, height=300, alt="this is alt text")
+      }, deleteFile = FALSE)
+    }else{
+      invalidateLater(1000, session)
+    }
+  }) 
+  
+  output$comp1_text <- renderText({ "Comparison 1" })
+  output$comp2_text <- renderText({ "Comparison 2" })
+  output$comp3_text <- renderText({ "Comparison 3" })
+  output$comp4_text <- renderText({ "Comparison 4" })
+  output$comp5_text <- renderText({ "Comparison 5" })
+  output$comp6_text <- renderText({ "Comparison 6" })
+  output$comp7_text <- renderText({ "Comparison 7" })
+  output$comp8_text <- renderText({ "Comparison 8" })
+  output$comp9_text <- renderText({ "Comparison 9" })
+  output$comp10_text <- renderText({ "Comparison 10" })
+  output$comp11_text <- renderText({ "Comparison 11" })  
+  output$comp12_text <- renderText({ "Comparison 12" })
+  
 }
 
 #----------------------------------------------------------------------------------

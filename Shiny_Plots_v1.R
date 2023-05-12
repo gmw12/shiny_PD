@@ -268,7 +268,13 @@ Cluster_plot <- function(x,y, plot_dir) {
 #Histogram for total intensity-------------------------------------------------
 histogram_plot <- function(df, plottitle)
 {
+  #TS_df <<- df
+  #df <- TS_df
+  
+  start <- Sys.time()
   cat(file=stderr(), "histogram plot function called", "\n")
+  library(grid)
+  
   x<-df[(dpmsr_set$y$info_columns+1):ncol(df)]
   title<-as.character(dpmsr_set$x$file_prefix)
   testthis1 <- as.matrix(log2(x))
@@ -293,7 +299,6 @@ histogram_plot <- function(df, plottitle)
     new_cutoff <- x_mean + (as.numeric(dpmsr_set$x$int_cutoff_sd) * x_stdev)
   }
   
-  
   dpmsr_set$y$intensity_mean <<- x_mean
   dpmsr_set$y$intensity_sd <<- x_stdev
   
@@ -313,28 +318,36 @@ histogram_plot <- function(df, plottitle)
   my_legend6 <- grid.text(str_c("Bottom2: ", trunc((2^bottom2_max),0)), x=.80, y=.70, gp=gpar(col="coral", fontsize=10))
   my_legend7 <- grid.text(str_c("Bottom1: ", trunc((2^bottom1_max),0)), x=.80, y=.65, gp=gpar(col="coral", fontsize=10))
   
-  ggplot(testgather, aes(value))+
-   theme(plot.title = element_text(hjust = 0.5),
-         legend.position = "top")+ 
-    geom_histogram(bins=100, fill="blue") +
-    #geom_vline(aes(xintercept = intensity_cutoff), color='red'   ) +
-    geom_vline(aes(xintercept = log2(5000000)), color='green4') +
-    geom_vline(aes(xintercept = x_mean)) +
-    geom_vline(aes(xintercept = (x_mean + x_stdev))) +
-    geom_vline(aes(xintercept = (x_mean - x_stdev))) +
-    geom_vline(aes(xintercept = bottom5_max), color='coral') +
-    geom_vline(aes(xintercept = bottom2_max), color='coral') +
-    geom_vline(aes(xintercept = bottom1_max), color='coral') +
-    ggtitle(plottitle)+
-    annotation_custom(my_legend1)+
-    annotation_custom(my_legend2)+
-    annotation_custom(my_legend3)+
-    annotation_custom(my_legend4)+
-    annotation_custom(my_legend5)+
-    annotation_custom(my_legend6)+
-    annotation_custom(my_legend7)
-  ggsave(str_c(dpmsr_set$file$qc_dir, plottitle, ".png"), width=8, height=6)
-  #ggsave(file_name, width=5, height=4)
+  hist_plot_bg <- function(testgather, plot_dir, plottitle, my_legend1,my_legend2,my_legend3,my_legend4,my_legend5,my_legend6,my_legend7,
+                           x_mean, x_stdev, bottom5_max, bottom2_max, bottom1_max){
+    ggplot2::ggplot(testgather, ggplot2::aes(value))+
+      ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
+           legend.position = "top") + 
+      ggplot2::geom_histogram(bins=100, fill="blue") +
+      #geom_vline(aes(xintercept = intensity_cutoff), color='red'   ) +
+      ggplot2::geom_vline(ggplot2::aes(xintercept = log2(5000000)), color='green4') +
+      ggplot2::geom_vline(ggplot2::aes(xintercept = x_mean)) +
+      ggplot2::geom_vline(ggplot2::aes(xintercept = (x_mean + x_stdev))) +
+      ggplot2::geom_vline(ggplot2::aes(xintercept = (x_mean - x_stdev))) +
+      ggplot2::geom_vline(ggplot2::aes(xintercept = bottom5_max), color='coral') +
+      ggplot2::geom_vline(ggplot2::aes(xintercept = bottom2_max), color='coral') +
+      ggplot2::geom_vline(ggplot2::aes(xintercept = bottom1_max), color='coral') +
+      ggplot2::ggtitle(plottitle)+
+      ggplot2::annotation_custom(my_legend1)+
+      ggplot2::annotation_custom(my_legend2)+
+      ggplot2::annotation_custom(my_legend3)+
+      ggplot2::annotation_custom(my_legend4)+
+      ggplot2::annotation_custom(my_legend5)+
+      ggplot2::annotation_custom(my_legend6)+
+      ggplot2::annotation_custom(my_legend7)
+    ggplot2::ggsave(stringr::str_c(plot_dir, plottitle, ".png"), width=8, height=6)
+  }
+  plot_dir <- dpmsr_set$file$qc_dir
+  test_hist <- callr::r_bg(hist_plot_bg, args=list(testgather, plot_dir, plottitle, 
+                                                   my_legend1,my_legend2,my_legend3,my_legend4,my_legend5,my_legend6,my_legend7,
+                                                   x_mean, x_stdev, bottom5_max, bottom2_max, bottom1_max), supervise = TRUE)
+  
+  cat(file=stderr(), str_c("histogram plot function complete in --> ", Sys.time()- start), "\n")
 }
 
 
