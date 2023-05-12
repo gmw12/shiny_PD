@@ -1,127 +1,45 @@
 options(shiny.maxRequestSize=4000*1024^2)
-
-source("Shiny_Startup_v1.R")
+app_version <<- '2023.05.11'
 
 cat(file=stderr(), "Server.R started", "\n")
 
-library(shiny)
-library(shinyFiles)
-library(shinyjs)
-library(shinyWidgets)
-library(rhandsontable)
-library(rgl)
-library(DT)
-library(shinyalert)
-
-#set user to unkown to force app to find correct usr
-site_user <<- "unknown"
-volumes <<- "unknown"
-
-cat(file=stderr(), str_c("site_user default --> ", site_user), "\n")
-cat(file=stderr(), str_c("volumes --> ", volumes), "\n")
-
 #set user
 set_user(session, input, output)
-
-cat(file=stderr(), str_c("site_user set to -->  ", site_user), "\n")
-cat(file=stderr(), str_c("volumes --> ", volumes), "\n")
 
 #force setting when testing customer version
 #volumes <<- c(dd='/data', wd='.', Home = fs::path_home(), getVolumes()())
 #site_user <<- "not_dpmsr"
 
 
-
 shinyServer(function(input, output, session) {
-  
+
     cat(file=stderr(), "Shiny Server started ...1", "\n")
-
     useShinyjs()
-    dpmsr_present <- reactiveValues()
-    dpmsr_present$test <- exists("dpmsr_set")
     
-    cat(file=stderr(), "Shiny Server started ...2", "\n")
-    
-    shinyjs::disable("action_load_design")
-    shinyjs::disable("action_load_dpmsr_set")
-    shinyjs::disable("load_data")
-    
-    cat(file=stderr(), "Shiny Server started ...3", "\n")
-    
-    output$text_n1 <- renderText("Check all Normalization Strategies")
-    output$text_f1 <- renderText("Normalization Filters")
-    output$text_i1 <- renderText("Select Imputation Method")
-    output$text_impute_ptm <- renderText("Impute Distributions using Impute PTM grep (Load Data)")
-    
-    cat(file=stderr(), "Shiny Server started ...4", "\n")
-
-    shinyFileChoose(input, 'design_file', session=session, roots=volumes, filetypes=c('', 'xlsx'))
-    
-    shinyFileChoose(input,'raw_files', roots=volumes, session=session, 
-                    filetypes=c('','txt'), defaultPath='', defaultRoot='wd')
-    
-    shinyFileChoose(input,'dpmsr_set_file', roots=volumes, session=session, 
-                    filetypes=c('','dpmsr_set'), defaultPath='', defaultRoot='wd')
-    
-    shinyFileChoose(input,'motif_fasta', roots=volumes, session=session, 
-                     filetypes=c('','fasta'), defaultPath='', defaultRoot='wd')
-    
-    shinyFileChoose(input,'test', roots=volumes, session=session, 
-                    filetypes=c('' , 'xlsx', 'jpg', 'png'), defaultPath='', defaultRoot='wd')
-    
-    # shinyDirChoose(input,'new_save_directory', roots=volumes, session=session, 
-    #                 defaultPath='', defaultRoot='wd')
-    
-    cat(file=stderr(), "Shiny Server started ...6", "\n")
-    
-    # test to see if dpmsr_set exisits - if so will update widgets with defaults
-    observe({
-      if (dpmsr_present$test){
-        cat(file=stderr(), "dpmsr_set found...", "\n")
-        update_widget_all(session, input, output)
-        inputloaddata_render(session, input, output)
-        inputfilterapply_render(session, input, output)
-        inputnorm_render(session, input, output)
-        qc_render(session, input, output)
-        inputproteinselect_render(session, input, output)
-        update_dpmsr_set_from_widgets(session, input, output)
-        cat(file=stderr(), "dpmsr_set loaded...", "\n")
-      }else{
-        cat(file=stderr(), "dpmsr_set doest not exist...", "\n")
-      }
-      
-    })
-    
-    
-    # function home to shinyjs hide/enable observers
-    hide_enable(session, input, output)
-
-    cat(file=stderr(), "Shiny Server started ...7", "\n")
-    
-    hideTab(inputId = "nlp1", target = "load")
-    
-    if (site_user == "dpmsr"){
-      updateTabsetPanel(session, "nlp1", selected = "tp_load_design")
-    }else{
-      updateTabsetPanel(session, "nlp1", selected = "tp_customer_load")
+    if (site_user=="not_dpmsr"){
+      shinyalert("Welcome!", "Thanks for using the DPMSR Visualization Tool.  Please contact greg.waitt@duke.edu with any questions or concerns.  We are actively trying to resolve disconnect issues.  Please rerun 'Set Comparisons' and 'Start Analysis' on the Stats Tab", type = "info")
     }
-  #------------------------------------------------------------------------------------------------------  
-    observeEvent(input$action_clear, {
-      clear_memory()
+    
+    #find app current state and set new if clear
+    app_startup(session, input, output)
+
+#------------------------------------------------------------------------------------------------------
+# Clear memory - cannot load dpmsr_set if one already loaded, button clears memory to start fresh  
+  observeEvent(input$action_clear, {
+      clear_memory(session, input, output)
     })    
      
 #------------------------------------------------------------------------------------------------------  
+#Load design file
   observeEvent(input$action_load_design, {
-    cat(file=stderr(), "load design triggered", "\n")
+    cat(file=stderr(), "Load design triggered", "\n")
     dpmsr_present$test <- exists("dpmsr_set")
     if (dpmsr_present$test){
       shinyalert("Oops!", "design info already loaded - Please clear memory", type = "error")
     }else{
+      showModal(modalDialog("Loading Sample Information...", footer = NULL))
       load_dpmsr_set(session, input, output)
-      #reassign these to update volumes with path from design_file
-      shinyFileChoose(input,'raw_files', roots=dpmsr_set$x$volumes, session=session,
-                      filetypes=c('','txt'), defaultPath='', defaultRoot='wd')
-      set_sample_groups()
+      set_sample_groups(session, input, output)
       updateTabsetPanel(session, "nlp1", selected = "tp_load_data")
       dpmsr_present$test <- exists("dpmsr_set")
       update_widget_startup(session, input, output)
@@ -131,10 +49,11 @@ shinyServer(function(input, output, session) {
       update_widget_stats(session, input, output)
       #load stat design table
       create_design_table(session, input, output)
+      removeModal()
     }
+    cat(file=stderr(), "Load design file complete", "\n")
   })
 
-    cat(file=stderr(), "Shiny Server started ...8", "\n")
 #------------------------------------------------------------------------------------------------------   
 #------------------------------------------------------------------------------------------------------    
   observeEvent(input$load_data, {
@@ -162,19 +81,22 @@ shinyServer(function(input, output, session) {
         showModal(modalDialog("Creating Overview...", footer = NULL))
         
         cat(file=stderr(), "project overview", "\n")
-        project_overview()
+        project_overview(session, input, output)
+        removeModal()
+        showModal(modalDialog("Loading Plots...", footer = NULL))
         inputloaddata_render(session, input, output)
         updateTabsetPanel(session, "nlp1", selected = "tp_overview")
+        removeModal()
       } else {
             updateTabsetPanel(session, "nlp1", selected = "tp_filters")
       }
       
-      cat(file=stderr(), "order data", "\n")
+      cat(file=stderr(), "preprocess and order data", "\n")
       preprocess_order()
       cat(file=stderr(), "check_sample_id()", "\n")
       check_sample_id()
       cat(file=stderr(), "load data complete", "\n")
-      removeModal()
+      #removeModal()
     }
   })
 
@@ -511,11 +433,11 @@ observeEvent(input$data_show, {
       showModal(modalDialog("Setting Stat groups...", footer = NULL))  
       cat(file=stderr(), "Setting Stat groups...", "\n")
       try(set_stat_groups(session, input, output), silent = TRUE)
+      #try(callr::r_bg(set_stat_groups, args = list(session, input, output), supervise = TRUE))
       if(is.null(input$comp_spqc)){
         shinyalert("Oops!", "Please choose and SPQC group!", type = "error")
       }
       #update all of the dropdown stat group choices that are downstream from this point
-      update_comparisons(session, input, output)
       updateTextInput(session, "final_stats_name", value = str_c("Final_", input$select_final_data_stats,  "_stats.xlsx"))
       
       removeModal()
@@ -541,6 +463,7 @@ observeEvent(input$data_show, {
     observeEvent(input$start_stats, {
       showModal(modalDialog("Calculating stats...", footer = NULL))  
       cat(file=stderr(), "Calculating stats...", "\n")
+      #test_stat <- callr::r_bg(stat_calc2, args = list(session, input, output), supervise = TRUE)
       stat_calc2(session, input, output)
       removeModal()
     }
@@ -605,18 +528,27 @@ observeEvent(input$data_show, {
             
             namex <- dpmsr_set$design$Label[comp_rows]
             color_list <- dpmsr_set$design$colorlist[comp_rows]
-            groupx <- dpmsr_set$design$Group[comp_rows]
+            if (dpmsr_set$x$primary_group){
+              groupx <- dpmsr_set$design$PrimaryGroup[comp_rows]
+            }else{
+              groupx <- dpmsr_set$design$Group[comp_rows]
+            }
             
             cat(file=stderr(), "Stats Plots...3" , "\n")
             interactive_barplot(session, input, output, df, namex, color_list, "stats_barplot", input$stats_plot_comp)
+            
             cat(file=stderr(), "Stats Plots...4" , "\n")
             interactive_boxplot(session, input, output, df, namex, color_list, input$stats_plot_comp)
+            
             cat(file=stderr(), "Stats Plots...5" , "\n")
             interactive_pca2d(session, input, output, df, namex, color_list, groupx, input$stats_plot_comp)
+            
             cat(file=stderr(), "Stats Plots...6" , "\n")
             interactive_pca3d(session, input, output, df, namex, color_list, groupx, input$stats_plot_comp)
+            
             cat(file=stderr(), "Stats Plots...7" , "\n")
             interactive_cluster(session, input, output, df, namex, input$stats_plot_comp)
+            
             cat(file=stderr(), "Stats Plots...8" , "\n")
             interactive_heatmap(session, input, output, df, namex, groupx, input$stats_plot_comp)
         
@@ -787,7 +719,7 @@ observeEvent(input$data_show, {
         }
         
         cat(file=stderr(), str_c("filename = ", filename) , "\n")
-        Simple_Excel_name(dpmsr_set$data$stats_DT, filename, "data")
+        Simple_Excel(dpmsr_set$data$stats_DT, "data", filename)
         removeModal()
     
     })
@@ -1047,7 +979,7 @@ observeEvent(input$data_show, {
         }
       
       filename <- str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp, "//", input$stats_oneprotein_data_filename)
-      Simple_Excel_name(df_peptide, filename, "data")
+      Simple_Excel(df_peptide, "data", filename)
       removeModal()
       
     })
@@ -1072,7 +1004,7 @@ observeEvent(input$data_show, {
       df <- dpmsr_set$data$oneprotein_peptide_DT
       x <- unlist(df$PD_Detected_Peptides)
       df$PD_Detected_Peptides <- x
-      Simple_Excel_name(df, filename, "data")
+      Simple_Excel(df, "data", filename)
       removeModal()
       
     })
@@ -1095,7 +1027,8 @@ observeEvent(input$data_show, {
     #-------------------------------------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------------------------------------
     observeEvent(input$motif_show, {
-      showModal(modalDialog("Working...", footer = NULL))  
+      
+      shinyalert("Hi", "Motif-X table will appear when analysis is complete.", type = "info")
       
       comp_string <- input$select_data_comp_motif
       comp_number <- which(dpmsr_set$y$stats$groups$comp_name == comp_string)
@@ -1113,7 +1046,6 @@ observeEvent(input$data_show, {
         })
       }
       
-      removeModal()
     })
 
 #      observe({
@@ -1406,7 +1338,7 @@ observeEvent(input$data_show, {
           
           output$volcano_data_final <-  DT::renderDataTable({volcano_DT })
           
-          Simple_Excel(volcano_go_data, str_c(dpmsr_set$file$string, "GoVolcano_", input$select_data_comp_go, "_", input$go_volcano_id, "_", 
+          Simple_Excel(volcano_go_data, "GoVolcano", str_c(dpmsr_set$file$string, "GoVolcano_", input$select_data_comp_go, "_", input$go_volcano_id, "_", 
                                      input$select_ont_go, ".xlsx", collapse = " "))
           
           
@@ -1430,19 +1362,7 @@ observeEvent(input$data_show, {
       }
     }
     )  
-    
 
-    #-------------------------------------------------------------------------------------------------------------
-    #-------------------------------------------------------------------------------------------------------------
-    observeEvent(input$setup_string, {
-      cat(file=stderr(), "string_setup triggered", "\n")
-      showModal(modalDialog("String setup...", footer = NULL))  
-      setup_string(session, input, output)
-      removeModal()
-    }
-    ) 
-    
-    
     
     #-------------------------------------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------------------------------------
@@ -1520,7 +1440,7 @@ observeEvent(input$data_show, {
     
           
           fullName <- str_c(dpmsr_set$file$string, input$select_data_comp_string_enrich, "_", input$select_string_enrich, ".xlsx", collapse = " ")
-          Simple_Excel(string_result, fullName)
+          Simple_Excel_bg(string_result, "String", fullName)
           
           output$download_string_enrich_table <- downloadHandler(
             filename = function(){
@@ -1540,13 +1460,22 @@ observeEvent(input$data_show, {
     }
     )
     
-
-    
     #-------------------------------------------------------------------------------------------------------------      
     #-------------------------------------------------------------------------------------------------------------   
     observeEvent(input$save_dpmsr_set, { 
-      save(dpmsr_set, file=str_c(dpmsr_set$file$output_dir, input$dpmsr_set_name, ".dpmsr_set"))
-    })  
+      cat(file=stderr(), "save dpmsr_set triggered", "\n")
+      
+      if(!is.null(dpmsr_set$x$pathway_set) || !is.null(dpmsr_set$x$motif_set) ){
+        if (dpmsr_set$x$pathway_set == 1 || dpmsr_set$x$motif_set == 1){
+          filename <- input$dpmsr_set_name
+          future({ save(dpmsr_set, file=str_c(dpmsr_set$file$output_dir, filename, ".dpmsr_set")) })
+          }else{
+          shinyalert("FYI!", "Pathway or MotifX setup has not been run yet...", type = "info")
+          }
+        }else{
+          shinyalert("FYI!", "Pathway or MotifX setup has not been run yet...", type = "info")
+        } 
+   })  
     
 
     output$download_new_dpmsr_set <- downloadHandler(
@@ -1562,7 +1491,7 @@ observeEvent(input$data_show, {
     #-------------------------------------------------------------------------------------------------------------      
     #-------------------------------------------------------------------------------------------------------------   
     observeEvent(input$save_customer_dpmsr_set, { 
-      
+      cat(file=stderr(), "save customer dpmsr_set triggered", "\n")
       dpmsr_set_temp <- dpmsr_set
       
       dpmsr_set$data$data_raw_decoypsm <- NULL
@@ -1613,6 +1542,10 @@ observeEvent(input$data_show, {
       dpmsr_set$file$string <<- str_c(dpmsr_set$file$output_dir, "String//")
       dpmsr_set$file$extra_prefix2 <<- str_c(dpmsr_set$file$extra_dir, dpmsr_set$x$file_prefix)
       dpmsr_set$file$phos <<- str_c(dpmsr_set$file$output_dir, "Phos//")
+      
+      #new version, 5/2023 does not have this field
+      if (is.null(dpmsr_set$x$primary_group)) {dpmsr_set$x$primary_group <<- FALSE}
+      
       #create dir for excel reports        
       if(!is_dir(str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp))) {
           create_dir(str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp))
@@ -1626,6 +1559,7 @@ observeEvent(input$data_show, {
       qc_render(session, input, output)
       inputproteinselect_render(session, input, output)
       updateTabsetPanel(session, "nlp1", selected = "tp8")
+      hide_enable_after_dpmsr(session, input, output)
       removeModal()
 
       cat(file=stderr(), str_c("New data directory --> ", dpmsr_set$file$data_dir), "\n")
@@ -1683,6 +1617,9 @@ observeEvent(input$data_show, {
           }
           update_try <- update_try+1
           
+          #new version, 5/2023 does not have this field
+          if (is.null(dpmsr_set$x$primary_group)) {dpmsr_set$x$primary_group <<- FALSE}
+          
           #reload shiny
           cat(file=stderr(), "update widgets", "\n")
           update_widget_all(session, input, output)
@@ -1715,6 +1652,8 @@ observeEvent(input$data_show, {
           
           cat(file=stderr(), "update file locations... end", "\n")
         } 
+        
+        app_log()
         removeModal()
         updateTabsetPanel(session, "nlp1", selected = "tp_stats")
         
@@ -1737,13 +1676,12 @@ observeEvent(input$data_show, {
         #dir_delete(name)
         system(str_c("rm -R ", name))
         cat(file=stderr(), str_c("Deleting ", name,  " still exists? ", dir.exists(name)), "\n")
-        
-        cat(file=stderr(), str_c("DPMSR exists? ", exists('dpmsr_set')), "\n")
-        #rm(list = ls(envir = .GlobalEnv), pos = .GlobalEnv, inherits = FALSE)
-        rm("dpmsr_set", pos = .GlobalEnv, inherits = FALSE)
-        cat(file=stderr(), str_c("Deleting DPMSR, still exists? ", exists('dpmsr_set')), "\n")
-        
         garbage_cleanup()
+        cat(file=stderr(), str_c("DPMSR exists? ", exists('dpmsr_set')), "\n")
+        try(rm(list = ls(envir = .GlobalEnv), pos = .GlobalEnv, inherits = FALSE))
+        #try(rm("dpmsr_set", pos = .GlobalEnv, inherits = FALSE))
+        cat(file=stderr(), str_c("Deleting DPMSR, still exists? ", exists('dpmsr_set')), "\n")
+        gc()
         file_touch("restart.txt", access_time = Sys.time(), modification_time = Sys.time())
       }
     })

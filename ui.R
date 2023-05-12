@@ -1,16 +1,13 @@
-last_update <- '04-12-2023'
+#last_update <- '05-04-2023'
 
 library(shiny)
 library(shinyFiles)
 library(shinyjs)
 library(shinyWidgets)
-library(rhandsontable)
-library(rgl)
-library(DT)
 library(shinyalert)
 
-source("Shiny_Startup_v1.R")
-
+source("Shiny_Libraries_v1.R")
+source("Shiny_Functions_v1.R")
 
 shinyUI(
   tagList(
@@ -36,7 +33,8 @@ shinyUI(
                         br(),
                         shinyFilesButton('design_file', label='Choose Design File', title='Please select excel design file', multiple=FALSE,
                                         style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
-                        br(),                            
+                        br(),  
+                        checkboxInput("primary_group", label = "Use only primary group for filter and impute", value=FALSE),
                         br(),
                         actionButton("action_load_design", label = "Load Design File", width = 200, 
                                      style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
@@ -64,10 +62,7 @@ shinyUI(
                         br(),
                         br(),
                         br(),
-                        br(),
-                        br(),
-                        br(),
-                        tags$h6(str_c("Last updated ", last_update))
+                        span(textOutput("app_version_text"), style="color:blue; font-size:16px")
            ), #end tab panel
   
     tabPanel("Load Data", value = "tp_load_data", align="center",
@@ -577,7 +572,7 @@ shinyUI(
             br(),
             br(),
             br(),
-            tags$h6(str_c("Last updated ", last_update))
+            span(textOutput("app_version_text2"), style="color:blue; font-size:16px"),
     ),
     
     
@@ -665,64 +660,76 @@ shinyUI(
                                  hr(),
                                  fluidRow(
                                    column(width=2, offset =0,
-                                          pickerInput(inputId = "comp_1N", label = "Comp1_N",  choices = "None", 
+                                          span(textOutput("comp1_text"), style="color:blue; font-size:20px"),
+                                          pickerInput(inputId = "comp_1N", label = "Numerator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
-                                                                     `selected-text-format` = "count > 3"),  multiple = TRUE
+                                                                     `selected-text-format` = "count > 7"),  multiple = TRUE
                                           ),
-                                          pickerInput(inputId = "comp_1D", label = "Comp1_D",  choices = "None", 
+                                          pickerInput(inputId = "comp_1D", label = "Denominator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
-                                                                     `selected-text-format` = "count > 3"),  multiple = TRUE
-                                          )                
+                                                                     `selected-text-format` = "count > 7"),  multiple = TRUE
+                                          ),
+                                          textInput("comp1_name", label="Description", value = "")
                                    ),
                                    column(width=2, offset =0,
-                                          pickerInput(inputId = "comp_2N", label = "Comp2_N",  choices = "None", 
+                                          span(textOutput("comp2_text"), style="color:blue; font-size:20px"),
+                                          pickerInput(inputId = "comp_2N", label = "Numerator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
-                                                                     `selected-text-format` = "count > 3"),  multiple = TRUE
+                                                                     `selected-text-format` = "count > 7"),  multiple = TRUE
                                           ),
-                                          pickerInput(inputId = "comp_2D", label = "Comp2_D",  choices = "None", 
+                                          pickerInput(inputId = "comp_2D", label = "Denominator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
-                                                                     `selected-text-format` = "count > 3"),  multiple = TRUE
-                                          )
+                                                                     `selected-text-format` = "count > 7"),  multiple = TRUE
+                                          ),
+                                          textInput("comp2_name", label="Description", value = "")
                                    ),
                                    column(width=2, offset =0,
-                                          pickerInput(inputId = "comp_3N", label = "Comp3_N",  choices = "None", 
+                                          span(textOutput("comp3_text"), style="color:blue; font-size:20px"),
+                                          pickerInput(inputId = "comp_3N", label = "Numerator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
-                                                                     `selected-text-format` = "count > 3"),  multiple = TRUE
+                                                                     `selected-text-format` = "count > 7"),  multiple = TRUE
                                           ),
-                                          pickerInput(inputId = "comp_3D", label = "Comp3_D",  choices = "None", 
+                                          pickerInput(inputId = "comp_3D", label = "Denominator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
-                                                                     `selected-text-format` = "count > 3"),  multiple = TRUE
-                                          )
+                                                                     `selected-text-format` = "count > 7"),  multiple = TRUE
+                                          ),
+                                          textInput("comp3_name", label="Description", value = "")
                                    ),
                                    column(width=2, offset =0,
-                                          pickerInput(inputId = "comp_4N", label = "Comp4_N",  choices = "None", 
+                                          span(textOutput("comp4_text"), style="color:blue; font-size:20px"),
+                                          pickerInput(inputId = "comp_4N", label = "Numerator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
-                                                                     `selected-text-format` = "count > 3"),  multiple = TRUE
+                                                                     `selected-text-format` = "count > 7"),  multiple = TRUE
                                           ),
-                                          pickerInput(inputId = "comp_4D", label = "Comp4_D",  choices = "None", 
+                                          pickerInput(inputId = "comp_4D", label = "Denominator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
-                                                                     `selected-text-format` = "count > 3"),  multiple = TRUE
-                                          )
+                                                                     `selected-text-format` = "count > 7"),  multiple = TRUE
+                                          ),
+                                          textInput("comp4_name", label="Description", value = "")
                                    ) ,            
                                    column(width=2, offset =0,
-                                          pickerInput(inputId = "comp_5N", label = "Comp5_N",  choices = "None", 
+                                          span(textOutput("comp5_text"), style="color:blue; font-size:20px"),
+                                          pickerInput(inputId = "comp_5N", label = "Numerator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
-                                                                     `selected-text-format` = "count > 3"),  multiple = TRUE
+                                                                     `selected-text-format` = "count > 7"),  multiple = TRUE
                                           ),
-                                          pickerInput(inputId = "comp_5D", label = "Comp5_D",  choices = "None", 
+                                          pickerInput(inputId = "comp_5D", label = "Denominator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
-                                                                     `selected-text-format` = "count > 3"),  multiple = TRUE
-                                          )
+                                                                     `selected-text-format` = "count > 7"),  multiple = TRUE
+                                          ),
+                                          textInput("comp5_name", label="Description", value = "")
                                    ),            
                                    column(width=2, offset =0,
-                                          pickerInput(inputId = "comp_6N", label = "Comp6_N",  choices = "None", 
+                                          span(textOutput("comp6_text"), style="color:blue; font-size:20px"),
+                                          pickerInput(inputId = "comp_6N", label = "Numerator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
-                                                                     `selected-text-format` = "count > 3"),  multiple = TRUE
+                                                                     `selected-text-format` = "count > 7"),  multiple = TRUE
                                           ),
-                                          pickerInput(inputId = "comp_6D", label = "Comp6_D",  choices = "None", 
+                                          pickerInput(inputId = "comp_6D", label = "Denominator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
-                                                                     `selected-text-format` = "count > 3"),  multiple = TRUE
-                                          ) 
+                                                                     `selected-text-format` = "count > 7"),  multiple = TRUE
+                                          ),
+                                          textInput("comp6_name", label="Description", value = "") 
                                    )
                                  ),
                                  fluidRow(
@@ -730,64 +737,76 @@ shinyUI(
                                  ),
                                  fluidRow(
                                    column(width=2, offset =0,
-                                          pickerInput(inputId = "comp_7N", label = "Comp7_N",  choices = "None", 
+                                          span(textOutput("comp7_text"), style="color:blue; font-size:20px"),
+                                          pickerInput(inputId = "comp_7N", label = "Numerator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
-                                                                     `selected-text-format` = "count > 3"),  multiple = TRUE
+                                                                     `selected-text-format` = "count > 7"),  multiple = TRUE
                                           ),
-                                          pickerInput(inputId = "comp_7D", label = "Comp7_D",  choices = "None", 
+                                          pickerInput(inputId = "comp_7D", label = "Denominator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
-                                                                     `selected-text-format` = "count > 3"),  multiple = TRUE
-                                          )                     
+                                                                     `selected-text-format` = "count > 7"),  multiple = TRUE
+                                          ),
+                                          textInput("comp7_name", label="Description", value = "")                     
                                    ),
                                    column(width=2, offset =0,
-                                          pickerInput(inputId = "comp_8N", label = "Comp8_N",  choices = "None", 
+                                          span(textOutput("comp8_text"), style="color:blue; font-size:20px"),
+                                          pickerInput(inputId = "comp_8N", label = "Numerator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
-                                                                     `selected-text-format` = "count > 3"),  multiple = TRUE
+                                                                     `selected-text-format` = "count > 7"),  multiple = TRUE
                                           ),
-                                          pickerInput(inputId = "comp_8D", label = "Comp8_D",  choices = "None", 
+                                          pickerInput(inputId = "comp_8D", label = "Denominator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
-                                                                     `selected-text-format` = "count > 3"),  multiple = TRUE
-                                          )  
+                                                                     `selected-text-format` = "count > 7"),  multiple = TRUE
+                                          ),
+                                          textInput("comp8_name", label="Description", value = "")  
                                    ),
                                    column(width=2, offset =0,
-                                          pickerInput(inputId = "comp_9N", label = "Comp9_N",  choices = "None", 
+                                          span(textOutput("comp9_text"), style="color:blue; font-size:20px"),
+                                          pickerInput(inputId = "comp_9N", label = "Numerator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
-                                                                     `selected-text-format` = "count > 3"),  multiple = TRUE
+                                                                     `selected-text-format` = "count > 7"),  multiple = TRUE
                                           ),
-                                          pickerInput(inputId = "comp_9D", label = "Comp9_D",  choices = "None", 
+                                          pickerInput(inputId = "comp_9D", label = "Denominator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
-                                                                     `selected-text-format` = "count > 3"),  multiple = TRUE
-                                          )  
+                                                                     `selected-text-format` = "count > 7"),  multiple = TRUE
+                                          ),
+                                          textInput("comp9_name", label="Description", value = "")  
                                    ),
                                    column(width=2, offset =0,
-                                          pickerInput(inputId = "comp_10N", label = "Comp10_N",  choices = "None", 
+                                          span(textOutput("comp10_text"), style="color:blue; font-size:20px"),
+                                          pickerInput(inputId = "comp_10N", label = "Numerator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
-                                                                     `selected-text-format` = "count > 3"),  multiple = TRUE
+                                                                     `selected-text-format` = "count > 7"),  multiple = TRUE
                                           ),
-                                          pickerInput(inputId = "comp_10D", label = "Comp10_D",  choices = "None", 
+                                          pickerInput(inputId = "comp_10D", label = "Denominator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
-                                                                     `selected-text-format` = "count > 3"),  multiple = TRUE
-                                          )  
+                                                                     `selected-text-format` = "count > 7"),  multiple = TRUE
+                                          ),
+                                          textInput("comp10_name", label="Description", value = "")  
                                    ) ,            
                                    column(width=2, offset =0,
-                                          pickerInput(inputId = "comp_11N", label = "Comp11_N",  choices = "None", 
+                                          span(textOutput("comp11_text"), style="color:blue; font-size:20px"),
+                                          pickerInput(inputId = "comp_11N", label = "Numerator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
-                                                                     `selected-text-format` = "count > 3"),  multiple = TRUE
+                                                                     `selected-text-format` = "count > 7"),  multiple = TRUE
                                           ),
-                                          pickerInput(inputId = "comp_11D", label = "Comp11_D",  choices = "None", 
+                                          pickerInput(inputId = "comp_11D", label = "Denominator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
-                                                                     `selected-text-format` = "count > 3"),  multiple = TRUE
-                                          )  
+                                                                     `selected-text-format` = "count > 7"),  multiple = TRUE
+                                          ),
+                                          textInput("comp11_name", label="Description", value = "")  
                                    ),            
                                    column(width=2, offset =0,
-                                          pickerInput(inputId = "comp_12N", label = "Comp12_N",  choices = "None", 
+                                          span(textOutput("comp12_text"), style="color:blue; font-size:20px"),
+                                          pickerInput(inputId = "comp_12N", label = "Numerator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
-                                                                     `selected-text-format` = "count > 3"),  multiple = TRUE
+                                                                     `selected-text-format` = "count > 7"),  multiple = TRUE
                                           ),
-                                          pickerInput(inputId = "comp_12D", label = "Comp12_D",  choices = "None", 
+                                          pickerInput(inputId = "comp_12D", label = "Denominator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
-                                                                     `selected-text-format` = "count > 3"),  multiple = TRUE
-                                          )  
+                                                                     `selected-text-format` = "count > 7"),  multiple = TRUE
+                                          ),
+                                          textInput("comp12_name", label="Description", value = "")  
                                    )
                                  ),
                                  fluidRow(align="center",
@@ -1555,17 +1574,10 @@ shinyUI(
                          )
                        )
 
-              ) #end tab panel              
-              
-              
-              
-              
+              ) #end tab panel            
               
              ) # end of navbar panel
     ),  #end of tab panel
-    
-    
-    
     
     
     
@@ -1740,16 +1752,12 @@ shinyUI(
         
         tabPanel("StringDB", id="string",
                  fluidRow( 
-                   column(width=2, offset =0,
-                          actionButton("setup_string", label = "String Setup", width = 150,
-                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
-                   ),
                    column(width=3, offset =0,
                           selectInput("select_data_comp_string", label = "comparison", 
                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
                                       selected = 1)
                    ),
-                   column(width=3, offset =0,  
+                   column(width=2, offset =0,  
                           radioButtons("string_direction", label="Fold Change Direction", choices = list("Up", "Down", "UpDown"),  selected = "Up", width = 200)
                    ),
                    column(width=1, offset =0,
@@ -1757,7 +1765,7 @@ shinyUI(
                                       choices = list(10, 25, 50, 75, 100), #150, 200, 250, 300, 350, 400), 
                                       selected = 100)
                    ),                   
-                   column(width=2, offset =0,
+                   column(width=2, offset =2,
                           actionButton("go_string", label = "String Analysis", width = 150,
                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
                    )
