@@ -18,6 +18,7 @@ string_id_call <- function(content_type, df, row_start, row_stop)
       res_id <- GET(string_id_api)
       test_id <- rawToChar(res_id$content)
       df_temp <- read_delim(test_id, delim="\t", col_names = TRUE)
+      gc()
       return(df_temp)
   }
 
@@ -25,11 +26,29 @@ string_id_call <- function(content_type, df, row_start, row_stop)
 #---------------------------------------------------------------------
 
 
-  
-
 setup_string <- function(session, input, output){
   cat(file=stderr(), str_c("string setup...1"), "\n")
+  
+  require(STRINGdb)
   require(httr)
+  
+  string_version <- "11.5"
+  
+  if(input$select_organism=="Human"){
+    dpmsr_set$string$string_db <<- STRINGdb$new(version=string_version, species=9606,
+                                                score_threshold=0, input_directory=dpmsr_set$file$string)
+  }
+  
+  if(input$select_organism=="Mouse"){
+    dpmsr_set$string$string_db <<- STRINGdb$new( version=string_version, species=10090,
+                                                 score_threshold=0, input_directory=dpmsr_set$file$string)
+  } 
+  
+  if(input$select_organism=="Rat"){
+    dpmsr_set$string$string_db <<- STRINGdb$new( version=string_version, species=10116,
+                                                 score_threshold=0, input_directory=dpmsr_set$file$string)
+  } 
+  
   #get stringIDs for all proteins in set
   df <- dpmsr_set$data$final$impute
   
@@ -81,8 +100,10 @@ setup_string <- function(session, input, output){
     cat(file=stderr(), str_c("data for ", comp_name, " has ", nrow(df), " lines"), "\n")
   }
   
-
+  gc()
   cat(file=stderr(), "function setup_string complete...", "\n")
+  
+  return()
 }  
   
 #-------------------------------------------------------------------
@@ -190,6 +211,7 @@ run_string <- function(session, input, output){
   dpmsr_set$string$link_network <<- link_network
   #dpmsr_set$string$link_network <<- substr(link_network, 1, nchar(link_network)-2)
   
+  gc()
   return(list("string_file_name" = string_file_name))
 }
 
@@ -221,9 +243,12 @@ run_string_enrich <- function(input, output){
   df <- df[order(-df$logFC),]
   
   hits <- df$stringId
+  
   cat(file=stderr(), str_c("number of hits searched...", length(hits)), "\n")
   
   enrichment <- dpmsr_set$string$string_db$get_enrichment(hits) #, category = input$select_string_enrich )
+  
+  gc()
   cat(file=stderr(), str_c("enrichment output...", nrow(enrichment)), "\n")
   
 return(enrichment)

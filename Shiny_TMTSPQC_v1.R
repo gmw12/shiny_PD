@@ -45,7 +45,7 @@ tmt_spqc_normalize <- function(data_in){
     irs_set <- cbind(data_in[1:dpmsr_set$y$info_columns], irs_set)
     #assign(str_c("Test_",i,"_Step1_data"), irs_set, envir = .GlobalEnv)
     assign(str_c("IRS_",i,"_Step1_data"), irs_set)
-    Simple_Excel(irs_set, str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Step1.xlsx", collapse = " "))
+    Simple_Excel(irs_set, "Step1", str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Step1.xlsx", collapse = " "))
     bar_plot_TMT(irs_set, str_c("TMT", i, "_IRS_Step1"),dpmsr_set$file$TMT_dir,irs_design)
     #remove empty rows 
     irs_set$na_count <- apply(irs_set[(dpmsr_set$y$info_columns+1):ncol(irs_set)], 1, function(x) sum(!is.na(x)))
@@ -54,7 +54,7 @@ tmt_spqc_normalize <- function(data_in){
     #irs_set[is.na(irs_set)] <- 0.0
     #assign(str_c("Test_",i,"_Step2_data"), irs_set, envir = .GlobalEnv)
     assign(str_c("IRS_",i,"_Step2_data"), irs_set)
-    Simple_Excel(irs_set, str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Step2.xlsx", collapse = " "))
+    Simple_Excel(irs_set, "Step2", str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Step2.xlsx", collapse = " "))
     #bar_plot_TMT(irs_set, str_c("TMT", i, "_IRS_Step2"), dpmsr_set$file$TMT_dir,irs_design)
   } 
   
@@ -139,7 +139,7 @@ tmt_spqc_normalize <- function(data_in){
     irs_df_temp <- 2^irs_df_temp
     irs_df_temp <- cbind(irs_info, irs_df_temp)
     assign(str_c("IRS_",i,"_Step3_data"), irs_df_temp)
-    Simple_Excel(irs_set, str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Step3.xlsx", collapse = " "))
+    Simple_Excel(irs_set, "Step3", str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Step3.xlsx", collapse = " "))
     #bar_plot_TMT(irs_set, str_c("TMT", i, "_IRS_Step3"), dpmsr_set$file$TMT_dir,irs_design)
 }
 
@@ -172,7 +172,7 @@ tmt_spqc_normalize <- function(data_in){
       }
       
       assign(str_c("IRS_",i,"_Step4_data"), filter_data)
-      Simple_Excel(filter_data, str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Step4.xlsx", collapse = " "))
+      Simple_Excel(filter_data, "Step4",  str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Step4.xlsx", collapse = " "))
       bar_plot_TMT(filter_data, str_c("TMT", i, "_IRS_Step4"), dpmsr_set$file$TMT_dir, get(str_c("TMT",i,"_design")))
     }else{
       #assign(str_c("Test_",i,"_Step4_data"), get(str_c("IRS_",i,"_Step3_data")), envir = .GlobalEnv) 
@@ -202,7 +202,7 @@ tmt_spqc_normalize <- function(data_in){
         protein_data <- data.frame(ungroup(protein_data))
         assign(str_c("IRS_",i,"_Step5_data"), protein_data)
         #assign(str_c("Test_",i,"_Step5_data"), protein_data, envir = .GlobalEnv)
-        Simple_Excel(protein_data, str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Step5.xlsx", collapse = " "))
+        Simple_Excel(protein_data, "Step5", str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Step5.xlsx", collapse = " "))
         #bar_plot_TMT(protein_data, str_c("TMT", i, "_IRS_Step5"), dpmsr_set$file$TMT_dir, get(str_c("TMT",i,"_design")))
     }
     #set info column for protein data
@@ -228,7 +228,7 @@ tmt_spqc_normalize <- function(data_in){
       temp_data <- subset(temp_data, temp_data$Accession %in% common_data)
       temp_data <- temp_data[order(temp_data$Accession),]
       assign(str_c("IRS_",i,"_Step6_data"), temp_data)
-      Simple_Excel(temp_data, str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Step6.xlsx", collapse = " "))
+      Simple_Excel(temp_data, "Step6", str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Step6.xlsx", collapse = " "))
       #bar_plot_TMT(temp_data, str_c("TMT", i, "_IRS_Step6"), dpmsr_set$file$TMT_dir, get(str_c("TMT",i,"_design")))
       #combine peptide count from multiple sets into one column for output later
       if(i==1){
@@ -254,7 +254,7 @@ tmt_spqc_normalize <- function(data_in){
       temp_data <- temp_data[order(temp_data$uniqueID),]
       temp_data$uniqueID <- NULL
       assign(str_c("IRS_",i,"_Step6_data"), temp_data)
-      Simple_Excel(temp_data, str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Step6.xlsx", collapse = " "))
+      Simple_Excel(temp_data, "Step6",  str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Step6.xlsx", collapse = " "))
       #bar_plot_TMT(temp_data, str_c("TMT", i, "_IRS_Step6"), dpmsr_set$file$TMT_dir, get(str_c("TMT",i,"_design")))
     }
   } 
@@ -297,7 +297,7 @@ tmt_spqc_normalize <- function(data_in){
     temp_data[(info_columns+1):(info_columns+tmt_kit)] <- 
       temp_data[(info_columns+1):(info_columns+tmt_kit)]/spqc_data$fact
     assign(str_c("IRS_",i,"_Step7_data"), temp_data)
-    Simple_Excel(temp_data, str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Step7.xlsx", collapse = " "))
+    Simple_Excel(temp_data,"Step7",  str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Step7.xlsx", collapse = " "))
     #bar_plot_TMT(temp_data, str_c("TMT", i, "_IRS_Step7"), dpmsr_set$file$TMT_dir, get(str_c("TMT",i,"_design")))
   }
   
@@ -326,7 +326,7 @@ tmt_spqc_normalize <- function(data_in){
   final_SL_IRS <- final_SL_IRS[ ,set_original$reorder]
   final_SL_IRS <- cbind(final_info_columns, final_SL_IRS)
   
-  Simple_Excel(final_SL_IRS, str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Final.xlsx", collapse = " "))
+  Simple_Excel(final_SL_IRS, "Step_Final",  str_c(dpmsr_set$file$TMT_dir, "TMT", i , "_Final.xlsx", collapse = " "))
   bar_plot_TMT(final_SL_IRS, str_c("TMT_IRS_Final"), dpmsr_set$file$TMT_dir, dpmsr_set$design)
   
 

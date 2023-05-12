@@ -28,7 +28,8 @@ update_widget_startup <- function(session, input, output){
   }
   
   cat(file=stderr(), "update_widget_startup...4", "\n")
-
+  updateCheckboxInput(session, "primary_group", value = as.logical(dpmsr_set$x$primary_group)) 
+  
   updateSelectInput(session, "razor", selected = dpmsr_set$x$peptides_to_use )
 
   if (as.logical(dpmsr_set$x$peptide_isoform)) {test <- 1}else{test<-0}
@@ -69,6 +70,7 @@ update_widget_startup <- function(session, input, output){
 
 #-Filter--------------------------------------------------------------------- 
 update_widget_filter <- function(session, input, output){
+  cat(file=stderr(), "update_widget_filter...", "\n")
   
   updateNumericInput(session, "minimum_measured_all", value = as.numeric(dpmsr_set$x$minimum_measured_all))
   
@@ -93,6 +95,7 @@ update_widget_filter <- function(session, input, output){
   
   #-Norm---------------------------------------------------------------------
 update_widget_norm <- function(session, input, output){
+  cat(file=stderr(), "update_widget_norm...", "\n")
   
   if (as.logical(dpmsr_set$x$sl)) {sl_norm <- 1}else{sl_norm<-0}
   updateCheckboxInput(session, "checkbox_n1", value = sl_norm)
@@ -141,7 +144,8 @@ update_widget_norm <- function(session, input, output){
 
 #-Impute---------------------------------------------------------------------
   update_widget_impute <- function(session, input, output){ 
-    
+    cat(file=stderr(), "update_widget_impute...", "\n")
+      
     if(dpmsr_set$x$impute_method == "Duke"){impute_method <- 1}
       else if(dpmsr_set$x$impute_method == "Floor"){impute_method <- 2}
       else if(dpmsr_set$x$impute_method == "Minimum"){impute_method <- 3}
@@ -178,6 +182,7 @@ update_widget_norm <- function(session, input, output){
     
   #---Plots-------------------------------------------------------------------------------
 update_widget_post_processing <- function(session, input, output){ 
+  cat(file=stderr(), "update_widget_post_processing...", "\n")
   
   if (as.logical(dpmsr_set$x$sl)) {sl_norm <- 1}else{sl_norm<-0}
   updateCheckboxInput(session, "checkbox_nc1", value = sl_norm)
@@ -227,34 +232,6 @@ update_widget_post_processing <- function(session, input, output){
   
   updateTextInput(session, "final_stats_name", value = str_c("Final_", dpmsr_set$data$stats$final_comp,  "_stats.xlsx"))
   
-  #----------------------------------------------------------------------
-  #updates choice list only (not what was selected)
-  updatePickerInput(session, "comp_1N", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  updatePickerInput(session, "comp_2N", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  updatePickerInput(session, "comp_3N", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  updatePickerInput(session, "comp_4N", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  updatePickerInput(session, "comp_5N", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  updatePickerInput(session, "comp_6N", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  updatePickerInput(session, "comp_7N", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  updatePickerInput(session, "comp_8N", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  updatePickerInput(session, "comp_9N", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  updatePickerInput(session, "comp_10N", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  updatePickerInput(session, "comp_11N", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  updatePickerInput(session, "comp_12N", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  updatePickerInput(session, "comp_1D", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  updatePickerInput(session, "comp_2D", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  updatePickerInput(session, "comp_3D", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  updatePickerInput(session, "comp_4D", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  updatePickerInput(session, "comp_5D", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  updatePickerInput(session, "comp_6D", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  updatePickerInput(session, "comp_7D", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  updatePickerInput(session, "comp_8D", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  updatePickerInput(session, "comp_9D", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  updatePickerInput(session, "comp_10D", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  updatePickerInput(session, "comp_11D", choices = dpmsr_set$y$uniquegroups, selected= "-")
-  updatePickerInput(session, "comp_12D", choices = dpmsr_set$y$uniquegroups, selected= "-")  
-  updatePickerInput(session, "comp_spqc", choices = c(dpmsr_set$y$uniquegroups, "None"), selected= "-")  
-  
   # update what was previously selected
   try((
     if(as.numeric(dpmsr_set$y$stats$comp_number) > 0){
@@ -292,6 +269,7 @@ update_widget_post_processing <- function(session, input, output){
 #-Stats---------------------------------------------------------------------
 
 update_widget_stats <- function(session, input, output){
+  cat(file=stderr(), "update_widget_stats...", "\n")
   
   updateCheckboxInput(session, "pair_comp", value = as.logical(dpmsr_set$x$pair_comp))
   updateNumericInput(session, "pvalue_cutoff", value = as.numeric(dpmsr_set$x$pvalue_cutoff  ))
@@ -306,11 +284,57 @@ update_widget_stats <- function(session, input, output){
   updateCheckboxInput(session, "peptide_cv_filter", value = as.logical(dpmsr_set$y$peptide_cv_filter))
   updateNumericInput(session, "peptide_cv_factor", value = as.numeric(dpmsr_set$y$peptide_cv_factor  ))
   
+  update_stat_choices(session, input, output)  
 }
 
+#----------------------------------------------------------------------
+update_stat_choices <- function(session, input, output){
+  cat(file=stderr(), "update_widget_stat_choices...", "\n")
+  #updates choice list only (not what was selected)
+  updatePickerInput(session, "comp_1N", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "comp_2N", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "comp_3N", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "comp_4N", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "comp_5N", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "comp_6N", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "comp_7N", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "comp_8N", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "comp_9N", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "comp_10N", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "comp_11N", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "comp_12N", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "comp_1D", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "comp_2D", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "comp_3D", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "comp_4D", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "comp_5D", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "comp_6D", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "comp_7D", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "comp_8D", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "comp_9D", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "comp_10D", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "comp_11D", choices = dpmsr_set$y$uniquegroups, selected= "-")
+  updatePickerInput(session, "comp_12D", choices = dpmsr_set$y$uniquegroups, selected= "-")  
+  updatePickerInput(session, "comp_spqc", choices = c(dpmsr_set$y$uniquegroups, "None"), selected= "-")  
+  
+  updateTextInput(session, "comp1_name", value = dpmsr_set$y$stats$comp1_name)
+  updateTextInput(session, "comp2_name", value = dpmsr_set$y$stats$comp2_name)
+  updateTextInput(session, "comp3_name", value = dpmsr_set$y$stats$comp3_name)
+  updateTextInput(session, "comp4_name", value = dpmsr_set$y$stats$comp4_name)
+  updateTextInput(session, "comp5_name", value = dpmsr_set$y$stats$comp5_name)
+  updateTextInput(session, "comp6_name", value = dpmsr_set$y$stats$comp6_name)
+  updateTextInput(session, "comp7_name", value = dpmsr_set$y$stats$comp7_name)
+  updateTextInput(session, "comp8_name", value = dpmsr_set$y$stats$comp8_name)
+  updateTextInput(session, "comp9_name", value = dpmsr_set$y$stats$comp9_name)
+  updateTextInput(session, "comp10_name", value = dpmsr_set$y$stats$comp10_name)  
+  updateTextInput(session, "comp11_name", value = dpmsr_set$y$stats$comp11_name)
+  updateTextInput(session, "comp12_name", value = dpmsr_set$y$stats$comp12_name)
+  
+  }
 
 #--All-----------------------------------------------------------------
 update_widget_all <- function(session, input, output){ 
+  cat(file=stderr(), "update_widget_all...", "\n")
   update_widget_startup(session, input, output)
   update_widget_filter(session, input, output)
   update_widget_norm(session, input, output)
@@ -323,6 +347,7 @@ update_widget_all <- function(session, input, output){
 
 #--All-----------------------------------------------------------------
 update_comparisons <- function(session, input, output){ 
+  cat(file=stderr(), "update_widget_comparisons...", "\n")
   updateSelectInput(session, "select_data_comp_motif", choices = dpmsr_set$y$stats$groups$comp_name)
   updateSelectInput(session, "select_data_comp_wiki", choices = dpmsr_set$y$stats$groups$comp_name)
   updateSelectInput(session, "select_data_comp_profile", choices = dpmsr_set$y$stats$groups$comp_name)
@@ -333,8 +358,6 @@ update_comparisons <- function(session, input, output){
   updateSelectInput(session, "stats_oneprotein_plot_comp", choices = dpmsr_set$y$stats$groups$comp_name, selected = dpmsr_set$y$stats$groups$comp_name[1])
   updateSelectInput(session, "stats_onepeptide_plot_comp", choices = dpmsr_set$y$stats$groups$comp_name, selected = dpmsr_set$y$stats$groups$comp_name[1])
   updateSelectInput(session, "stats_select_data_comp", choices = dpmsr_set$y$stats$groups$comp_name)
-  
-  
 }
 
 

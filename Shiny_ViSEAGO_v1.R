@@ -27,7 +27,7 @@ run_go_analysis <- function(session, input, output){
     topgodata <- ViSEAGO::create_topGOdata(
       geneSel=selection,
       allGenes=background,
-      gene2GO=dpmsr_set$pathway$myGENE2GO, 
+      gene2GO=myGENE2GO, 
       ont=input$select_ont_go,
       nodeSize=5
     )
@@ -58,9 +58,9 @@ run_go_analysis <- function(session, input, output){
                        classicKS = resultKS, elimKS = resultKS.elim,
                        orderBy = "elimKS", ranksOf = "classicFisher", topNodes = 10) 
     
-  Simple_Excel(allRes, str_c(dpmsr_set$file$string, "GO_", input$select_data_comp_go, "_", 
+  Simple_Excel_bg(allRes, "Go", str_c(dpmsr_set$file$string, "GO_", input$select_data_comp_go, "_", 
                           input$select_ont_go, ".xlsx", collapse = " "))
-  
+  gc()
   return(allRes)
 }
 
@@ -82,7 +82,7 @@ setup_go_volcano <- function(session, input, output){
   
   cat(file=stderr(), str_c("Setup go volcano...2" ), "\n")
   
-  myGENE2GO_df <- dpmsr_set$pathway$myGENE2GO@BP
+  myGENE2GO_df <- myGENE2GO@BP
   
   myGENE2GO_lookup <- data.frame(names(myGENE2GO_df),stringsAsFactors = FALSE)
   myGENE2GO_lookup$Go <- 1
@@ -97,6 +97,7 @@ setup_go_volcano <- function(session, input, output){
   #Simple_Excel(myGENE2GO_lookup, "myGENE2GO_lookup.xlsx")
   dpmsr_set$data$pathway$mergedf <<- merge(x=volcano_df, y=myGENE2GO_lookup, by.x="Accession", by.y="Accession")
   #Simple_Excel(dpmsr_set$data$pathway$mergedf, "merged_df.xlsx")
+  gc()
   cat(file=stderr(), str_c("Setup go volcano...end" ), "\n")
 }
 
@@ -120,6 +121,7 @@ create_go_volcano <- function(session, input, output){
   colnames(testdf) <- c("Accession", "Description")
   volcano_data <- merge(x=sub_df, y=testdf, by.x="Accession", by.y="Accession")
   cat(file=stderr(), str_c("create_go_volcano...end" ), "\n")
+  gc()
   return(volcano_data)
 }
 

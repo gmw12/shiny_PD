@@ -72,7 +72,7 @@ protein_to_peptide <- function(){
   
   colnames(peptide_out)[1:12] <- c("Confidence", "Accession", "Description", "All.Proteins", "Sequence", "Modifications", "Unique", "Retention.Time","Da","mz", "Ion.Score", "q-Value")
   peptide_out <- subset(peptide_out, Accession %in% master_accessions )
-  Simple_Excel(peptide_out, str_c(dpmsr_set$file$extra_prefix,"_ProteinPeptide_to_Peptide_Raw.xlsx", collapse = " "))
+  Simple_Excel(peptide_out, "Protein_Peptide_Raw", str_c(dpmsr_set$file$extra_prefix,"_ProteinPeptide_to_Peptide_Raw.xlsx", collapse = " "))
   return(peptide_out)
 }
 
@@ -83,6 +83,7 @@ protein_to_protein <- function(){
   protein <- dpmsr_set$data$data_raw_protein
   
   if(dpmsr_set$x$data_source == "PD") {
+    cat(file=stderr(), "data type  -> PD", "\n")
     protein <- subset(protein, Master %in% ("IsMasterProtein"))
     protein <- subset(protein, Protein.FDR.Confidence.Combined %in% ("High"))
     protein_out <- protein %>% dplyr::select(Accession, Description, Number.of.Protein.Unique.Peptides, 
@@ -90,6 +91,7 @@ protein_to_protein <- function(){
     colnames(protein_out)[1:3] <- c("Accession", "Description", "Unique.Peptides")
   }
   else if (dpmsr_set$x$data_source == "SP"){ 
+    cat(file=stderr(), "data type  -> SP", "\n")
     protein_out <- protein %>% dplyr::select(contains("ProteinAccessions"), contains("ProteinDescriptions"), 
                                              contains("ProteinNames"), contains("Genes"), contains("Quantity"))
     precursor_col <- protein %>% dplyr::select(contains("Precursors"))
@@ -105,7 +107,7 @@ protein_to_protein <- function(){
   }else {
     cat(file=stderr(), "protein_to_protein data source not recognized", "\n")
   }
-  Simple_Excel(protein_out, str_c(dpmsr_set$file$extra_prefix,"_Protein_to_Protein_Raw.xlsx", collapse = " "))
+  Simple_Excel(protein_out, "Protein_Protein_Raw", str_c(dpmsr_set$file$extra_prefix, "_Protein_Protein_Raw", "_Protein_to_Protein_Raw.xlsx", collapse = " "))
 return(protein_out)
 }
 
@@ -129,7 +131,7 @@ peptide_to_peptide <- function(){
   colnames(peptide_out)[1:10] <- c("Confidence", "Accession", "Description", "Sequence", "Modifications", "PositionMaster", "ModificationMaster",
                                   "Retention.Time", "SVM.Score", "q-Value")
   peptide_out <- subset(peptide_out, Confidence %in% ("High"))
-  Simple_Excel(peptide_out, str_c(dpmsr_set$file$extra_prefix,"_Peptide_to_Peptide_Raw.xlsx", collapse = " "))
+  Simple_Excel(peptide_out, "Peptide_Peptide_Raw",  str_c(dpmsr_set$file$extra_prefix, "_Peptide_to_Peptide_Raw.xlsx", collapse = " "))
   cat(file=stderr(), "peptide_to_peptide complete", "\n")
   return(peptide_out)
 }
@@ -182,7 +184,7 @@ isoform_to_isoform <- function(){
                                        "Retention.Time", "SVM.Score", "q-Value")
       
       peptide_out <- subset(peptide_out, Confidence %in% ("High"))
-      Simple_Excel(peptide_out, str_c(dpmsr_set$file$extra_prefix,"_Isoform_to_Isoform_Raw.xlsx", collapse = " "))
+      Simple_Excel(peptide_out, "Protein_Peptide_Raw", str_c(dpmsr_set$file$extra_prefix, "_Isoform_to_Isoform_Raw.xlsx", collapse = " "))
       cat(file=stderr(), "isoform_to_isoform complete", "\n")
       return(peptide_out)
     }
