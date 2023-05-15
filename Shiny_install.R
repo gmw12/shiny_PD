@@ -41,11 +41,12 @@ for (pack in biocmanager_list){
 
 
 cat(file=stderr(), "Shiny_install.R.... github", "\n")
-library(devtools)
 
-devtools::install_github('omarwagih/rmotifx', dependencies = TRUE) 
+#library(devtools)
 
-devtools::install_github("jmwozniak/PTMphinder", dependencies = TRUE)
+#devtools::install_github('omarwagih/rmotifx', dependencies = TRUE) 
+
+#devtools::install_github("jmwozniak/PTMphinder", dependencies = TRUE)
 
 
 
