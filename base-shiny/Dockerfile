@@ -1,4 +1,4 @@
-FROM rocker/shiny-verse:4.0.2
+FROM rocker/shiny-verse:4.1.1 #4.0.2
 
 RUN apt-get update
 RUN apt-get install build-essential libgl1-mesa-dev libglu1-mesa-dev libv8-dev libglpk-dev libbz2-dev liblzma-dev -y
