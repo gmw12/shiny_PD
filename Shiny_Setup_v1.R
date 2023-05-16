@@ -104,6 +104,11 @@ load_dpmsr_set <- function(session, input, output){
   dpmsr_set$x$pathway_set <<- 0 
   dpmsr_set$x$motif_set <<- 0
   dpmsr_set$app_version <<- app_version
+  if (input$primary_group){
+    dpmsr_set$x$primary_group <<- TRUE
+  }else{
+    dpmsr_set$x$primary_group <<- FALSE
+  }
   
   cat(file=stderr(), "dpmsr_set created...", "\n")
 
