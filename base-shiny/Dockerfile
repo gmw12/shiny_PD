@@ -1,8 +1,9 @@
 FROM rocker/shiny-verse:4.1.1
 
 RUN apt-get update
-RUN apt-get install build-essential libgl1-mesa-dev libglu1-mesa-dev libv8-dev libglpk-dev libbz2-dev liblzma-dev python-pip3 -y
-RUN pip install directlfq
+RUN apt-get install build-essential libgl1-mesa-dev libglu1-mesa-dev libv8-dev libglpk-dev libbz2-dev liblzma-dev -y
+
+#RUN pip install directlfq
 
 ADD ./Shiny_install.R /code/Shiny_install.R
 RUN Rscript /code/Shiny_install.R
