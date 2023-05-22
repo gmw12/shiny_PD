@@ -122,7 +122,7 @@ project_overview <- function(session, input, output){
         ggplot2::labs(title="Peptide RT", 
              x="RT, min",
              y="Density")   +
-        ggplot2:: theme(plot.title = ggplot2::element_text(hjust = 0.5))  
+        ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5))  
       file_name <- stringr::str_c(plot_dir, "Peptide_RT.png")
       ggplot2::ggsave(file_name, width=5, height=3)
     }

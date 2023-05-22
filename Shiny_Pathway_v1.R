@@ -2,6 +2,16 @@ set_pathway <- function(input, output, session){
   
   cat(file=stderr(), "Set Pathway..." , "\n")
   tax_choice <- input$select_organism
+
+  if(!is.null(dpmsr_set$tax_choice)){
+    if (tax_choice == dpmsr_set$tax_choice){
+      cat(file=stderr(), "Tax choice same as previous..." , "\n")
+    }else{
+      cat(file=stderr(), "Tax has changed..." , "\n")
+      dpmsr_set$x$pathway_set <<- 0
+    }
+  }
+  
   cat(file=stderr(), str_c("Pathway tax choice...", tax_choice), "\n")
   
   string_dir <- str_c(getwd(), "/")
@@ -25,12 +35,20 @@ set_pathway <- function(input, output, session){
     tax_db <<- org.Rn.eg.db} 
   
 
-  cat(file=stderr(), "Set String..." , "\n")
-  setup_string(session, input, output)
+  
+  if (dpmsr_set$x$pathway_set == 1) {
+    cat(file=stderr(), "Pathway previously set, skipping string download..." , "\n")
+  }else{
+    cat(file=stderr(), "Set String..." , "\n")
+    setup_string(session, input, output)
+    cat(file=stderr(), "String setup complete..." , "\n")
+  }
   
   dpmsr_set$x$pathway_set <<- 1
+  dpmsr_set$tax_choice <<- tax_choice
+  
   gc()
-  cat(file=stderr(), "Pathway/String setup complete..." , "\n")
+  cat(file=stderr(), "Pathway setup complete..." , "\n")
 }
 
 
