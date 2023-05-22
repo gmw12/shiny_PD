@@ -12,6 +12,10 @@ set_user(session, input, output)
 
 
 shinyServer(function(input, output, session) {
+  
+    if(is.null(site_user)){
+      set_user(session, input, output)
+    }
 
     cat(file=stderr(), "Shiny Server started ...1", "\n")
     useShinyjs()
