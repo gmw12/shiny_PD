@@ -1682,7 +1682,7 @@ observeEvent(input$data_show, {
         #try(rm("dpmsr_set", pos = .GlobalEnv, inherits = FALSE))
         cat(file=stderr(), str_c("Deleting DPMSR, still exists? ", exists('dpmsr_set')), "\n")
         gc()
-        file_touch("restart.txt", access_time = Sys.time(), modification_time = Sys.time())
+        #file_touch("restart.txt", access_time = Sys.time(), modification_time = Sys.time())
       }
     })
     
