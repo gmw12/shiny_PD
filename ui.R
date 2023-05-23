@@ -260,7 +260,7 @@ shinyUI(
                         textOutput("text_impute_ptm"),
                         br(),
                         numericInput("bottom_x", label="Bottom X%", value = "5"),
-                        circle = TRUE, status = "info", icon = icon("gear"), width = "500px", size = "sm",
+                        circle = TRUE, status = "info", icon = icon("cogs"), width = "500px", size = "sm",
                         tooltip = tooltipOptions(title = "More Imputation Options")
                         ),
                       hr(),
@@ -648,7 +648,7 @@ shinyUI(
                                             checkboxInput("checkbox_report_accession", label = "Report Specific Accession(s) Only"),
                                             textInput("report_accession", label="Protein Accessions for Final Report", value = "Enter value"),
                                             checkboxInput("checkbox_add_gene_column", label = "Add gene name column"),
-                                            circle = TRUE, status = "info", icon = icon("gear"), width = "300px", size = "sm",
+                                            circle = TRUE, status = "info", icon = icon("cogs"), width = "300px", size = "sm",
                                             tooltip = tooltipOptions(title = "Click to see more options!")
                                      )
                                    ),
@@ -854,7 +854,7 @@ shinyUI(
                                                         max = 50, value = 11),
                                             sliderInput("stats_barplot_title_size", label = h5("Title Size"), min = 10, 
                                                         max = 50, value = 20),
-                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            circle = TRUE, status = "danger", icon = icon("cogs"), width = "300px", size = "sm",
                                             tooltip = tooltipOptions(title = "Click to see inputs !")
                                           ),
                                           div(
@@ -872,7 +872,7 @@ shinyUI(
                                                         max = 50, value = 11),
                                             sliderInput("stats_boxplot_title_size", label = h5("Title Size"), min = 10, 
                                                         max = 50, value = 20),
-                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            circle = TRUE, status = "danger", icon = icon("cogs"), width = "300px", size = "sm",
                                             tooltip = tooltipOptions(title = "Click to see inputs !")
                                           ),
                                           div(
@@ -897,7 +897,7 @@ shinyUI(
                                                         max = 50, value = 20),
                                             sliderInput("stats_pca2d_dot_size", label = h5("Point Size"), min = 1, 
                                                         max = 20, value = 4),
-                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            circle = TRUE, status = "danger", icon = icon("cogs"), width = "300px", size = "sm",
                                             tooltip = tooltipOptions(title = "Click to see inputs !")
                                           ),
                                           div(
@@ -918,7 +918,7 @@ shinyUI(
                                                         max = 50, value = 20),
                                             sliderInput("stats_pca3d_dot_size", label = h5("Point Size"), min = 1, 
                                                         max = 10, value = 2),
-                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            circle = TRUE, status = "danger", icon = icon("cogs"), width = "300px", size = "sm",
                                             tooltip = tooltipOptions(title = "Click to see inputs !")
                                           ),
                                           div(
@@ -939,7 +939,7 @@ shinyUI(
                                                         max = 50, value = 20),
                                             colourpicker::colourInput("cluster_high_color", "Select High Color", "#FF3366"),
                                             colourpicker::colourInput("cluster_low_color", "Select Low Color", "#009933"),
-                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            circle = TRUE, status = "danger", icon = icon("cogs"), width = "300px", size = "sm",
                                             tooltip = tooltipOptions(title = "Click to see inputs !")
                                           ),
                                           div(
@@ -952,7 +952,7 @@ shinyUI(
                                    column(width=6, offset =0,
                                           dropdownButton(
                                             textInput("stats_heatmap_title", label="plot title", value = "heatmap", width = 200),
-                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            circle = TRUE, status = "danger", icon = icon("cogs"), width = "300px", size = "sm",
                                             tooltip = tooltipOptions(title = "Click to see inputs !")
                                           ),
                                           div(
@@ -989,7 +989,7 @@ shinyUI(
                                                         max = 10, value = 3),
                                             sliderInput("volcano_highlight_alpha", label = h5("Transparency"), min = 0.1, 
                                                         max = 1, value = 0.5),
-                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            circle = TRUE, status = "danger", icon = icon("cogs"), width = "300px", size = "sm",
                                             tooltip = tooltipOptions(title = "Click for help on Volcano protein highlights")
                                           )
                                    ),
@@ -1019,7 +1019,7 @@ shinyUI(
                                             sliderInput("volcano1_stats_plot_title_size", label = h5("Title Size"), min = 10, 
                                                         max = 50, value = 20), 
                                             
-                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            circle = TRUE, status = "danger", icon = icon("cogs"), width = "300px", size = "sm",
                                             tooltip = tooltipOptions(title = "Click to see inputs !")
                                           ),
                                           div(
@@ -1044,7 +1044,7 @@ shinyUI(
                                             sliderInput("volcano2_stats_plot_title_size", label = h5("Title Size"), min = 10, 
                                                         max = 50, value = 20), 
                                             
-                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            circle = TRUE, status = "danger", icon = icon("cogs"), width = "300px", size = "sm",
                                             tooltip = tooltipOptions(title = "Click to see inputs !")
                                           ),
                                           div(
@@ -1072,7 +1072,7 @@ shinyUI(
                                             sliderInput("volcano3_stats_plot_title_size", label = h5("Title Size"), min = 10, 
                                                         max = 50, value = 20), 
                                             
-                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            circle = TRUE, status = "danger", icon = icon("cogs"), width = "300px", size = "sm",
                                             tooltip = tooltipOptions(title = "Click to see inputs !")
                                           ),
                                           div(
@@ -1097,7 +1097,7 @@ shinyUI(
                                             sliderInput("volcano4_stats_plot_title_size", label = h5("Title Size"), min = 10, 
                                                         max = 50, value = 20), 
                                             
-                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            circle = TRUE, status = "danger", icon = icon("cogs"), width = "300px", size = "sm",
                                             tooltip = tooltipOptions(title = "Click to see inputs !")
                                           ),
                                           div(
@@ -1125,7 +1125,7 @@ shinyUI(
                                             sliderInput("volcano5_stats_plot_title_size", label = h5("Title Size"), min = 10, 
                                                         max = 50, value = 20), 
                                             
-                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            circle = TRUE, status = "danger", icon = icon("cogs"), width = "300px", size = "sm",
                                             tooltip = tooltipOptions(title = "Click to see inputs !")
                                           ),
                                           div(
@@ -1150,7 +1150,7 @@ shinyUI(
                                             sliderInput("volcano6_stats_plot_title_size", label = h5("Title Size"), min = 10, 
                                                         max = 50, value = 20), 
                                             
-                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            circle = TRUE, status = "danger", icon = icon("cogs"), width = "300px", size = "sm",
                                             tooltip = tooltipOptions(title = "Click to see inputs !")
                                           ),
                                           div(
@@ -1178,7 +1178,7 @@ shinyUI(
                                             sliderInput("volcano7_stats_plot_title_size", label = h5("Title Size"), min = 10, 
                                                         max = 50, value = 20), 
                                             
-                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            circle = TRUE, status = "danger", icon = icon("cogs"), width = "300px", size = "sm",
                                             tooltip = tooltipOptions(title = "Click to see inputs !")
                                           ),
                                           div(
@@ -1203,7 +1203,7 @@ shinyUI(
                                             sliderInput("volcano8_stats_plot_title_size", label = h5("Title Size"), min = 10, 
                                                         max = 50, value = 20), 
                                             
-                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            circle = TRUE, status = "danger", icon = icon("cogs"), width = "300px", size = "sm",
                                             tooltip = tooltipOptions(title = "Click to see inputs !")
                                           ),
                                           div(
@@ -1231,7 +1231,7 @@ shinyUI(
                                             sliderInput("volcano9_stats_plot_title_size", label = h5("Title Size"), min = 10, 
                                                         max = 50, value = 20), 
                                             
-                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            circle = TRUE, status = "danger", icon = icon("cogs"), width = "300px", size = "sm",
                                             tooltip = tooltipOptions(title = "Click to see inputs !")
                                           ),
                                           div(
@@ -1256,7 +1256,7 @@ shinyUI(
                                             sliderInput("volcano10_stats_plot_title_size", label = h5("Title Size"), min = 10, 
                                                         max = 50, value = 20), 
                                             
-                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            circle = TRUE, status = "danger", icon = icon("cogs"), width = "300px", size = "sm",
                                             tooltip = tooltipOptions(title = "Click to see inputs !")
                                           ),
                                           div(
@@ -1284,7 +1284,7 @@ shinyUI(
                                             sliderInput("volcano11_stats_plot_title_size", label = h5("Title Size"), min = 10, 
                                                         max = 50, value = 20), 
                                             
-                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            circle = TRUE, status = "danger", icon = icon("cogs"), width = "300px", size = "sm",
                                             tooltip = tooltipOptions(title = "Click to see inputs !")
                                           ),
                                           div(
@@ -1309,7 +1309,7 @@ shinyUI(
                                             sliderInput("volcano12_stats_plot_title_size", label = h5("Title Size"), min = 10, 
                                                         max = 50, value = 20), 
                                             
-                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            circle = TRUE, status = "danger", icon = icon("cogs"), width = "300px", size = "sm",
                                             tooltip = tooltipOptions(title = "Click to see inputs !")
                                           ),
                                           div(
@@ -1428,7 +1428,7 @@ shinyUI(
                                                         max = 50, value = 11),
                                             sliderInput("stats_oneprotein_barplot_title_size", label = h5("Title Size"), min = 10, 
                                                         max = 50, value = 20),
-                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            circle = TRUE, status = "danger", icon = icon("cogs"), width = "300px", size = "sm",
                                             tooltip = tooltipOptions(title = "Click to see inputs !")
                                           ),
                                           div(
@@ -1448,7 +1448,7 @@ shinyUI(
                                                         max = 50, value = 11),
                                             sliderInput("stats_oneprotein_grouped_barplot_title_size", label = h5("Title Size"), min = 10, 
                                                         max = 50, value = 20),
-                                            circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                            circle = TRUE, status = "danger", icon = icon("cogs"), width = "300px", size = "sm",
                                             tooltip = tooltipOptions(title = "Click to see inputs !")
                                           ),
                                           div(
@@ -1521,7 +1521,7 @@ shinyUI(
                                               max = 50, value = 11),
                                   sliderInput("stats_onepeptide_barplot_title_size", label = h5("Title Size"), min = 10, 
                                               max = 50, value = 20),
-                                  circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                  circle = TRUE, status = "danger", icon = icon("cogs"), width = "300px", size = "sm",
                                   tooltip = tooltipOptions(title = "Click to see inputs !")
                                 ),
                                 div(
@@ -1544,7 +1544,7 @@ shinyUI(
                                   sliderInput("stats_onepeptide_grouped_barplot_axis_angle", label = h5("X-axis angle"), min = 0, 
                                               max = 90, value = 45),
                                   numericInput("stats_onepeptide_grouped_barplot_axis_vjust", label="X-axis vjust", value = 0.5),
-                                  circle = TRUE, status = "danger", icon = icon("gear"), width = "300px", size = "sm",
+                                  circle = TRUE, status = "danger", icon = icon("cogs"), width = "300px", size = "sm",
                                   tooltip = tooltipOptions(title = "Click to see inputs !")
                                 ),
                                 div(
