@@ -1,5 +1,5 @@
 options(shiny.maxRequestSize=4000*1024^2)
-app_version <<- '2023.05.11'
+app_version <<- '2023.05.23'
 
 cat(file=stderr(), "Server.R started", "\n")
 
@@ -13,6 +13,7 @@ set_user(session, input, output)
 
 shinyServer(function(input, output, session) {
   cat(file=stderr(), "Shiny Server started ...1", "\n")
+  cat(file=stderr(), str_c("Site user =  ", site_user), "\n")
   useShinyjs()
   
   if(!is.null(site_user)){
