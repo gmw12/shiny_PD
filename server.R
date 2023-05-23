@@ -19,6 +19,8 @@ shinyServer(function(input, output, session) {
     cat(file=stderr(), str_c("Site user =  ", site_user), "\n")
     }else{
       cat(file=stderr(), "Site user does not exist...", "\n")
+      source("Shiny_Libraries_v1.R")
+      source("Shiny_Functions_v1.R")
       set_user(session, input, output)
     }
 
