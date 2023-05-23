@@ -18,40 +18,75 @@ run_go_analysis <- function(session, input, output){
 
   atest <- go_df$Accession
     
-    selection <- atest
-    background <- data_in$Accession
+    selection <<- atest
+    background <<- data_in$Accession
+    ont_go <<- input$select_ont_go
+    
+    
     #-----------------------------
 
     cat(file=stderr(), str_c("Run go analysis...2" ), "\n")
     
-    topgodata <- ViSEAGO::create_topGOdata(
-      geneSel=selection,
-      allGenes=background,
-      gene2GO=myGENE2GO, 
-      ont=input$select_ont_go,
-      nodeSize=5
-    )
-
+    ont_go <- input$select_ont_go
+    
+    fun_topgodata <- function(selection, background, myGENE2GO, ont_go){
+      topgodata <- ViSEAGO::create_topGOdata(
+        geneSel=selection,
+        allGenes=background,
+        gene2GO=myGENE2GO, 
+        ont=ont_go,
+        nodeSize=5
+      )
+      return(topgodata)
+      }
+    topgodata <- callr::r_bg(fun_topgodata, args=list(selection, background, myGENE2GO, ont_go), supervise = TRUE)
+    topgodata$wait()
+    topgodata <- topgodata$get_result()
+    
+    
     cat(file=stderr(), str_c("Run go analysis...3" ), "\n")  
-    resultFisher<-topGO::runTest(
-      topgodata,
-      algorithm ="classic",
-      statistic = "fisher"
-    )
+    fun_resultFisher <- function(topgodata){
+      resultFisher<-topGO::runTest(
+        topgodata,
+        algorithm ="classic",
+        statistic = "fisher"
+      )
+      return(resultFisher)
+    }
+
     
     cat(file=stderr(), str_c("Run go analysis...4" ), "\n")
-    resultKS<-topGO::runTest(
-      topgodata,
-      algorithm ="classic",
-      statistic = "ks"
-    )
+    fun_resultKS <- function(topgodata){
+      resultKS<-topGO::runTest(
+        topgodata,
+        algorithm ="classic",
+        statistic = "ks"
+      )
+      return(resultKS)
+    }
     
     cat(file=stderr(), str_c("Run go analysis...5" ), "\n")
-    resultKS.elim<-topGO::runTest(
-      topgodata,
-      algorithm ="elim",
-      statistic = "ks"
-    )
+    fun_resultKS.elim <- function(topgodata){
+      resultKS.elim<-topGO::runTest(
+        topgodata,
+        algorithm ="elim",
+        statistic = "ks"
+      )
+      return(resultKS.elim)
+    }
+     
+    resultFisher <- callr::r_bg(fun_resultFisher, args=list(topgodata), supervise = TRUE)
+    resultKS <- callr::r_bg(fun_resultKS, args=list(topgodata), supervise = TRUE)
+    resultKS.elim <- callr::r_bg(fun_resultKS.elim, args=list(topgodata), supervise = TRUE)
+    
+    resultFisher$wait()
+    resultKS$wait()
+    resultKS.elim$wait()
+    
+    resultFisher <- resultFisher$get_result() 
+    resultKS <- resultKS$get_result()   
+    resultKS.elim <- resultKS.elim$get_result()  
+    
     
     cat(file=stderr(), str_c("Run go analysis...6" ), "\n")
     allRes <- GenTable(topgodata, classicFisher = resultFisher,
@@ -95,10 +130,10 @@ setup_go_volcano <- function(session, input, output){
   }
   
   #Simple_Excel(myGENE2GO_lookup, "myGENE2GO_lookup.xlsx")
-  dpmsr_set$data$pathway$mergedf <<- merge(x=volcano_df, y=myGENE2GO_lookup, by.x="Accession", by.y="Accession")
+  mergedf <- merge(x=volcano_df, y=myGENE2GO_lookup, by.x="Accession", by.y="Accession")
   #Simple_Excel(dpmsr_set$data$pathway$mergedf, "merged_df.xlsx")
-  gc()
   cat(file=stderr(), str_c("Setup go volcano...end" ), "\n")
+  mergedf
 }
 
 

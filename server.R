@@ -12,14 +12,18 @@ set_user(session, input, output)
 
 
 shinyServer(function(input, output, session) {
+  cat(file=stderr(), "Shiny Server started ...1", "\n")
+  useShinyjs()
+  
+  if(!is.null(site_user)){
+    cat(file=stderr(), str_c("Site user =  ", site_user), "\n")
+    set_user(session, input, output)
+  }
   
     if(is.null(site_user)){
       set_user(session, input, output)
     }
 
-    cat(file=stderr(), "Shiny Server started ...1", "\n")
-    useShinyjs()
-    
     if (site_user=="not_dpmsr"){
       shinyalert("Welcome!", "Thanks for using the DPMSR Visualization Tool.  Please contact greg.waitt@duke.edu with any questions or concerns.  We are actively trying to resolve disconnect issues.  Please rerun 'Set Comparisons' and 'Start Analysis' on the Stats Tab", type = "info")
     }
@@ -1234,7 +1238,7 @@ observeEvent(input$data_show, {
       #go_data <- goresult
       
       if ( class(go_data) != "try-error"){
-        setup_go_volcano(session, input, output)
+        dpmsr_set$data$pathway$mergedf <<- setup_go_volcano(session, input, output)
         #go_data <- try(go_data[order(go_data$pvalue),], silent = TRUE)
         
         output$go_table <- renderRHandsontable({
@@ -1686,7 +1690,7 @@ observeEvent(input$data_show, {
         #try(rm("dpmsr_set", pos = .GlobalEnv, inherits = FALSE))
         cat(file=stderr(), str_c("Deleting DPMSR, still exists? ", exists('dpmsr_set')), "\n")
         gc()
-        file_touch("restart.txt", access_time = Sys.time(), modification_time = Sys.time())
+        #file_touch("restart.txt", access_time = Sys.time(), modification_time = Sys.time())
       }
     })
     
