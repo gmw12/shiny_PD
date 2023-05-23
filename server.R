@@ -13,15 +13,12 @@ set_user(session, input, output)
 
 shinyServer(function(input, output, session) {
   cat(file=stderr(), "Shiny Server started ...1", "\n")
-  cat(file=stderr(), str_c("Site user =  ", site_user), "\n")
   useShinyjs()
   
-  if(!is.null(site_user)){
+  if(exists("site_user")){
     cat(file=stderr(), str_c("Site user =  ", site_user), "\n")
-    set_user(session, input, output)
-  }
-  
-    if(is.null(site_user)){
+    }else{
+      cat(file=stderr(), "Site user does not exist...", "\n")
       set_user(session, input, output)
     }
 
