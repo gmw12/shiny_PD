@@ -47,14 +47,17 @@ preprocess_filter <- function(session, input, output){
   # data stat info
 
   if (dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Peptide") {
+    cat(file=stderr(), "preprocess filter protein_peptide or peptide...", "\n")
     dpmsr_set$data$data_peptide <<- filter_data(session, input, output, dpmsr_set$data$data_peptide_start)
   } 
   
   if (dpmsr_set$x$raw_data_input=="Protein") {
+    cat(file=stderr(), "preprocess filter protein...", "\n")
     dpmsr_set$data$data_protein <<- filter_data(session, input, output, dpmsr_set$data$data_protein_start)
   } 
   
   if (as.logical(dpmsr_set$x$peptide_isoform)) {
+    cat(file=stderr(), "preprocess filter peptide_isoform...", "\n")
     dpmsr_set$data$data_peptide_isoform <<- filter_data(session, input, output, dpmsr_set$data$data_peptide_isoform_start)
   } 
   
@@ -63,8 +66,8 @@ preprocess_filter <- function(session, input, output){
 #----------------------------------------------------------------------------------------
 # Rearrange columns if raw data is psm, PD does not organize
 order_columns <- function(df){
-  annotate_df <- df[1:dpmsr_set$y$info_columns]
-  df <- df[(dpmsr_set$y$info_columns+1):dpmsr_set$y$total_columns]
+  annotate_df <- df[, 1:dpmsr_set$y$info_columns]
+  df <- df[, (dpmsr_set$y$info_columns+1):dpmsr_set$y$total_columns]
   df <- df[, (dpmsr_set$design$PD_Order)]
   df <- cbind(annotate_df, df)
   return(df)

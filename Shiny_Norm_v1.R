@@ -11,6 +11,7 @@ norm_prep <- function(){
   # not isoform data
   if ((dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Peptide") 
       && !as.logical(dpmsr_set$x$peptide_isoform)) {
+    cat(file=stderr(), "norm_prep protein_peptide or peptide (not isoform)...", "\n")
     dpmsr_set$data$norm_data <<- remove_duplicates(dpmsr_set$data$data_peptide)
     excel_list[["remove_duplicates"]] = dpmsr_set$data$norm_data
     if (as.logical(dpmsr_set$x$peptide_ptm_norm)){
@@ -24,6 +25,7 @@ norm_prep <- function(){
   #isoform data
   if ((dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Peptide") 
       && as.logical(dpmsr_set$x$peptide_isoform)) {
+    cat(file=stderr(), "norm_prep isoform...", "\n")
     dpmsr_set$data$norm_data <<- remove_duplicates(dpmsr_set$data$data_peptide)
     if (as.logical(dpmsr_set$x$peptide_ptm_norm)){
       dpmsr_set$data$norm_data <<- dpmsr_set$data$norm_data[grep(dpmsr_set$x$peptide_norm_grep, 
@@ -44,6 +46,7 @@ norm_prep <- function(){
 
   #add column for missing value (impute) statistics before datasets expand
   if (dpmsr_set$x$raw_data_input !="Protein") {
+    cat(file=stderr(), "norm_prep add column for missing data (not protein)...", "\n")
     dpmsr_set$data$norm_data <<- add_imputed_column(dpmsr_set$data$norm_data)
     dpmsr_set$data$data_to_norm <<- add_imputed_column(dpmsr_set$data$data_to_norm)
     dpmsr_set$y$info_columns <<- ncol(dpmsr_set$data$norm_data)-dpmsr_set$y$sample_number
@@ -52,6 +55,7 @@ norm_prep <- function(){
   
   #add column for missing value (impute) statistics before datasets expand
   if (dpmsr_set$x$raw_data_input =="Protein") {
+    cat(file=stderr(), "norm_prep add missing column protein...", "\n")
     dpmsr_set$data$norm_data <<- add_imputed_column_protein(dpmsr_set$data$norm_data)
     dpmsr_set$data$data_to_norm <<- add_imputed_column_protein(dpmsr_set$data$data_to_norm)
     dpmsr_set$y$info_columns <<- ncol(dpmsr_set$data$norm_data)-dpmsr_set$y$sample_number

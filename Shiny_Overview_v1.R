@@ -307,6 +307,8 @@ project_overview <- function(session, input, output){
     dpmsr_set$data$data_raw_decoyprotein <<- NULL
     dpmsr_set$data$data_features <<- NULL
     
+    test_rt$wait()
+    
     detach(package:Peptides, unload=TRUE)
     gc()
     cat(file=stderr(), "Project_overview... complete", "\n")

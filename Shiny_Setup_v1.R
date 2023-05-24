@@ -227,6 +227,7 @@ load_data <- function(session, input, volumes){
         c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Positions", "Abundance.F", "Retention.Time", "Ion.Score", "Percolator.SVM",
           "q.Value", "RT.in.min", "mz.in.Da.by.Search.Engine.", "Charge.by.Search.Engine.", "Quan.Info")
       ))
+      dpmsr_set$data$data_raw_peptide <<- as.data.frame(dpmsr_set$data$data_raw_peptide)
     } else if (grepl("_Proteins.txt", raw_name)){
       cat(file=stderr(), "assign raw protein data...", "\n")
       temp_df2$wait()
@@ -235,30 +236,31 @@ load_data <- function(session, input, volumes){
           "Number.of.Peptides", "Coverage.in.Percent", "Number.of.Unique.Peptides", "Number.of.Razor.Peptides",
           "Number.of.Protein.Unique.Peptides", "Abundance.F")
       ))
+      dpmsr_set$data$data_raw_protein <<- as.data.frame(dpmsr_set$data$data_raw_protein)
     } else if (grepl("_PSMs.txt", raw_name)){
       cat(file=stderr(), "assign raw psm data...", "\n")
       temp_df3$wait()
-      dpmsr_set$data$data_raw_psm <<- temp_df3$get_result()
+      dpmsr_set$data$data_raw_psm <<- as.data.frame(temp_df3$get_result())
     } else if (grepl("MSMSSpectrumInfo.txt", raw_name)){
       cat(file=stderr(), "assign raw msms data...", "\n")
       temp_df4$wait()
-      dpmsr_set$data$data_raw_msms <<- temp_df4$get_result()
+      dpmsr_set$data$data_raw_msms <<- as.data.frame(temp_df4$get_result())
     } else if (grepl("InputFiles.txt", raw_name)){
       cat(file=stderr(), "assign raw inputfile data...", "\n")
       temp_df5$wait()
-      dpmsr_set$data$data_raw_inputfiles <<- temp_df5$get_result()
+      dpmsr_set$data$data_raw_inputfiles <<- as.data.frame(temp_df5$get_result())
     } else if (grepl("_DecoyPeptideGroups.txt", raw_name)){
       cat(file=stderr(), "assign raw decoy peptide data...", "\n")
       temp_df6$wait()
-      dpmsr_set$data$data_raw_decoypeptide <<- temp_df6$get_result()
+      dpmsr_set$data$data_raw_decoypeptide <<- as.data.frame(temp_df6$get_result())
     } else if (grepl("_DecoyProteins.txt", raw_name)){
       cat(file=stderr(), "assign raw decoy protein data...", "\n")
       temp_df7$wait()
-      dpmsr_set$data$data_raw_decoyprotein <<- temp_df7$get_result()
+      dpmsr_set$data$data_raw_decoyprotein <<- as.data.frame(temp_df7$get_result())
     } else if (grepl("_DecoyPSMs.txt", raw_name)){
       cat(file=stderr(), "assign raw decoy psm data...", "\n")
       temp_df8$wait()
-      dpmsr_set$data$data_raw_decoypsm <<- temp_df8$get_result()
+      dpmsr_set$data$data_raw_decoypsm <<- as.data.frame(temp_df8$get_result())
     } else if (grepl("_PeptideIsoforms.txt", raw_name)){
       cat(file=stderr(), "assign raw peptide isoform data...", "\n")
       temp_df9$wait()
@@ -266,10 +268,11 @@ load_data <- function(session, input, volumes){
         c("Confidence", "Accession", "Description", "Sequence", "Modifications", "Positions", "Abundance.F", "Retention.Time", "Ion.Score", "Percolator.SVM",
           "q.Value", "RT.in.min", "mz.in.Da.by.Search.Engine.", "Charge.by.Search.Engine.", "Quan.Info")
       ))
+      dpmsr_set$data$data_raw_isoform <<- as.data.frame(dpmsr_set$data$data_raw_isoform)
     }else if (grepl("_LCMSFeatures.txt", raw_name)){
       cat(file=stderr(), "assign feature data...", "\n")
       temp_df10$wait()
-      dpmsr_set$data$data_features <<- temp_df10$get_result()
+      dpmsr_set$data$data_features <<- as.data.frame(temp_df10$get_result())
     }
   }
   

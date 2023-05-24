@@ -184,7 +184,7 @@ isoform_to_isoform <- function(){
                                        "Retention.Time", "SVM.Score", "q-Value")
       
       peptide_out <- subset(peptide_out, Confidence %in% ("High"))
-      Simple_Excel(peptide_out, "Protein_Peptide_Raw", str_c(dpmsr_set$file$extra_prefix, "_Isoform_to_Isoform_Raw.xlsx", collapse = " "))
+      Simple_Excel_bg(peptide_out, "Protein_Peptide_Raw", str_c(dpmsr_set$file$extra_prefix, "_Isoform_to_Isoform_Raw.xlsx", collapse = " "))
       cat(file=stderr(), "isoform_to_isoform complete", "\n")
       return(peptide_out)
     }
@@ -333,16 +333,18 @@ psm_set_fdr <- function(){
 
 #----------------------------------------------------------------------------------------
 add_imputed_column <- function(df){
+  cat(file=stderr(), "add_imputed_column_start...", "\n")
   #check to see if this was already completed, if so skip step
   if("PD_Detected_Peptides" %in% colnames(df)){
     return(df)
   }else{
       #imputed column for protein output
+      cat(file=stderr(), "add_imputed_column protein output...", "\n")
       if ((dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Peptide") 
           && dpmsr_set$x$final_data_output == "Protein"){
         peptide_data <- df
-        peptide_annotate <- peptide_data[1:(dpmsr_set$y$info_columns)]
-        peptide_data <- peptide_data[(dpmsr_set$y$info_columns+1):ncol(peptide_data)]
+        peptide_annotate <- peptide_data[,1:(dpmsr_set$y$info_columns)]
+        peptide_data <- peptide_data[,(dpmsr_set$y$info_columns+1):ncol(peptide_data)]
         peptide_data[is.na(peptide_data)] <- 0
         peptide_data[peptide_data>0] <- 1
         peptide_annotate <- peptide_annotate[, c("Accession", "Description")]
@@ -363,8 +365,9 @@ add_imputed_column <- function(df){
       }
       
       #imputed column for peptide output
-      df_annotation <- df[1:dpmsr_set$y$info_columns]
-      df <- df[(dpmsr_set$y$info_columns+1):ncol(df)]
+      cat(file=stderr(), "add_imputed_column peptide...", "\n")
+      df_annotation <- df[,1:dpmsr_set$y$info_columns]
+      df <- df[,(dpmsr_set$y$info_columns+1):ncol(df)]
       df_data <- df
       df[df>0] <- "1"
       imputed_df<- df
@@ -380,28 +383,31 @@ add_imputed_column <- function(df){
       df_annotation$PD_Detected_Peptides <- df[,1]
       df<- cbind(df_annotation,df_data)
       #add another column to info columns
+      cat(file=stderr(), "add_imputed_column_end...", "\n")
       return(df)
   }
 }
 
 #----------------------------------------------------------------------------------------
 add_imputed_column_protein <- function(df){
+  cat(file=stderr(), "add_imputed_column_protein_start...", "\n")
   #check to see if this was already completed, if so skip step
   #df<-dpmsr_set$data$data_protein
   if("Detected_Proteins" %in% colnames(df)){
     return(df)
   }else{
     #imputed column for protein output
+    cat(file=stderr(), "add_imputed_column_protein protein output...", "\n")
       protein_data <- df
-      protein_annotate <- protein_data[1:(dpmsr_set$y$info_columns)]
-      protein_data <- protein_data[(dpmsr_set$y$info_columns+1):ncol(protein_data)]
+      protein_annotate <- protein_data[,1:(dpmsr_set$y$info_columns)]
+      protein_data <- protein_data[,(dpmsr_set$y$info_columns+1):ncol(protein_data)]
       test1 <- protein_data
       test1[is.na(test1)] <- 0
       test1[test1>0] <- 1
       test1 <- cbind(protein_annotate, test1)
       dpmsr_set$data$protein_imputed_df <<- test1
       test1 <- data.frame(ungroup(test1))
-      test1 <- test1[(dpmsr_set$y$info_columns+1):ncol(protein_data)]
+      test1 <- test1[,(dpmsr_set$y$info_columns+1):ncol(protein_data)]
       test1[test1==0] <- "-"
       test1 <- test1 %>% mutate_all(as.character)
       while (ncol(test1)>1) {
@@ -412,6 +418,7 @@ add_imputed_column_protein <- function(df){
 
       df <- cbind(protein_annotate, dpmsr_set$data$protein_missing, protein_data)
       colnames(df)[ncol(protein_annotate)+1] <- "Protein_Imputed"
+      cat(file=stderr(), "add_imputed_column_protein_end...", "\n")
     return(df)
   }
 }

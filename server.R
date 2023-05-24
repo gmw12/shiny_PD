@@ -130,46 +130,46 @@ shinyServer(function(input, output, session) {
           if (dpmsr_set$x$raw_data_input == "Protein"){
             #check info columns for rerun of filter (impute column could be added
             dpmsr_set$y$info_columns <<- ncol(dpmsr_set$data$data_protein) - dpmsr_set$y$sample_number
-            
+
             #display raw protein data
             bar_plot(dpmsr_set$data$data_protein[(dpmsr_set$y$info_columns+1):ncol(dpmsr_set$data$data_protein)],"Raw", dpmsr_set$file$qc_dir)
             box_plot(dpmsr_set$data$data_protein[(dpmsr_set$y$info_columns+1):ncol(dpmsr_set$data$data_protein)],"Raw", dpmsr_set$file$qc_dir)
           }else{
             #check info columns for rerun of filter (impute column could be added
             dpmsr_set$y$info_columns <<- ncol(dpmsr_set$data$data_peptide) - dpmsr_set$y$sample_number
-            
+
             #display raw peptide data
             bar_plot(dpmsr_set$data$data_peptide[(dpmsr_set$y$info_columns+1):ncol(dpmsr_set$data$data_peptide)],"Raw", dpmsr_set$file$qc_dir)
             box_plot(dpmsr_set$data$data_peptide[(dpmsr_set$y$info_columns+1):ncol(dpmsr_set$data$data_peptide)],"Raw", dpmsr_set$file$qc_dir)
           }
-          
-          
-          
+
+
+
           #change to always display norm data
           info_columns <- ncol(dpmsr_set$data$norm_data) - dpmsr_set$y$sample_number
           bar_plot(dpmsr_set$data$norm_data[(info_columns+1):ncol(dpmsr_set$data$norm_data)],"Normalization_Data", dpmsr_set$file$qc_dir)
-          box_plot(dpmsr_set$data$norm_data[(info_columns+1):ncol(dpmsr_set$data$norm_data)],"Normalization_Data", dpmsr_set$file$qc_dir)         
-          
-          
+          box_plot(dpmsr_set$data$norm_data[(info_columns+1):ncol(dpmsr_set$data$norm_data)],"Normalization_Data", dpmsr_set$file$qc_dir)
+
+
           removeModal()
-          
+
           showModal(modalDialog("Preparing Data for Histogram Plot...", footer = NULL))
-          
+
           if (dpmsr_set$x$raw_data_input == "Protein"){
             histogram_plot(dpmsr_set$data$data_protein, "Intensity_Histogram")
           }else{
             histogram_plot(dpmsr_set$data$data_peptide, "Intensity_Histogram")
           }
-          
+
           if(as.logical(dpmsr_set$x$peptide_ptm_norm) ){
              histogram_plot(dpmsr_set$data$norm_data[, -which(names(dpmsr_set$data$norm_data)=='PD_Detected_Peptides')], "PTM_Only_Intensity_Histogram")
           }
-          
+
           adjust_intensity_cutoff(session, input, output)
-          
+
           removeModal()
           inputfilterapply_render(session, input, output)
-          
+
       }
     
   })
