@@ -1475,14 +1475,16 @@ observeEvent(input$data_show, {
       
       if(!is.null(dpmsr_set$x$pathway_set) || !is.null(dpmsr_set$x$motif_set) ){
         if (dpmsr_set$x$pathway_set == 1 || dpmsr_set$x$motif_set == 1){
-          filename <- input$dpmsr_set_name
-          future({ save(dpmsr_set, file=str_c(dpmsr_set$file$output_dir, filename, ".dpmsr_set")) })
+          shinyalert("FYI!", "Pathway or MotifX setup Complete!", type = "info")
           }else{
           shinyalert("FYI!", "Pathway or MotifX setup has not been run yet...", type = "info")
           }
         }else{
           shinyalert("FYI!", "Pathway or MotifX setup has not been run yet...", type = "info")
-        } 
+        }
+      
+      filename <- input$dpmsr_set_name
+      future({ save(dpmsr_set, file=str_c(dpmsr_set$file$output_dir, filename, ".dpmsr_set")) })
    })  
     
 

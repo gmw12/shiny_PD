@@ -68,7 +68,11 @@ setup_string <- function(session, input, output){
   {
     cat(file=stderr(), str_c("get stringid's ", row_start, "-", row_stop), "\n")
     df_temp <- string_id_call("tsv", df, row_start, row_stop)
-    dpmsr_set$string$IDs <<- rbind(dpmsr_set$string$IDs, df_temp)
+    if (ncol(df_temp) > 2) {
+      df_check <<- df_temp
+      cat(file=stderr(), str_c("concat list "), "\n")
+      dpmsr_set$string$IDs <<- rbind(dpmsr_set$string$IDs, df_temp)
+    }
     row_start = row_stop + 1
     row_stop = min(row_start + 499, nrow(df))
   }
