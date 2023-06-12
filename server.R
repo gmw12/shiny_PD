@@ -1,5 +1,4 @@
 options(shiny.maxRequestSize=4000*1024^2)
-app_version <<- '2023.05.23'
 
 cat(file=stderr(), "Server.R started", "\n")
 
@@ -12,6 +11,7 @@ set_user(session, input, output)
 
 
 shinyServer(function(input, output, session) {
+  app_version <<- '2023.06.12'
   cat(file=stderr(), "Shiny Server started ...1", "\n")
   useShinyjs()
   
