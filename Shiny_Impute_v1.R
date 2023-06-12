@@ -39,6 +39,7 @@ apply_impute <- function(session, input, output){
 #--------------------------------------------------------------------------------
 impute_parallel <- function(norm_type){
   if(norm_type==99){data_raw_impute <- impute_only(dpmsr_set$data$normalized$impute, "impute")}
+    else if(norm_type==98) {data_raw_impute_bottom <- impute_bottom(dpmsr_set$data$normalized$impute, "impute_test")}
     else if(norm_type==1){data_sl_impute <- impute_only(dpmsr_set$data$normalized$sl, "sl")}
     else if(norm_type==4){data_quantile_impute <- impute_only(dpmsr_set$data$normalized$quantile, "quantile")}
     else if(norm_type==5){data_lr_impute <- impute_only(dpmsr_set$data$normalized$lr, "lr")}
@@ -97,6 +98,23 @@ impute_only <-  function(data_in, norm_name){
   data_out<-cbind(annotation_data, data_out)
   return(data_out)
 }
+
+#--------------------------------------------------------------------------------
+# forcing option of bottom x without misalignment filter, allows check for signfig because of misaligned filter
+#--------------------------------------------------------------------------------
+impute_bottom <-  function(data_in, norm_name){
+  cat(file=stderr(), str_c("impute_bottom... ", norm_name), "\n")
+  
+  info_columns <- ncol(data_in) - dpmsr_set$y$sample_number
+  distribution_data <- data_in
+  annotation_data <- data_in[1:info_columns]
+  data_out <- data_in[(info_columns+1):ncol(data_in)]
+  data_out <- impute_bottomx(data_out, distribution_data, info_columns) 
+  data_out<-data.frame(lapply(data_out, as.numeric))
+  data_out<-cbind(annotation_data, data_out)
+  return(data_out)
+}
+
 
 #--------------------------------------------------------------------------------
 # imputation of missing data

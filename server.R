@@ -212,7 +212,7 @@ shinyServer(function(input, output, session) {
     if(input$checkbox_n9 == 1) {n9<-9}else{n9<-NULL}
     if(input$checkbox_n10 == 1) {n10<-10}else{n10<-NULL}
     if(input$checkbox_n11 == 1) {n11<-11}else{n11<-NULL}
-    norm_list <-  list("impute"=99,"sl"=n1, "quantile"=n4,"lr"=n5,"loess"=n6,"vsn"=n7,"ti"=n8,"mi"=n9,"ai"=n10)
+    norm_list <-  list("impute"=99, "impute_b2" = 98, "sl"=n1, "quantile"=n4,"lr"=n5,"loess"=n6,"vsn"=n7,"ti"=n8,"mi"=n9,"ai"=n10)
     dpmsr_set$y$norm_list <<- norm_list[lapply(norm_list, length) > 0]
     norm_list2 <-  list("tmm"=n2,"sltmm"=n3,"protein"=n11)
     dpmsr_set$y$norm_list2 <<- norm_list2[lapply(norm_list2, length) > 0]

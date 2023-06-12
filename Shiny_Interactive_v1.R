@@ -383,6 +383,13 @@ interactive_heatmap <- function(session, input, output, df, namex, groupx, comp_
     heatmap_filename <- str_c(dpmsr_set$file$data_dir, "/erasemyheatmap.png")
   }
 
+  #if norm by protein one protein will have 0 stdev - which will crash the calc...
+  if (input$select_final_data_stats == "protein"){
+    df$stdev <-  apply(df[1:ncol(df)], 1, sd) 
+    df <- df[df$stdev > 0.1,]
+    df <- df[,1:ncol(df)-1] 
+  }
+  
   colnames(df) <- namex
   df <- log2(df)
   df <- data.matrix(df)
