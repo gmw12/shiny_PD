@@ -1642,8 +1642,17 @@ observeEvent(input$data_show, {
           }
           update_try <- update_try+1
           
-          #new version, 5/2023 does not have this field
-          if (is.null(dpmsr_set$x$primary_group)) {dpmsr_set$x$primary_group <<- FALSE}
+          #new version, 5/2023 
+          #does not have this field
+          if (is.null(dpmsr_set$x$primary_group)) {
+            cat(file=stderr(), ("Older dpmsr_set file, adding primary group field"), "\n")
+            dpmsr_set$x$primary_group <<- FALSE
+          }
+          #update sample groups
+          if (ncol(dpmsr_set$y$sample_groups) < 7) {
+            cat(file=stderr(), ("Older dpmsr_set file, rerunning function set_sample_groups"), "\n")
+            set_sample_groups(session, input, output)
+          }
           
           #reload shiny
           cat(file=stderr(), "update widgets", "\n")
