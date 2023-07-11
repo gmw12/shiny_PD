@@ -11,7 +11,7 @@ set_user(session, input, output)
 
 
 shinyServer(function(input, output, session) {
-  app_version <<- '2023.06.12'
+  app_version <<- '2023.07.11'
   cat(file=stderr(), "Shiny Server started ...1", "\n")
   useShinyjs()
   
