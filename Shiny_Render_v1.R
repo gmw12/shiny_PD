@@ -175,7 +175,7 @@ qc_spike_render <- function(session, input, output){
       hot_col(col = "Set", halign = "htCenter", format="0", digits =0, readOnly = TRUE) %>%
       hot_col(col = "PD_Order", halign = "htCenter", format="0", digits =0, readOnly = TRUE) %>%
       hot_col(col = "Replicate", halign = "htCenter", format="0", digits =0, readOnly = TRUE) %>%
-      hot_col(col = "QC Spike Level", halign = "htCenter", format="0", digits =0, readOnly = FALSE) %>%
+      hot_col(col = "QC Spike Level", halign = "htCenter", format="0.0", digits =0, readOnly = FALSE) %>%
       hot_col(col = "Header1", halign = "htLeft", width=200, readOnly = TRUE) %>%
       hot_col(col = "Header2", halign = "htLeft", width=250, readOnly = TRUE) %>%
       hot_col(col = "Header3", halign = "htLeft", width=250, readOnly = TRUE) 

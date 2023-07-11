@@ -34,7 +34,13 @@ shinyServer(function(input, output, session) {
 #------------------------------------------------------------------------------------------------------
 # Clear memory - cannot load dpmsr_set if one already loaded, button clears memory to start fresh  
   observeEvent(input$action_clear, {
-      clear_memory(session, input, output)
+    cat(file=stderr(), "Clear Memory", "\n")
+    cat(file=stderr(), str_c("DPMSR exists? ", exists('dpmsr_set')), "\n")
+    try(rm(list = ls(envir = .GlobalEnv), pos = .GlobalEnv, inherits = FALSE))
+    #try(rm("dpmsr_set", pos = .GlobalEnv, inherits = FALSE))
+    cat(file=stderr(), str_c("Deleting DPMSR, still exists? ", exists('dpmsr_set')), "\n")
+    gc()
+    session$reload()  
     })    
      
 #------------------------------------------------------------------------------------------------------  
@@ -1553,8 +1559,17 @@ observeEvent(input$data_show, {
       dpmsr_set$file$extra_prefix2 <<- str_c(dpmsr_set$file$extra_dir, dpmsr_set$x$file_prefix)
       dpmsr_set$file$phos <<- str_c(dpmsr_set$file$output_dir, "Phos//")
       
-      #new version, 5/2023 does not have this field
-      if (is.null(dpmsr_set$x$primary_group)) {dpmsr_set$x$primary_group <<- FALSE}
+      #new version, 5/2023 
+      #does not have this field
+      if (is.null(dpmsr_set$x$primary_group)) {
+        cat(file=stderr(), ("Older dpmsr_set file, adding primary group field"), "\n")
+        dpmsr_set$x$primary_group <<- FALSE
+        }
+      #update sample groups
+      if (ncol(dpmsr_set$y$sample_groups) < 7) {
+        cat(file=stderr(), ("Older dpmsr_set file, rerunning function set_sample_groups"), "\n")
+        set_sample_groups(session, input, output)
+        }
       
       #create dir for excel reports        
       if(!is_dir(str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp))) {
@@ -1692,6 +1707,7 @@ observeEvent(input$data_show, {
         #try(rm("dpmsr_set", pos = .GlobalEnv, inherits = FALSE))
         cat(file=stderr(), str_c("Deleting DPMSR, still exists? ", exists('dpmsr_set')), "\n")
         gc()
+        stopApp()
         #file_touch("restart.txt", access_time = Sys.time(), modification_time = Sys.time())
       }
     })

@@ -67,7 +67,7 @@ qc_spike <- function(data_in, data_title) {
   
   dpmsr_set$data$qc_spike <<- cbind(dpmsr_set$data$qc_spike, spike_total)
   colnames(dpmsr_set$data$qc_spike)[colnames(dpmsr_set$data$qc_spike) == 'spike_total'] <<- data_title
-  dpmsr_set$data$qc_spike <<- round(dpmsr_set$data$qc_spike,0)
+  dpmsr_set$data$qc_spike <<- round(dpmsr_set$data$qc_spike,2)
  }
 
 
@@ -86,7 +86,7 @@ qc_spike_final <- function(data_in) {
       qc_stat <- rbind(qc_stat, testme)
     }
   }
-  data_in <-trunc(round(data_in,0))
+  data_in <-trunc(round(data_in,1))
   data_in <- data_in %>% mutate_all(as.character)
   qc_stat <- qc_stat %>% mutate_all(as.character)
   data_out <- rbind(data_in, qc_stat)

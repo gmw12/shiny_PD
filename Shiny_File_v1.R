@@ -6,9 +6,9 @@ clear_memory <- function(input, output, session) {
   cat(file=stderr(), "reload libraries and functions", "\n")
   rm(list = ls())
   gc()
-  source("Shiny_Functions_v1.R")
-  set_user(session, input, output)
-  app_startup(session, input, output)
+  #source("Shiny_Functions_v1.R")
+  #set_user(session, input, output)
+  #app_startup(session, input, output)
 }
 
 #----------------------------------------------------------------------------------------

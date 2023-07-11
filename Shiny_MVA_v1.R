@@ -245,6 +245,7 @@ stat_calc2 <- function(session, input, output) {
     dpmsr_set$y$stats$groups <<- set_stat_headers(dpmsr_set$y$stats$groups, i)
   
     #get data for stats
+    cat(file=stderr(), "stat_calc2...1", "\n")
     data_in <- dpmsr_set$data$impute[[input$select_final_data_stats]]
     #data_in <- dpmsr_set$data$impute$sltmm
     info_columns <- ncol(data_in) - dpmsr_set$y$sample_number
@@ -252,7 +253,7 @@ stat_calc2 <- function(session, input, output) {
     data_in <- data_in[(info_columns+1):ncol(data_in)]
     
     # get impute data for stats
-    cat(file=stderr(), "stat_calc2...1", "\n")
+    cat(file=stderr(), "stat_calc2...2", "\n")
     if(dpmsr_set$x$raw_data_input=="Protein"){
       imputed_info_columns <- ncol(dpmsr_set$data$protein_imputed_df) - dpmsr_set$y$sample_number
       imputed_df <- dpmsr_set$data$protein_imputed_df[(imputed_info_columns+1):ncol(dpmsr_set$data$protein_imputed_df)]  
@@ -262,7 +263,7 @@ stat_calc2 <- function(session, input, output) {
     }
     
     #isolate data for comparison (data and imputed)  
-    cat(file=stderr(), "stat_calc2...2", "\n")
+    cat(file=stderr(), "stat_calc2...3", "\n")
     comp_N_data <- data_in[unlist(dpmsr_set$y$stats$groups$sample_numbers_N[i]) ]
     comp_D_data <- data_in[unlist(dpmsr_set$y$stats$groups$sample_numbers_D[i]) ]
     spqc_data <- data_in[unlist(dpmsr_set$y$stats$comp_spqc_sample_numbers)]
@@ -278,7 +279,7 @@ stat_calc2 <- function(session, input, output) {
     #---------------------------------------------------------------------------------------------------------------    
     #if data is peptide/peptide or protein/protein will need to created imputed column now
     #reduce peptide PD imputed column to only samples of comparison
-    cat(file=stderr(), "stat_calc2...3", "\n")
+    cat(file=stderr(), "stat_calc2...4", "\n")
     if(dpmsr_set$x$final_data_output == "Peptide"){
       df_impute_peptide <- cbind(comp_N_imputed, comp_D_imputed, spqc_impute_data)
       df_impute_peptide[df_impute_peptide==0] <- "-"
@@ -292,7 +293,7 @@ stat_calc2 <- function(session, input, output) {
     }
     
     #reduce protein PD imputed column to only samples of comparison
-    cat(file=stderr(), "stat_calc2...4", "\n")
+    cat(file=stderr(), "stat_calc2...5", "\n")
     if(dpmsr_set$x$raw_data_input == "Protein"){
       df_impute_protein <- cbind(comp_N_imputed, comp_D_imputed, spqc_impute_data)
       df_impute_protein[df_impute_protein==0] <- "-"
@@ -318,7 +319,7 @@ stat_calc2 <- function(session, input, output) {
     
     #--------------------------------------------------------------------------------------------------------------
     #section for peptide to protein final data
-    cat(file=stderr(), "stat_calc2...5 (peptide to protein)", "\n")
+    cat(file=stderr(), "stat_calc2...6 (peptide to protein)", "\n")
     if(dpmsr_set$x$raw_data_input !="Protein" &  dpmsr_set$x$final_data_output == "Protein" & (!as.logical(dpmsr_set$x$tmt_spqc_norm)) ){
       mf <- missing_factor_gw(comp_N_imputed, comp_D_imputed)
       N_CV <- percentCV_gw(comp_N_data)
@@ -342,7 +343,7 @@ stat_calc2 <- function(session, input, output) {
         df_impute_summary <- df_impute_summary[(df_impute_summary$minCV <= input$peptide_cv_factor),]  
       }
     
-      cat(file=stderr(), "stat_calc2...6", "\n")
+      cat(file=stderr(), "stat_calc2...7", "\n")
       df$mf <- NULL
       df_impute$mf <- NULL
       df_impute_summary$mf <- NULL
@@ -357,7 +358,7 @@ stat_calc2 <- function(session, input, output) {
       df_impute$minCV <- NULL
       df_impute_summary$minCV <- NULL
       
-      cat(file=stderr(), "stat_calc2...7", "\n")
+      cat(file=stderr(), "stat_calc2...8", "\n")
       df_impute_summary <- df_impute_summary[(info_columns+1):ncol(df_impute_summary)] %>% mutate_all(as.character)
       while (ncol(df_impute_summary)>1) {
         df_impute_summary[,1] <- str_c(df_impute_summary[,1], ".", df_impute_summary[,2])
@@ -369,7 +370,7 @@ stat_calc2 <- function(session, input, output) {
       dpmsr_set$data$stats$peptide[[dpmsr_set$y$stats$groups$comp_name[i]]] <<- df
       
       #collapse peptide data and imputed peptide info, this is done with only the stat groups
-      cat(file=stderr(), "stat_calc2...8", "\n")
+      cat(file=stderr(), "stat_calc2...9", "\n")
       df <- collapse_peptide_stats(df, info_columns)
       df_impute <- collapse_peptide_stats(df_impute, info_columns)
       
@@ -384,7 +385,7 @@ stat_calc2 <- function(session, input, output) {
         test2[,2] <- NULL
       }
       
-      cat(file=stderr(), "stat_calc2...9", "\n")
+      cat(file=stderr(), "stat_calc2...10", "\n")
       df <- add_column(df, test2[,1] , .after = "Peptides")
       names(df)[4] <- "PD_Detected_Peptides"
 
@@ -394,7 +395,7 @@ stat_calc2 <- function(session, input, output) {
       comp_D_imputed <- imputed_df[(dpmsr_set$y$stats$groups$N_count[i]+1):(dpmsr_set$y$stats$groups$N_count[i]+dpmsr_set$y$stats$groups$D_count[i])]
     
       annotate_in <- df[1:dpmsr_set$y$info_columns_final]
-      cat(file=stderr(), "stat_calc2...10", "\n")
+      cat(file=stderr(), "stat_calc2...11", "\n")
       
       if(input$checkbox_add_gene_column) {
         add_gene <- str_extract(annotate_in$Description, "GN=\\w*")
@@ -414,7 +415,7 @@ stat_calc2 <- function(session, input, output) {
 
     
     #start df for stats -----------------------------------------
-    cat(file=stderr(), "stat_calc2...11", "\n")
+    cat(file=stderr(), "stat_calc2...12", "\n")
     stat_df <- annotate_in[1:1]
     #stat_df[ , str_c(dpmsr_set$y$stats$groups$comp_N[i], "_CV")] <- percentCV_gw(comp_N_data)
     #stat_df[ , str_c(dpmsr_set$y$stats$groups$comp_D[i], "_CV")] <- percentCV_gw(comp_D_data)
@@ -434,7 +435,7 @@ stat_calc2 <- function(session, input, output) {
         stat_df[ ,dpmsr_set$y$stats$groups$cohensd[i]] <- cohend_gw(comp_N_data, comp_D_data, as.logical(input$checkbox_cohensd))
     }
     
-    cat(file=stderr(), "stat_calc2...12", "\n")
+    cat(file=stderr(), "stat_calc2...13", "\n")
     if(input$checkbox_limmapvalue){
       stat_df[ ,dpmsr_set$y$stats$groups$limma_pval[i]] <- limma_gw(comp_N_data, comp_D_data)
     }
@@ -457,7 +458,7 @@ stat_calc2 <- function(session, input, output) {
       colnames(spqc_data) <- dpmsr_set$design$Header2[unlist(dpmsr_set$y$stats$comp_spqc_sample_numbers)]
     }
     
-    cat(file=stderr(), "stat_calc2...13", "\n")
+    cat(file=stderr(), "stat_calc2...14", "\n")
     data_table <- cbind(annotate_in, comp_N_data, comp_D_data, spqc_data, stat_df[2:ncol(stat_df)])
     
     data_table$Stats <- ""
