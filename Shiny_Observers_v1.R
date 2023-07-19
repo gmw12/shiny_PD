@@ -141,6 +141,9 @@ update_dpmsr_set_from_widgets <- function(session, input, output){
     if (input$checkbox_n3){dpmsr_set$x$sltmm <<-TRUE}else{dpmsr_set$x$sltmm <<-FALSE}
   })
   observe({
+    if (input$checkbox_n13){dpmsr_set$x$directlfq <<-TRUE}else{dpmsr_set$x$directlfq <<-FALSE}
+  })
+  observe({
     if (input$checkbox_n4){dpmsr_set$x$quantile <<-TRUE}else{dpmsr_set$x$quantile <<-FALSE}
   })
   observe({
@@ -212,7 +215,23 @@ update_dpmsr_set_from_widgets <- function(session, input, output){
     dpmsr_set$x$int_cutoff_sd <<- as.numeric(input$intensity_cutoff_mean_sd)
   })
   
-  #-stats-----------------------------------------------------------------------------------------------------      
+  
+  #-rollup-----------------------------------------------------------------------------------------------------      
+  observe({
+    if (input$radio_rollup ==1){dpmsr_set$x$rollup_method <<-"Sum"}
+    else if (input$radio_rollup ==2){dpmsr_set$x$rollup_method <<-"Median"}
+    else if (input$radio_rollup ==3){dpmsr_set$x$rollup_method <<-"Median_Polish"}
+    else if (input$radio_rollup ==4){dpmsr_set$x$rollup_method <<-"Mean"}
+    else if (input$radio_rollup ==5){dpmsr_set$x$rollup_method <<-"IQ_MaxLFQ"}
+    else if (input$radio_rollup ==6){dpmsr_set$x$rollup_method <<-"TopN"}
+  })
+  
+
+  observe({
+    dpmsr_set$y$rollup_topN_count <<- input$rollup_topN_count
+  })
+
+    #-stats-----------------------------------------------------------------------------------------------------      
   
   observe({
     dpmsr_set$x$comp_number <<- input$comp_number

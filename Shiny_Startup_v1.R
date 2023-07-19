@@ -19,6 +19,8 @@ app_startup <- function(session, input, output){
   output$text_n1 <- renderText("Check all Normalization Strategies")
   output$text_f1 <- renderText("Normalization Filters")
   output$text_i1 <- renderText("Select Imputation Method")
+  output$text_r1 <- renderText("Select Protein Rollup Method")
+  
   output$text_impute_ptm <- renderText("Impute Distributions using Impute PTM grep (Load Data)")
   
   cat(file=stderr(), "Shiny Server started ...4", "\n")

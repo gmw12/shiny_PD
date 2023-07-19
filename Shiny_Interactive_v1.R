@@ -187,8 +187,8 @@ interactive_boxplot <- function(session, input, output, df, namex, color_list, c
 
 interactive_pca2d <- function(session, input, output, df, namex, color_list, groupx, comp_name)
 {
-  test_df <<- df
-  test_groupx <<- groupx
+  #test_df <<- df
+  #test_groupx <<- groupx
   #df<-test_df
   #groupx <- test_groupx
   

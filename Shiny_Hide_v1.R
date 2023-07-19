@@ -248,6 +248,8 @@
   
 
   
+  
+  
   observe({
     if (input$checkbox_n3){
       updateCheckboxInput(session, "checkbox_n1", value = TRUE) 
@@ -313,10 +315,24 @@
     }
   }) 
   
+  observe({
+    if (input$radio_rollup ==6){
+      shinyjs::show("rollup_topN_count")
+    }else{
+      shinyjs::hide("rollup_topN_count")
+    }
+  })
   
   
-
-  
+  observe({
+    if (input$radio_output ==2){
+      hideTab(inputId = "nlp1", target = "tp_rollup")
+    }else{
+      showTab(inputId = "nlp1", target = "tp_rollup")
+    }
+  })
+ 
+   
   observe({
     if (!input$checkbox_tmt_filter){
       shinyjs::hide("tmt_filter_sd")
@@ -352,6 +368,13 @@
       shinyjs::show("sltmm_plot_select")
     }
     
+    if (!input$checkbox_nc13){
+      shinyjs::hide("directlfq_plot")
+      shinyjs::hide("directlfq_plot_select")
+    }else {
+      shinyjs::show("directlfq_plot")
+      shinyjs::show("directlfq_plot_select")
+    }
     if (!input$checkbox_nc4){
       shinyjs::hide("quantile_plot")
       shinyjs::hide("quantile_plot_select")
@@ -638,9 +661,11 @@
    observe({
      if (input$checkbox_tmt){
        hideTab(inputId = "nlp1", target = "tp_impute")
+       hideTab(inputId = "nlp1", target = "tp_rollup")
        showTab(inputId = "nlp1", target = "tp_tmt")
      }else{
        showTab(inputId = "nlp1", target = "tp_impute")
+       showTab(inputId = "nlp1", target = "tp_rollup")
        hideTab(inputId = "nlp1", target = "tp_tmt")
      }
    })
@@ -666,6 +691,7 @@
        hideTab(inputId = "nlp1", target = "tp_filters")
        hideTab(inputId = "nlp1", target = "tp_normalize")
        hideTab(inputId = "nlp1", target = "tp_impute")
+       hideTab(inputId = "nlp1", target = "tp_rollup")
        hideTab(inputId = "nlp1", target = "tp_tmt")
        hideTab(inputId = "nlp1", target = "tp_qc")
        hideTab(inputId = "nlp1", target = "tp_report")
@@ -677,6 +703,7 @@
        showTab(inputId = "nlp1", target = "tp_filters")
        showTab(inputId = "nlp1", target = "tp_normalize")
        showTab(inputId = "nlp1", target = "tp_impute")
+       showTab(inputId = "nlp1", target = "tp_rollup")
        showTab(inputId = "nlp1", target = "tp_qc")
        showTab(inputId = "nlp1", target = "tp_report")
        showTab(inputId = "np_phos", target = "fasta")

@@ -1,14 +1,25 @@
 
 #--------------------------------------------------------------------------------------
 stat_prep <- function(){
+  cat(file=stderr(), ("stat_prep function started..."), "\n")
   ncores <- detectCores()
   if (is.na(ncores) | ncores < 1) {ncores <- 1}
+
   data_list <- dpmsr_set$data$impute
-  dpmsr_set$data$final <<- mclapply(data_list, stat_prep_parallel, mc.cores = ncores)
+  #clear previous data
+  dpmsr_set$data$final <- NULL
+  
+  #iq:fast_maxlfq function has issue with parallel processing, only works on first pass (c++ ???)
+  cat(file=stderr(), (str_c("stat_prep function started...1  cores=", ncores)), "\n")
+  if (dpmsr_set$x$rollup_method != "IQ_MaxLFQ"){
+    dpmsr_set$data$final <<- mclapply(data_list, stat_prep_parallel, mc.cores = ncores)
+  }
   
   #check that the parallel processing went through, if not do it again one at a time
+  cat(file=stderr(), ("stat_prep function started...2"), "\n")
   check_stats_prep_parallel(data_list)
   
+  cat(file=stderr(), ("stat_prep function started...3"), "\n")
   if (dpmsr_set$y$state=="Peptide" && dpmsr_set$x$final_data_output == "Protein"){
     dpmsr_set$data$finalraw <<- collapse_peptide(dpmsr_set$data$normalized$impute)
     Simple_Excel(dpmsr_set$data$finalraw, "final_raw_protein", str_c(dpmsr_set$file$extra_prefix, "_final_raw_protein.xlsx", collapse = " "))
@@ -16,6 +27,7 @@ stat_prep <- function(){
     dpmsr_set$data$finalraw <<- dpmsr_set$data$normalized$impute
     Simple_Excel(dpmsr_set$data$finalraw, "final_raw_peptide", str_c(dpmsr_set$file$extra_prefix,  "_final_raw_peptide.xlsx", collapse = " "))
   }
+  cat(file=stderr(), ("stat_prep function complete..."), "\n")
 }
 
 #--------------------------------------------------------------------------------------
@@ -278,6 +290,7 @@ stat_calc2 <- function(session, input, output) {
     
     #---------------------------------------------------------------------------------------------------------------    
     #if data is peptide/peptide or protein/protein will need to created imputed column now
+    
     #reduce peptide PD imputed column to only samples of comparison
     cat(file=stderr(), "stat_calc2...4", "\n")
     if(dpmsr_set$x$final_data_output == "Peptide"){
@@ -330,7 +343,6 @@ stat_calc2 <- function(session, input, output) {
       df_impute <- cbind(annotate_in, comp_N_imputed, comp_D_imputed, mf, N_CV, D_CV, minCV)
       df_impute_summary <- cbind(annotate_in, comp_N_imputed, comp_D_imputed, spqc_impute_data, mf, N_CV, D_CV, minCV)
     
-    
       if(input$peptide_missing_filter){
         df <- df[(df$mf >= input$peptide_missing_factor),]
         df_impute <- df_impute[(df_impute$mf >= input$peptide_missing_factor),]  
@@ -365,21 +377,21 @@ stat_calc2 <- function(session, input, output) {
         df_impute_summary[,2] <- NULL
       }
       colnames(df_impute_summary) <- "PD_Detected_Peptides"
-      
+
       df$PD_Detected_Peptides <- df_impute_summary
       dpmsr_set$data$stats$peptide[[dpmsr_set$y$stats$groups$comp_name[i]]] <<- df
       
       #collapse peptide data and imputed peptide info, this is done with only the stat groups
       cat(file=stderr(), "stat_calc2...9", "\n")
-      df <- collapse_peptide_stats(df, info_columns)
-      df_impute <- collapse_peptide_stats(df_impute, info_columns)
+      df <- collapse_peptide(df, info_columns, stats=TRUE)
+      df_impute <- collapse_peptide(df_impute, info_columns, stats=TRUE, impute=TRUE)
       
       #create string column with imputed peptide info
       info_columns <- ncol(df) - sample_count
       test2 <- df_impute[(info_columns+1):ncol(df_impute)]
-      
       test2[test2==0] <- "-"
       test2 <- test2 %>% mutate_all(as.character)
+      
       while (ncol(test2)>1) {
         test2[,1] <- str_c(test2[,1], ".", test2[,2])
         test2[,2] <- NULL
@@ -391,11 +403,13 @@ stat_calc2 <- function(session, input, output) {
 
       imputed_df <- df_impute[4:ncol(df_impute)]  
       imputed_df[imputed_df>1] <- 1
+      
+      cat(file=stderr(), "stat_calc2...11", "\n")
       comp_N_imputed <- imputed_df[1:dpmsr_set$y$stats$groups$N_count[i]]
       comp_D_imputed <- imputed_df[(dpmsr_set$y$stats$groups$N_count[i]+1):(dpmsr_set$y$stats$groups$N_count[i]+dpmsr_set$y$stats$groups$D_count[i])]
     
       annotate_in <- df[1:dpmsr_set$y$info_columns_final]
-      cat(file=stderr(), "stat_calc2...11", "\n")
+      cat(file=stderr(), "stat_calc2...12", "\n")
       
       if(input$checkbox_add_gene_column) {
         add_gene <- str_extract(annotate_in$Description, "GN=\\w*")
@@ -405,6 +419,7 @@ stat_calc2 <- function(session, input, output) {
           add_column(Gene = annotate_in$Gene, .before = 3)
       }
       
+      cat(file=stderr(), "stat_calc2...13", "\n")
       data_in <- df[(dpmsr_set$y$info_columns_final+1):(ncol(df))]
       comp_N_data <- data_in[1:dpmsr_set$y$stats$groups$N_count[i]]
       comp_D_data <- data_in[(dpmsr_set$y$stats$groups$N_count[i]+1):(dpmsr_set$y$stats$groups$N_count[i]+dpmsr_set$y$stats$groups$D_count[i])]
@@ -415,7 +430,7 @@ stat_calc2 <- function(session, input, output) {
 
     
     #start df for stats -----------------------------------------
-    cat(file=stderr(), "stat_calc2...12", "\n")
+    cat(file=stderr(), "stat_calc2...14", "\n")
     stat_df <- annotate_in[1:1]
     #stat_df[ , str_c(dpmsr_set$y$stats$groups$comp_N[i], "_CV")] <- percentCV_gw(comp_N_data)
     #stat_df[ , str_c(dpmsr_set$y$stats$groups$comp_D[i], "_CV")] <- percentCV_gw(comp_D_data)
@@ -435,7 +450,7 @@ stat_calc2 <- function(session, input, output) {
         stat_df[ ,dpmsr_set$y$stats$groups$cohensd[i]] <- cohend_gw(comp_N_data, comp_D_data, as.logical(input$checkbox_cohensd))
     }
     
-    cat(file=stderr(), "stat_calc2...13", "\n")
+    cat(file=stderr(), "stat_calc2...15", "\n")
     if(input$checkbox_limmapvalue){
       stat_df[ ,dpmsr_set$y$stats$groups$limma_pval[i]] <- limma_gw(comp_N_data, comp_D_data)
     }
@@ -458,7 +473,7 @@ stat_calc2 <- function(session, input, output) {
       colnames(spqc_data) <- dpmsr_set$design$Header2[unlist(dpmsr_set$y$stats$comp_spqc_sample_numbers)]
     }
     
-    cat(file=stderr(), "stat_calc2...14", "\n")
+    cat(file=stderr(), "stat_calc2...16", "\n")
     data_table <- cbind(annotate_in, comp_N_data, comp_D_data, spqc_data, stat_df[2:ncol(stat_df)])
     
     data_table$Stats <- ""
@@ -486,7 +501,7 @@ stat_calc2 <- function(session, input, output) {
       data_table$pepmin <- ifelse(data_table$Peptides >= input$stats_peptide_minimum_factor, 0, 1)
     }
     
-    cat(file=stderr(), "stat_calc2...14", "\n")
+    cat(file=stderr(), "stat_calc2...17", "\n")
     data_table$sum <- rowSums(data_table[(data_table_cols+1):ncol(data_table)])
     
     data_table$Stats <- ifelse(data_table$sum == 0 & data_table[[dpmsr_set$y$stats$groups$fc[i]]] >= input$foldchange_cutoff, "Up", 
@@ -862,7 +877,7 @@ onepeptide_data <- function(session, input, output) {
     if(input$stats_onepeptide_use_zscore){df_peptide <- peptide_zscore(df_peptide, info_columns)}
     
     df_list <- list("df"=df, "df_peptide"=df_peptide, "df_peptide_stats"=df_peptide_stats, "info_columns"=info_columns, "namex"=namex, "color_list"=color_list, "comp_string"=comp_string)
-    test_df_list <<- df_list
+    #test_df_list <<- df_list
     
     cat(file=stderr(), "One Peptide stats and plots...end" , "\n")
     return(df_list)

@@ -2,7 +2,7 @@
 # create column to flag and delete rows with no data or only one data value
 #require row to contain at least one group that has at least 2 values
 filter_data <- function(session, input, output, df){
-  test_df <<- df
+  #test_df <<- df
   
   cat(file=stderr(), "start filter_data...", "\n")
   start <- Sys.time()

@@ -106,6 +106,13 @@ apply_norm <- function(){
   norm_list <- dpmsr_set$y$norm_list
   dpmsr_set$data$normalized <<- mclapply(norm_list, norm_parallel, mc.cores = ncores)
   
+  #directLFQ is python code, execute function outside of parallel loop
+  if (13 %in% dpmsr_set$y$norm_list)
+  {dpmsr_set$data$normalized$directlfq <<- directlfq_normalize(dpmsr_set$data$data_to_norm, "DirectLFQ_Norm")
+  #else if(norm_type==4){data_directlfqnorm <- directlfq_normalize(data_to_norm, "DirectLFQ_Norm", info_columns)}
+  }
+  
+  
   #record normalized step to extra folder
   x <- foreach(i=1:length(norm_list)) %dopar% {
     norm_name <- names(norm_list[i])
@@ -149,6 +156,48 @@ sl_normalize <- function(norm_data, data_to_norm, data_title, info_columns){
   Simple_Excel(data_out, "data", str_c(dpmsr_set$file$extra_prefix, "_sl_norm.xlsx", collapse = " "))
   return(data_out)
 }
+
+
+#--------------------------------------------------------------------------------------
+# DirectLFQ from Mann ()
+directlfq_normalize <- function(data_to_norm, data_title){
+  cat(file=stderr(), str_c("directlfq_normalize...", data_title), "\n")
+  
+  #data_to_norm <- dpmsr_set$data$data_to_norm
+  #info_columns <- 13
+  info_columns <- ncol(data_to_norm) - dpmsr_set$y$sample_number
+  info_column_names <- colnames(data_to_norm)[1:info_columns]
+  excel_name <- "_Peptide_DirectLFQ_Norm.xlsx"
+
+  require(reticulate)
+  use_python("/home/dpmsr/miniconda3/envs/directlfq/bin/python3")
+  directlfq <- import("directlfq.lfq_manager")
+  
+  protein <- data_to_norm$Accession
+  df_data <- add_column(data_to_norm, protein, .before = 1)
+  ion <- str_c(df_data$Sequence, "_", df_data$Modifications, "_", 1:nrow(df_data))
+  df_data <- add_column(df_data, ion, .after = 1)
+  
+  data_in <- df_data[, !(names(df_data) %in% info_column_names)]
+
+  directlfq_file <- str_c(dpmsr_set$file$data_dir, "directlfq.aq_reformat.tsv")
+  directlfq_norm_file <- str_c(dpmsr_set$file$data_dir, "directlfq.aq_reformat.tsv.ion_intensities.tsv")
+  write.table(data_in, file = directlfq_file, sep = "\t", row.names = FALSE)
+  
+  directlfq$run_lfq(directlfq_file)
+  data_out <- Simple_fread((directlfq_norm_file))
+  
+  data_out <- df_data[1:(info_columns+2)] %>% left_join(data_out, by="ion")
+  data_out <- data_out[, !(names(data_out) %in% c("ion", "protein.x", "protein.y"))]
+  data_out[data_out==0] <- NA
+  
+  Simple_Excel(data_out, "data", str_c(dpmsr_set$file$extra_prefix, "_directlfq_norm.xlsx", collapse = " "))
+  return(data_out)
+}
+
+
+
+
 
 # average global scaling value, sample loading normalization
 ai_normalize <- function(norm_data, data_to_norm, data_title, info_columns){
@@ -376,30 +425,30 @@ tmm_normalize_old <- function(norm_data, data_to_norm, data_title, info_columns)
 }
 
 
-# SL TMM Normalized 
-sltmm_normalize <- function(norm_data, data_to_norm, data_title, info_columns){
-  annotation_data <- data_to_norm[1:info_columns]
-  data_to_norm <- data_to_norm[(info_columns+1):ncol(data_to_norm)]
-  norm_data <- norm_data[(info_columns+1):ncol(norm_data)]
-  #excel_name <- "_Peptide_SLTMM1_Norm.xlsx"
-  target <- mean(colSums(norm_data))
-  norm_facs <- target / colSums(norm_data)
-  sl <- sweep(data_to_norm, 2, norm_facs, FUN = "*")
-  Simple_Excel(cbind(annotate_df, sl), "data",str_c(file_prefix3, "_Peptide_SLTMM1_Norm.xlsx", collapse = " "))
-  sl <- impute_only(sl)
-  Simple_Excel(cbind(annotate_df, sl), "data", str_c(file_prefix3, "_Peptide_SLTMM_Norm_Impute.xlsx", collapse = " ")) 
-  #sl_tmm <- calcNormFactors(norm_data, method = "TMM", sumTrim = 0.1) # this is data after SL and TMM on original scale
-  sl_tmm <- calcNormFactors(sl, method = "TMM", sumTrim = 0.1) # this is data after SL and TMM on original scaledata_out <- sweep(sl, 2, sl_tmm, FUN = "/")
-  data_out <- sweep(sl, 2, sl_tmm, FUN = "/") # this is data after SL and TMM on original scale
-  Simple_Excel(cbind(annotate_df, data_out), "data", str_c(file_prefix3, "_Peptide_SLTMM2_Norm.xlsx", collapse = " "))
-  Plot_All_gw(data_out, data_title)
-  data_out <- cbind(annotate_df, data_out)
-  if (peptide_to_protein){data_out <- collapse_peptide(data_out)}
-  colnames(data_out) <- sample_header_final_norm
-  data_out <- cbind(annotation_data, data_out)
-  #Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_sltmm_norm.xlsx", collapse = " "))
-  return(data_out)
-}
+# SL TMM Normalized - old not used
+# sltmm_normalize <- function(norm_data, data_to_norm, data_title, info_columns){
+#   annotation_data <- data_to_norm[1:info_columns]
+#   data_to_norm <- data_to_norm[(info_columns+1):ncol(data_to_norm)]
+#   norm_data <- norm_data[(info_columns+1):ncol(norm_data)]
+#   #excel_name <- "_Peptide_SLTMM1_Norm.xlsx"
+#   target <- mean(colSums(norm_data))
+#   norm_facs <- target / colSums(norm_data)
+#   sl <- sweep(data_to_norm, 2, norm_facs, FUN = "*")
+#   Simple_Excel(cbind(annotate_df, sl), "data",str_c(file_prefix3, "_Peptide_SLTMM1_Norm.xlsx", collapse = " "))
+#   sl <- impute_only(sl)
+#   Simple_Excel(cbind(annotate_df, sl), "data", str_c(file_prefix3, "_Peptide_SLTMM_Norm_Impute.xlsx", collapse = " ")) 
+#   #sl_tmm <- calcNormFactors(norm_data, method = "TMM", sumTrim = 0.1) # this is data after SL and TMM on original scale
+#   sl_tmm <- calcNormFactors(sl, method = "TMM", sumTrim = 0.1) # this is data after SL and TMM on original scaledata_out <- sweep(sl, 2, sl_tmm, FUN = "/")
+#   data_out <- sweep(sl, 2, sl_tmm, FUN = "/") # this is data after SL and TMM on original scale
+#   Simple_Excel(cbind(annotate_df, data_out), "data", str_c(file_prefix3, "_Peptide_SLTMM2_Norm.xlsx", collapse = " "))
+#   Plot_All_gw(data_out, data_title)
+#   data_out <- cbind(annotate_df, data_out)
+#   if (peptide_to_protein){data_out <- collapse_peptide(data_out)}
+#   colnames(data_out) <- sample_header_final_norm
+#   data_out <- cbind(annotation_data, data_out)
+#   #Simple_Excel(data_out,  str_c(dpmsr_set$file$extra_prefix, "_sltmm_norm.xlsx", collapse = " "))
+#   return(data_out)
+# }
 
 
 

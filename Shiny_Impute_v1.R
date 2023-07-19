@@ -48,6 +48,7 @@ impute_parallel <- function(norm_type){
     else if(norm_type==8){data_ti_impute <- impute_only(dpmsr_set$data$normalized$ti, "ti")}
     else if(norm_type==9){data_mi_impute <- impute_only(dpmsr_set$data$normalized$mi, "mi")}
     else if(norm_type==10){data_ai_impute <- impute_only(dpmsr_set$data$normalized$ai, "ai")}
+    else if(norm_type==13){data_directlfq_impute <- impute_only(dpmsr_set$data$normalized$directlfq, "directlfq")}
 }
 
 #--------------------------------------------------------------------------------------

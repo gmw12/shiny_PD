@@ -232,6 +232,11 @@ qc_spike_render <- function(session, input, output){
            contentType = 'image/png', width=500, height=400, alt="this is alt text")
     }, deleteFile = FALSE)
     
+    output$directlfq_plot <- renderImage({
+      list(src=str_c(dpmsr_set$file$output_dir, "directlfq//directlfq_", input$plot_select, ".png"),  
+           contentType = 'image/png', width=500, height=400, alt="this is alt text")
+    }, deleteFile = FALSE)
+    
     output$quantile_plot <- renderImage({
       list(src=str_c(dpmsr_set$file$output_dir, "quantile//quantile_", input$plot_select, ".png"),  
            contentType = 'image/png', width=500, height=400, alt="this is alt text")

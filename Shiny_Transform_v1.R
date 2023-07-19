@@ -191,107 +191,9 @@ isoform_to_isoform <- function(){
 }
 
 
-#peptide_data <- xdf
-#--- collapse peptide to protein-------------------------------------------------------------
-collapse_peptide <- function(peptide_data){
-  
-  #troubleshooting
-  #test_peptide_data <<- peptide_data
-  #peptide_data <- test_peptide_data
-  
-  cat(file=stderr(), "starting collapse_peptide...", "\n")
-  info_columns <- ncol(peptide_data) - dpmsr_set$y$sample_number
-  peptide_annotate <- peptide_data[1:(info_columns)]
-  peptide_data <- peptide_data[(info_columns+1):ncol(peptide_data)]
-  peptide_data[is.na(peptide_data)] <- 0
-  peptide_annotate <- peptide_annotate[, c("Accession", "Description", "Unique")]
-  
-  #count number of peptides for each protein
-  cat(file=stderr(), "collapse peptide to protein... 1", "\n")
-  peptide_annotate$Peptides <- 1
-  peptide_annotate$Peptides <- as.numeric(peptide_annotate$Peptides)
-  
-  #count number of unique peptides for each protein
-  cat(file=stderr(), "collapse peptide to protein... 2", "\n")
-  peptide_annotate$Unique[peptide_annotate$Unique == "Unique"] <- 1
-  peptide_annotate$Unique[peptide_annotate$Unique != 1] <- 0
-  peptide_annotate$Unique <- as.numeric(peptide_annotate$Unique)
-  
-  peptide_annotate <- peptide_annotate[, c("Accession", "Description", "Peptides", "Unique")]
-  
-  cat(file=stderr(), "collapse peptide to protein... 3", "\n")
-  test1 <- cbind(peptide_annotate, peptide_data)
-  #test2 <- test1 %>% group_by(Accession, Description) %>% summarise_all(funs(sum))
-  test2 <- test1 %>% group_by(Accession, Description) %>% summarise_all(list(sum))
-  test2 <- data.frame(ungroup(test2))
-  
-  #add imputed column info
-  cat(file=stderr(), "collapse peptide to protein... 4", "\n")
-  if ((dpmsr_set$x$raw_data_input=="Protein_Peptide" || dpmsr_set$x$raw_data_input=="Peptide") 
-      && dpmsr_set$x$final_data_output == "Protein" && !as.logical(dpmsr_set$x$tmt_spqc_norm)   )
-    {
-            test2 <- add_column(test2, dpmsr_set$data$protein_missing, .after = "Peptides")
-            dpmsr_set$y$info_columns_final <<- ncol(test2)-dpmsr_set$y$sample_number
-            names(test2)[4] <- "PD_Detected_Peptides"
-    }
-  cat(file=stderr(), "finished collapse_peptide...", "\n")
-  return(test2)
-} 
 
-#--- collapse peptide to protein-------------------------------------------------------------
-collapse_peptide_stats <- function(peptide_data, info_columns){
-  
-  #test_peptide_data <<- peptide_data
-  #test_info_columns <<- info_columns
-  #peptide_data <- test
-  #info_columns <- test_info
-  
-  cat(file=stderr(), "starting collapse_peptide_stats...", "\n")
-  peptide_annotate <- peptide_data[1:info_columns]
-  peptide_data <- peptide_data[(info_columns+1):ncol(peptide_data)]
-  peptide_data[is.na(peptide_data)] <- 0
-  
-  # Issue with previous version of dpmsr_set file not have unique peptide information
-  if("Unique" %in% colnames(peptide_annotate))
-  {
-    cat(file=stderr(), "Unique column found in peptide data...", "\n")
-    peptide_annotate <- peptide_annotate[, c("Accession", "Description", "Unique")]
-  }else{
-    cat(file=stderr(), "Unique column NOT found in peptide data...", "\n")
-    peptide_annotate <- peptide_annotate[, c("Accession", "Description")]
-  }
-  
 
-  #count number of peptides for each protein
-  peptide_annotate$Peptides <- 1
-  peptide_annotate$Peptides <- as.numeric(peptide_annotate$Peptides)
-  
- 
-  # Issue with previous version of dpmsr_set file not have unique peptide information
-  if("Unique" %in% colnames(peptide_annotate))
-  {
-    #count number of unique peptides for each protein
-    peptide_annotate$Unique[peptide_annotate$Unique == "Unique"] <- 1
-    peptide_annotate$Unique[peptide_annotate$Unique != 1] <- 0
-    peptide_annotate$Unique <- as.numeric(peptide_annotate$Unique)
-    peptide_annotate <- peptide_annotate[, c("Accession", "Description", "Peptides", "Unique")]
-  }else{
-    peptide_annotate <- peptide_annotate[, c("Accession", "Description", "Peptides")]
-  }
-  
-  
-   
-  #combine data and rollup peptides to protein
-  test1 <- cbind(peptide_annotate, peptide_data)
-  #test2 <- test1 %>% group_by(Accession, Description) %>% summarise_all(funs(sum))
-  test2 <- test1 %>% group_by(Accession, Description) %>% summarise_all(list(sum))
-  test2 <- data.frame(ungroup(test2))
-  
-  test_peptide_annotate <<- peptide_annotate
-  
-  cat(file=stderr(), "finished collapse_peptide_stats...", "\n")
-  return(test2)
-} 
+
 
 #----------------------------------------------------------------------------------------
 
@@ -352,7 +254,7 @@ add_imputed_column <- function(df){
         test2 <- test1 %>% group_by(Accession, Description) %>% summarise_all(list(sum))
         test3 <- test2
         test3[3:ncol(test2)][test2[3:ncol(test2)] > 1] <- 1
-        dpmsr_set$data$Protein_imputed_df <<- test3
+        dpmsr_set$data$protein_imputed_df <<- test3
         test2 <- data.frame(ungroup(test2))
         test2 <- test2[3:ncol(test2)]
         test2[test2==0] <- "-"

@@ -106,6 +106,9 @@ update_widget_norm <- function(session, input, output){
   if (as.logical(dpmsr_set$x$sltmm)) {sltmm_norm <- 1}else{sltmm_norm<-0}
   updateCheckboxInput(session, "checkbox_n3", value = sltmm_norm)
   
+  if (as.logical(dpmsr_set$x$directlfq)) {directlfq_norm <- 1}else{directlfq_norm<-0}
+  updateCheckboxInput(session, "checkbox_n13", value = directlfq_norm)
+  
   if (as.logical(dpmsr_set$x$quantile)) {quantile_norm <- 1}else{quantile_norm<-0}
   updateCheckboxInput(session, "checkbox_n4", value = quantile_norm)
   
@@ -175,7 +178,21 @@ update_widget_norm <- function(session, input, output){
     
   }
   
-
+  #-Rollup---------------------------------------------------------------------
+  update_widget_rollup <- function(session, input, output){ 
+    cat(file=stderr(), "update_widget_rollup...", "\n")
+    
+    if(dpmsr_set$x$rollup_method == "Sum"){rollup_method <- 1}
+    else if(dpmsr_set$x$rollup_method == "Median"){rollup_method <- 2}
+    else if(dpmsr_set$x$rollup_method == "Median_Polish"){rollup_method <- 3}
+    else if(dpmsr_set$x$rollup_method == "Mean"){rollup_method <- 4}
+    else if(dpmsr_set$x$rollup_method == "IQ_MaxLFQ"){rollup_method <- 5}
+    else if(dpmsr_set$x$rollup_method == "TopN"){rollup_method <- 6}
+    updateRadioButtons(session, "radio_rollup", selected = rollup_method )
+    
+    updateSelectInput(session, "rollup_topN_count", selected = as.numeric(dpmsr_set$y$rollup_topN_count))
+    
+  }
   
   
   
@@ -192,6 +209,9 @@ update_widget_post_processing <- function(session, input, output){
   
   if (as.logical(dpmsr_set$x$sltmm)) {sltmm_norm <- 1}else{sltmm_norm<-0}
   updateCheckboxInput(session, "checkbox_nc3", value = sltmm_norm)
+  
+  if (as.logical(dpmsr_set$x$directlfq)) {directlfq_norm <- 1}else{directlfq_norm<-0}
+  updateCheckboxInput(session, "checkbox_nc13", value = directlfq_norm)
   
   if (as.logical(dpmsr_set$x$quantile)) {quantile_norm <- 1}else{quantile_norm<-0}
   updateCheckboxInput(session, "checkbox_nc4", value = quantile_norm)
@@ -339,6 +359,7 @@ update_widget_all <- function(session, input, output){
   update_widget_filter(session, input, output)
   update_widget_norm(session, input, output)
   update_widget_impute(session, input, output)
+  update_widget_rollup(session, input, output)
   update_widget_stats(session, input, output)
   update_widget_post_processing(session, input, output)
   create_design_table(session, input, output)

@@ -98,8 +98,10 @@ load_dpmsr_set <- function(session, input, output){
   substring(dpmsr_set$x$new_path, nchar(volumes[[dpmsr_set$x$default_root]])+1)
   
   #set default values for parameters not in sample list file
+  dpmsr_set$x$rollup_method <<- "Sum"
   dpmsr_set$x$checkbox_norm_include <<- FALSE
   dpmsr_set$x$checkbox_norm_exclude <<- FALSE
+  dpmsr_set$x$directlfq <<- FALSE
   dpmsr_set$x$data_source <<- 1
   dpmsr_set$x$pathway_set <<- 0 
   dpmsr_set$x$motif_set <<- 0
