@@ -99,6 +99,7 @@ load_dpmsr_set <- function(session, input, output){
   
   #set default values for parameters not in sample list file
   dpmsr_set$x$rollup_method <<- "Sum"
+  dpmsr_set$y$rollup_topN_count <<- 3
   dpmsr_set$x$checkbox_norm_include <<- FALSE
   dpmsr_set$x$checkbox_norm_exclude <<- FALSE
   dpmsr_set$x$directlfq <<- FALSE

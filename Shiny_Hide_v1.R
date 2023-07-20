@@ -316,7 +316,7 @@
   }) 
   
   observe({
-    if (input$radio_rollup ==6){
+    if (input$radio_rollup ==7){
       shinyjs::show("rollup_topN_count")
     }else{
       shinyjs::hide("rollup_topN_count")

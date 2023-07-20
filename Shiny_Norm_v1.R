@@ -180,8 +180,9 @@ directlfq_normalize <- function(data_to_norm, data_title){
   
   data_in <- df_data[, !(names(df_data) %in% info_column_names)]
 
-  directlfq_file <- str_c(dpmsr_set$file$data_dir, "directlfq.aq_reformat.tsv")
-  directlfq_norm_file <- str_c(dpmsr_set$file$data_dir, "directlfq.aq_reformat.tsv.ion_intensities.tsv")
+  directlfq_file <- str_c(dpmsr_set$file$extra_dir, "directlfq.aq_reformat.tsv")
+  directlfq_norm_file <- str_c(dpmsr_set$file$extra_dir, "directlfq.aq_reformat.tsv.ion_intensities.tsv")
+  directlfq_protein_file <- str_c(dpmsr_set$file$extra_dir, "directlfq.aq_reformat.tsv.protein_intensities.tsv")
   write.table(data_in, file = directlfq_file, sep = "\t", row.names = FALSE)
   
   directlfq$run_lfq(directlfq_file)
@@ -192,6 +193,11 @@ directlfq_normalize <- function(data_to_norm, data_title){
   data_out[data_out==0] <- NA
   
   Simple_Excel(data_out, "data", str_c(dpmsr_set$file$extra_prefix, "_directlfq_norm.xlsx", collapse = " "))
+  
+  file.remove(directlfq_file)
+  file.remove(directlfq_norm_file)
+  file.remove(directlfq_protein_file)
+  
   return(data_out)
 }
 

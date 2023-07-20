@@ -187,7 +187,8 @@ update_widget_norm <- function(session, input, output){
     else if(dpmsr_set$x$rollup_method == "Median_Polish"){rollup_method <- 3}
     else if(dpmsr_set$x$rollup_method == "Mean"){rollup_method <- 4}
     else if(dpmsr_set$x$rollup_method == "IQ_MaxLFQ"){rollup_method <- 5}
-    else if(dpmsr_set$x$rollup_method == "TopN"){rollup_method <- 6}
+    else if(dpmsr_set$x$rollup_method == "DirectLFQ"){rollup_method <- 6}
+    else if(dpmsr_set$x$rollup_method == "TopN"){rollup_method <- 7}
     updateRadioButtons(session, "radio_rollup", selected = rollup_method )
     
     updateSelectInput(session, "rollup_topN_count", selected = as.numeric(dpmsr_set$y$rollup_topN_count))

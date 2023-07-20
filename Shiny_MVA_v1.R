@@ -10,8 +10,9 @@ stat_prep <- function(){
   dpmsr_set$data$final <- NULL
   
   #iq:fast_maxlfq function has issue with parallel processing, only works on first pass (c++ ???)
+  #directlfq is python code 
   cat(file=stderr(), (str_c("stat_prep function started...1  cores=", ncores)), "\n")
-  if (dpmsr_set$x$rollup_method != "IQ_MaxLFQ"){
+  if (dpmsr_set$x$rollup_method != "IQ_MaxLFQ" && dpmsr_set$x$rollup_method != "DirectLFQ"){
     dpmsr_set$data$final <<- mclapply(data_list, stat_prep_parallel, mc.cores = ncores)
   }
   

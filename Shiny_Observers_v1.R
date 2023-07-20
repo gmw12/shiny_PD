@@ -223,7 +223,8 @@ update_dpmsr_set_from_widgets <- function(session, input, output){
     else if (input$radio_rollup ==3){dpmsr_set$x$rollup_method <<-"Median_Polish"}
     else if (input$radio_rollup ==4){dpmsr_set$x$rollup_method <<-"Mean"}
     else if (input$radio_rollup ==5){dpmsr_set$x$rollup_method <<-"IQ_MaxLFQ"}
-    else if (input$radio_rollup ==6){dpmsr_set$x$rollup_method <<-"TopN"}
+    else if (input$radio_rollup ==6){dpmsr_set$x$rollup_method <<-"DirectLFQ"}
+    else if (input$radio_rollup ==7){dpmsr_set$x$rollup_method <<-"TopN"}
   })
   
 

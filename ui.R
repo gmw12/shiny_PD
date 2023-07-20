@@ -201,6 +201,7 @@ shinyUI(
                      checkboxInput("checkbox_n1", label = "Sample Loading - Total", value = TRUE),
                      checkboxInput("checkbox_n2", label = "Trimmed Mean - 10%"),
                      checkboxInput("checkbox_n3", label = "SL TMM"),
+                     checkboxInput("checkbox_n13", label = "DirectLFQ"),
                      checkboxInput("checkbox_n4", label = "Quantile"),
                      checkboxInput("checkbox_n5", label = "Linear Regression"),
                      checkboxInput("checkbox_n6", label = "LOESS"),
@@ -284,6 +285,31 @@ shinyUI(
     ), #end tab panel
 
     
+    tabPanel("Protein Rollup", value = "tp_rollup",
+             fluidRow(
+               br(),
+               column(width=4, offset =1,
+                      textOutput("text_r1"),
+                      tags$head(tags$style("#text_r1{color: blue; font-size: 20px; font-style: bold;}")),
+                      br(),
+                      radioButtons("radio_rollup", label=NULL,
+                                   choices = list("Sum" = 1, "Median" = 2, "Median_Polish" = 3, "Mean" = 4,
+                                                  "IQ_MaxLFQ" = 5, "DirectLFQ" = 6, "TopN"= 7),
+                                   selected = 1),
+                      br(),
+                      selectInput("rollup_topN_count", label = "topN rollup", width = 150,
+                                  choices = list(1,2,3,4,5), 
+                                  selected = 3),
+                      br(),
+                      hr(),
+                      actionButton("rollup", label = "Apply Protein Rollup", width = 300,
+                                   style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+               )
+             )
+    ), #end tab panel
+    
+    
+        
     tabPanel("TMT SPQC", value = "tp_tmt",
              fluidRow(
                column(width=2, offset =0,
@@ -368,6 +394,7 @@ shinyUI(
                                  )
                                  ),
                         tabPanel("Norm Comparison",
+                                 
                                  fluidRow(
                                    column(width=2, offset =0,
                                           selectInput("plot_select", label = NULL, 
@@ -376,6 +403,7 @@ shinyUI(
                                           checkboxInput("checkbox_nc1", label = "Sample Loading - Total"),
                                           checkboxInput("checkbox_nc2", label = "Trimmed Mean - 10%"),
                                           checkboxInput("checkbox_nc3", label = "SL TMM"),
+                                          checkboxInput("checkbox_nc13", label = "DirectLFQ"),
                                           checkboxInput("checkbox_nc4", label = "Quantile"),
                                           checkboxInput("checkbox_nc5", label = "Linear Regression"),
                                           checkboxInput("checkbox_nc6", label = "LOESS"),
@@ -389,6 +417,8 @@ shinyUI(
                                           imageOutput("impute_plot"),
                                           br(),
                                           imageOutput("sl_plot"),
+                                          br(),
+                                          imageOutput("directlfq_plot"),
                                           br(),
                                           imageOutput("quantile_plot"),
                                           br(),

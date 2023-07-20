@@ -60,6 +60,7 @@ shinyServer(function(input, output, session) {
       update_widget_filter(session, input, output)
       update_widget_norm(session, input, output)
       update_widget_impute(session, input, output)
+      update_widget_rollup(session, input, output)
       update_widget_stats(session, input, output)
       #load stat design table
       create_design_table(session, input, output)
@@ -218,7 +219,9 @@ shinyServer(function(input, output, session) {
     if(input$checkbox_n9 == 1) {n9<-9}else{n9<-NULL}
     if(input$checkbox_n10 == 1) {n10<-10}else{n10<-NULL}
     if(input$checkbox_n11 == 1) {n11<-11}else{n11<-NULL}
-    norm_list <-  list("impute"=99, "impute_b2" = 98, "sl"=n1, "quantile"=n4,"lr"=n5,"loess"=n6,"vsn"=n7,"ti"=n8,"mi"=n9,"ai"=n10)
+    if(input$checkbox_n13 == 1) {n13<-13}else{n13<-NULL}
+    
+    norm_list <-  list("impute"=99, "impute_b2" = 98, "sl"=n1, "directlfq"=n13, "quantile"=n4,"lr"=n5,"loess"=n6,"vsn"=n7,"ti"=n8,"mi"=n9,"ai"=n10)
     dpmsr_set$y$norm_list <<- norm_list[lapply(norm_list, length) > 0]
     norm_list2 <-  list("tmm"=n2,"sltmm"=n3,"protein"=n11)
     dpmsr_set$y$norm_list2 <<- norm_list2[lapply(norm_list2, length) > 0]
@@ -243,25 +246,24 @@ shinyServer(function(input, output, session) {
     # showModal(modalDialog("Setting groups...", footer = NULL))  
     # set_comp_groups()
     # removeModal()
-    cat(file=stderr(), "stat prep...", "\n")
-    showModal(modalDialog("Stat prep...", footer = NULL)) 
-    stat_prep()
-    removeModal()
-    cat(file=stderr(), "qc_apply", "\n")
-    showModal(modalDialog("QC stats...", footer = NULL)) 
-    qc_apply()
-    removeModal()
-    cat(file=stderr(), "qc - create_plots", "\n")
-    showModal(modalDialog("QC plots...", footer = NULL)) 
-    create_qc_plots()
-    qc_render(session, input, output)
-    update_widget_post_processing(session, input, output)
-    save_final_nostats()
-    removeModal()
-    updateTabsetPanel(session, "nlp1", selected = "tp_qc")
+    if (dpmsr_set$x$final_data_output == "Peptide") {
+      cat(file=stderr(), "Peptide output, skipping rollup, stat prep...", "\n")
+      stat_prep_rollup(session, input, output)
+      updateTabsetPanel(session, "nlp1", selected = "tp_qc")
+    }else{
+      updateTabsetPanel(session, "nlp1", selected = "tp_rollup") 
+    }
+    
   })
  
-    
+    #------------------------------------------------------------------------------------------------------   
+    #------------------------------------------------------------------------------------------------------  
+    observeEvent(input$rollup, {
+      cat(file=stderr(), "action rollup triggered", "\n")
+      stat_prep_rollup(session, input, output)
+      updateTabsetPanel(session, "nlp1", selected = "tp_qc")
+      cat(file=stderr(), "action rollup complete", "\n")
+    })   
     
     #------------------------------------------------------------------------------------------------------   
     #------------------------------------------------------------------------------------------------------  
@@ -771,6 +773,7 @@ observeEvent(input$data_show, {
         if(!dpmsr_set$x$tmt_spqc_norm) {
           
           df_list <- oneprotein_data(session, input, output)
+          #
           test_df_list <<- df_list
           
           for(j in names(df_list)){assign(j, df_list[[j]]) }
@@ -1515,14 +1518,14 @@ observeEvent(input$data_show, {
       dpmsr_set$data$data_raw_decoyprotein <- NULL
       dpmsr_set$data$data_raw_inputfiles <- NULL
       dpmsr_set$data$data_raw_psm <- NULL
-      dpmsr_set$data$data_to_norm <- NULL
-      dpmsr_set$data$Protein_imputed_df <- NULL
-      dpmsr_set$data$protein_missing <- NULL
-      dpmsr_set$data$normalized <- NULL
-      dpmsr_set$data$impute <- NULL
+      #dpmsr_set$data$data_to_norm <- NULL
+      #dpmsr_set$data$protein_imputed_df <- NULL
+      #dpmsr_set$data$protein_missing <- NULL
+      #dpmsr_set$data$normalized <- NULL
+      #dpmsr_set$data$impute <- NULL
       dpmsr_set$overview <- NULL
-      dpmsr_set$protocol <- NULL
-      dpmsr_set$data$norm_data <- NULL
+      #dpmsr_set$protocol <- NULL
+      #dpmsr_set$data$norm_data <- NULL
       
       save(dpmsr_set, file=str_c(dpmsr_set$file$output_dir, input$dpmsr_set_name_customer, ".dpmsr_set"))
 
@@ -1564,7 +1567,14 @@ observeEvent(input$data_show, {
       if (is.null(dpmsr_set$x$primary_group)) {
         cat(file=stderr(), ("Older dpmsr_set file, adding primary group field"), "\n")
         dpmsr_set$x$primary_group <<- FALSE
-        }
+      }
+      #does not have this field
+      if (is.null(dpmsr_set$x$rollup_method)) {
+        cat(file=stderr(), ("Older dpmsr_set file, adding rollup method"), "\n")
+        dpmsr_set$x$rollup_method <<- "Sum"
+      }
+      
+      
       #update sample groups
       if (ncol(dpmsr_set$y$sample_groups) < 7) {
         cat(file=stderr(), ("Older dpmsr_set file, rerunning function set_sample_groups"), "\n")
@@ -1648,6 +1658,14 @@ observeEvent(input$data_show, {
             cat(file=stderr(), ("Older dpmsr_set file, adding primary group field"), "\n")
             dpmsr_set$x$primary_group <<- FALSE
           }
+          
+          #does not have this field
+          if (is.null(dpmsr_set$x$rollup_method)) {
+            cat(file=stderr(), ("Older dpmsr_set file, adding rollup method"), "\n")
+            dpmsr_set$x$rollup_method <<- "Sum"
+          }
+          
+          
           #update sample groups
           if (ncol(dpmsr_set$y$sample_groups) < 7) {
             cat(file=stderr(), ("Older dpmsr_set file, rerunning function set_sample_groups"), "\n")

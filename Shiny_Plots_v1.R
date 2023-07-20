@@ -1,6 +1,6 @@
 
 create_qc_plots <- function() {
-  cat(file=stderr(), "create_qc_plots", "\n")
+  cat(file=stderr(), "function create_qc_plots", "\n")
   for(df_name in names(dpmsr_set$data$final)){
     cat(file=stderr(), str_c("create_qc_plots ", df_name), "\n")
     plot_dir <- create_dir(str_c(dpmsr_set$file$output_dir, df_name))
