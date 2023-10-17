@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y \
   libcurl4-openssl-dev libxml2-dev python3-pip \
   && rm -rf /var/lib/apt/lists/*
 
-Run ap install -y python3.8
+Run apt install -y python3.8
   
 RUN pip install directlfq
 
