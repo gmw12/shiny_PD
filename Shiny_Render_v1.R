@@ -2,22 +2,24 @@
 #----------------------------------------------------------------------------------
 
 inputloaddata_render <- function(session, input, output){
-  cat(file=stderr(), "inputloaddata_render...", "\n")
+  cat(file = stderr(), "inputloaddata_render...", "\n")
   output$text1 <- renderText({str_c("Original Data Format:  ",  as.character(dpmsr_set$x$raw_data_input)   )  })
   output$text2 <- renderText({str_c("Current Data Format:  ",  as.character(dpmsr_set$y$state)   )  })
   
-  if(dpmsr_set$x$raw_data_input=="Protein"){
+  if (dpmsr_set$x$raw_data_input == "Protein") {
     output$text3 <- renderText({str_c(as.character(dpmsr_set$y$state), " Count:  ",  nrow(dpmsr_set$data$data_protein_start) )   })  
-  }else{
+  } else if (dpmsr_set$x$raw_data_input == "Protein_Peptide" ||  dpmsr_set$x$raw_data_input == "Peptide")  {
     output$text3 <- renderText({str_c(as.character(dpmsr_set$y$state), " Count:  ",  nrow(dpmsr_set$data$data_peptide_start) )   })
+  } else if (dpmsr_set$x$raw_data_input == "Precursor" ||  dpmsr_set$x$raw_data_input == "Precursor_PTM")  {
+    output$text3 <- renderText({str_c(as.character(dpmsr_set$y$state), " Count:  ",  nrow(dpmsr_set$data$data_precursor_start) )   })
   }
   
-  output$mass_accuracy<- renderImage({
-    list(src=str_c(dpmsr_set$file$qc_dir,"Mass_Accuracy.png"), contentType = 'image/png', width=500, height=300, alt="this is alt text")
+  output$mass_accuracy <- renderImage({
+    list(src = str_c(dpmsr_set$file$qc_dir,"Mass_Accuracy.png"), contentType = 'image/png', width = 500, height = 300, alt = "this is alt text")
   }, deleteFile = FALSE)
   
   output$inj_summary <- renderImage({
-    list(src=str_c(dpmsr_set$file$qc_dir,"PSM_inj_summary.png"), contentType = 'image/png', width=500, height=300, alt="this is alt text")
+    list(src = str_c(dpmsr_set$file$qc_dir,"PSM_inj_summary.png"), contentType = 'image/png', width = 500, height = 300, alt = "this is alt text")
   }, deleteFile = FALSE)
   
   overview_df <- data.frame(names(dpmsr_set$overview), unlist(dpmsr_set$overview))
@@ -25,9 +27,15 @@ inputloaddata_render <- function(session, input, output){
     rhandsontable(overview_df, rowHeaders = NULL,  colHeaders = NULL, width = 800, height = 800) 
       })
   
-  output$peptide_RT <- renderImage({
-    list(src=str_c(dpmsr_set$file$qc_dir,"Peptide_RT.png"), contentType = 'image/png', width=500, height=300, alt="this is alt text")
-  }, deleteFile = FALSE)
+  observe({
+    if (file.exists(str_c(dpmsr_set$file$qc_dir,"Peptide_RT.png"))) {
+      output$peptide_RT <- renderImage({
+        list(src = str_c(dpmsr_set$file$qc_dir,"Peptide_RT.png"), contentType = 'image/png', width = 500, height = 300, alt = "this is alt text")
+      }, deleteFile = FALSE)
+    }else{
+      invalidateLater(50000, session)
+    }
+  }) 
   
   output$peptide_MZ <- renderImage({
     list(src=str_c(dpmsr_set$file$qc_dir,"Peptide_MZ.png"), contentType = 'image/png', width=500, height=300, alt="this is alt text")
@@ -111,18 +119,20 @@ inputloaddata_render <- function(session, input, output){
 #----------------------------------------------------------------------------------
 
 inputfilterapply_render <- function(session, input, output){
-  cat(file=stderr(), "inputfilterapply_render...", "\n")
+  cat(file = stderr(), "inputfilterapply_render...", "\n")
   
-  if(dpmsr_set$x$raw_data_input != "Protein"){
-      output$text4 <- renderText({str_c("Filtered ", as.character(dpmsr_set$y$state), " Count:  ",  nrow(dpmsr_set$data$data_peptide) )   })
+  if (dpmsr_set$x$raw_data_input == "Protein_Peptide" || dpmsr_set$x$raw_data_input == "Peptide") {
+      output$text4 <- renderText({str_c("Filtered ", as.character(dpmsr_set$y$state), " Count:  ",  nrow(dpmsr_set$data$data_peptide) ) })
+  }else if (dpmsr_set$x$raw_data_input == "Precursor_PTM" || dpmsr_set$x$raw_data_input == "Precursor") {
+      output$text4 <- renderText({str_c("Filtered ", as.character(dpmsr_set$y$state), " Count:  ",  nrow(dpmsr_set$data$data_precursor) )   })
   }
-  
+    
   output$raw_bar <- renderImage({
-    list(src=str_c(dpmsr_set$file$qc_dir,"Raw_barplot.png"), contentType = 'image/png', width=600, height=500, alt="this is alt text")
+    list(src = str_c(dpmsr_set$file$qc_dir,"Raw_barplot.png"), contentType = 'image/png', width = 600, height = 500, alt = "this is alt text")
   }, deleteFile = FALSE)
   
   output$norm_data_bar <- renderImage({
-    list(src=str_c(dpmsr_set$file$qc_dir,"Normalization_Data_barplot.png"), contentType = 'image/png', width=600, height=500, alt="No PTM Only barplot!")
+    list(src = str_c(dpmsr_set$file$qc_dir,"Normalization_Data_barplot.png"), contentType = 'image/png', width = 600, height = 500, alt = "No PTM Only barplot!")
   }, deleteFile = FALSE)
   
   
@@ -234,6 +244,11 @@ qc_spike_render <- function(session, input, output){
     
     output$directlfq_plot <- renderImage({
       list(src=str_c(dpmsr_set$file$output_dir, "directlfq//directlfq_", input$plot_select, ".png"),  
+           contentType = 'image/png', width=500, height=400, alt="this is alt text")
+    }, deleteFile = FALSE)
+    
+    output$directlfq_full_plot <- renderImage({
+      list(src=str_c(dpmsr_set$file$output_dir, "directlfq_full//directlfq_full_", input$plot_select, ".png"),  
            contentType = 'image/png', width=500, height=400, alt="this is alt text")
     }, deleteFile = FALSE)
     

@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------------------
 qc_apply <- function(){
-  cat(file=stderr(), "qc_apply...1", "\n")
+  cat(file = stderr(), "qc_apply...1", "\n")
   #set up tables for collection of QC Spike Data, and %CV's, and total CV's
   dpmsr_set$data$qc_spike <<- data.frame(dpmsr_set$design$"QC Spike Level")
   colnames(dpmsr_set$data$qc_spike)[1] <<- "SpikeLevel"
@@ -9,30 +9,30 @@ qc_apply <- function(){
   dpmsr_set$data$total_cv <<- data.frame(dpmsr_set$data$final$impute$Accession )
   colnames(dpmsr_set$data$total_cv)[1] <<- "Accession"
   
-  cat(file=stderr(), "qc_apply...2", "\n")
-  for(df_name in names(dpmsr_set$data$final)){
+  cat(file = stderr(), "qc_apply...2", "\n")
+  for (df_name in names(dpmsr_set$data$final)) {
     cv_stats(dpmsr_set$data$final[[df_name]], df_name)
     qc_spike(dpmsr_set$data$final[[df_name]], df_name)
   }
   
-  cat(file=stderr(), "qc_apply...3", "\n")
+  cat(file = stderr(), "qc_apply...3", "\n")
   colnames(dpmsr_set$data$summary_cv) <<- c("Group",names(dpmsr_set$data$final))
   rownames(dpmsr_set$data$summary_cv) <<- NULL
   dpmsr_set$data$qc_spike_final <<- qc_spike_final(dpmsr_set$data$qc_spike)
   cv_grouped_plot()
   qc_spike_plot()
-  if (as.logical(dpmsr_set$x$adh_spike)) {try(adh_spike(), silent=TRUE)}
-  cat(file=stderr(), "qc_apply...end", "\n")
+  if (as.logical(dpmsr_set$x$adh_spike)) {try(adh_spike(), silent = TRUE)}
+  cat(file = stderr(), "qc_apply...end", "\n")
 }
 
 #-----------------------------------------------------------------------------------------
 qc_spike_start <- function(){
-  cat(file=stderr(), str_c("function qc_spike_start..."), "\n")
+  cat(file = stderr(), str_c("function qc_spike_start..."), "\n")
   #set up tables for collection of QC Spike Data, and %CV's, and total CV's
   dpmsr_set$data$qc_spike <<- data.frame(dpmsr_set$design$"QC Spike Level")
   colnames(dpmsr_set$data$qc_spike)[1] <<- "SpikeLevel"
   
-  for(df_name in names(dpmsr_set$data$final)){
+  for (df_name in names(dpmsr_set$data$final)) {
     qc_spike(dpmsr_set$data$final[[df_name]], df_name)
   }
 
@@ -44,11 +44,11 @@ qc_spike_start <- function(){
 #----------------------------------------------------------------------------------------- 
 #collect CV statistics
 cv_stats <- function(data_out, title){
-  cat(file=stderr(), str_c("function cv_stats..."), "\n")
-  cv_start <- dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number+1
-  avg_cv <- colMeans(data_out[cv_start:(cv_start+dpmsr_set$y$group_number-1)], na.rm = TRUE)
+  cat(file = stderr(), str_c("function cv_stats..."), "\n")
+  cv_start <- dpmsr_set$y$info_columns_final + dpmsr_set$y$sample_number + 1
+  avg_cv <- colMeans(data_out[cv_start:(cv_start + dpmsr_set$y$group_number - 1)], na.rm = TRUE)
   dpmsr_set$data$summary_cv <<- cbind(dpmsr_set$data$summary_cv, avg_cv)
-  all_cv <- data_out[cv_start:(cv_start+dpmsr_set$y$group_number-1)]
+  all_cv <- data_out[cv_start:(cv_start + dpmsr_set$y$group_number - 1)]
   column_names <- colnames(all_cv)
   column_names <- str_c(title, " ",column_names)
   colnames(all_cv) <- column_names
@@ -58,11 +58,11 @@ cv_stats <- function(data_out, title){
 
 #qc spike metrics ---------------------------------
 qc_spike <- function(data_in, data_title) {
-  cat(file=stderr(), str_c("function qc_spike..."), "\n")
+  cat(file = stderr(), str_c("function qc_spike..."), "\n")
   dpmsr_set$x$qc_spike_id <<- gsub(" ", "", dpmsr_set$x$qc_spike_id, fixed = TRUE)
-  qc_spike_id <- unlist(strsplit(as.character(dpmsr_set$x$qc_spike_id), split=","))
-  spike_protein <-subset(data_in, Accession %in% qc_spike_id)  
-  spike_protein <- spike_protein[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)]
+  qc_spike_id <- unlist(strsplit(as.character(dpmsr_set$x$qc_spike_id), split = ","))
+  spike_protein <- subset(data_in, Accession %in% qc_spike_id)  
+  spike_protein <- spike_protein[(dpmsr_set$y$info_columns_final + 1):(dpmsr_set$y$info_columns_final + dpmsr_set$y$sample_number)]
   spike_total <- colSums(spike_protein)
   
   dpmsr_set$data$qc_spike <<- cbind(dpmsr_set$data$qc_spike, spike_total)
@@ -73,20 +73,20 @@ qc_spike <- function(data_in, data_title) {
 
 #qc spike metrics finalize---------------------------------
 qc_spike_final <- function(data_in) {
-  cat(file=stderr(), str_c("function qc_spike_final...."), "\n")
-  data_in <- aggregate(data_in, by=list(Category=data_in$SpikeLevel), FUN=mean)
+  cat(file = stderr(), str_c("function qc_spike_final...."), "\n")
+  data_in <- aggregate(data_in, by = list(Category = data_in$SpikeLevel), FUN = mean)
   data_in$Category <- NULL
   row_count <- nrow(data_in)
   
-  for(i in 2:row_count) {
+  for (i in 2:row_count) {
     testme <- round((data_in[i,]/data_in[1,]), 2)
-    if (i==2){
+    if (i == 2) {
       qc_stat <- testme
     }else{
       qc_stat <- rbind(qc_stat, testme)
     }
   }
-  data_in <-trunc(round(data_in,1))
+  data_in <- trunc(round(data_in,1))
   data_in <- data_in %>% mutate_all(as.character)
   qc_stat <- qc_stat %>% mutate_all(as.character)
   data_out <- rbind(data_in, qc_stat)
@@ -98,20 +98,20 @@ qc_spike_final <- function(data_in) {
 #-----------------------------------------------------------------------------------------
 #save dataframe with ADH peptides for QC meteric
 adh_spike <- function(){
-  cat(file=stderr(), str_c("function adh_spike...."), "\n")
-  ADH_data <-subset(dpmsr_set$data$impute$impute, Accession %in% dpmsr_set$x$adh_list)
+  cat(file = stderr(), str_c("function adh_spike...."), "\n")
+  ADH_data <- subset(dpmsr_set$data$impute$impute, Accession %in% dpmsr_set$x$adh_list)
   info_columns <- ncol(ADH_data) - dpmsr_set$y$sample_number
-  ADH_data$missings <- rowSums(ADH_data[(info_columns+1):ncol(ADH_data)] ==0)
-  ADH_data <- subset(ADH_data, missings==0)
+  ADH_data$missings <- rowSums(ADH_data[(info_columns + 1):ncol(ADH_data)] == 0)
+  ADH_data <- subset(ADH_data, missings == 0)
   ADH_data <- ADH_data[ , -ncol(ADH_data)]
   ADH_annotate <- ADH_data[, c("Accession", "Sequence")]
-  ADH_data <- ADH_data[(info_columns+1):ncol(ADH_data)]
+  ADH_data <- ADH_data[(info_columns + 1):ncol(ADH_data)]
   ADH_data <- cbind(ADH_annotate, ADH_data)
   ADH_data <- ADH_data  %>% group_by(Accession, Sequence) %>% summarise_all(funs(sum))
-  ADH_data$cv <- percentCV_gw(ADH_data[(dpmsr_set$y$info_columns+1):ncol(ADH_data)])
-  ADH_data$sd <- apply(ADH_data[(dpmsr_set$y$info_columns+1):(ncol(ADH_data)-1)], 1, FUN = function(x) {sd(x)})
-  ADH_data$av <- apply(ADH_data[(dpmsr_set$y$info_columns+1):(ncol(ADH_data)-1)], 1, FUN = function(x) {mean(x)})
-  ADH_data$id <- seq(1, nrow(ADH_data), by=1)
+  ADH_data$cv <- percentCV_gw(ADH_data[(dpmsr_set$y$info_columns + 1):ncol(ADH_data)])
+  ADH_data$sd <- apply(ADH_data[(dpmsr_set$y$info_columns + 1):(ncol(ADH_data) - 1)], 1, FUN = function(x) {sd(x)})
+  ADH_data$av <- apply(ADH_data[(dpmsr_set$y$info_columns + 1):(ncol(ADH_data) - 1)], 1, FUN = function(x) {mean(x)})
+  ADH_data$id <- seq(1, nrow(ADH_data), by = 1)
   ADH_data$color <- distinctColorPalette(nrow(ADH_data))
   ADH_data <- ADH_data[order(-ADH_data$av),]
   ADH_data <- ADH_data[1:12,]
@@ -122,7 +122,7 @@ adh_spike <- function(){
 
 #-----------------------------------------------------------------------------------------
 cv_grouped_plot <- function() {
-  cat(file=stderr(), str_c("creating cv_grouped_plot...."), "\n")
+  cat(file = stderr(), str_c("creating cv_grouped_plot...."), "\n")
   file_name <- str_c(dpmsr_set$file$qc_dir, "CV_barplot.png")
   
   data_in <- dpmsr_set$data$summary_cv
@@ -131,19 +131,19 @@ cv_grouped_plot <- function() {
   row.names(data_in) <- NULL
   data_plot <- data_in %>% pivot_longer(-Norm, names_to = "Sample", values_to = "CV")
   # Grouped
-  ggplot(data_plot, aes(fill=Sample, y=CV, x=Norm)) + 
-    geom_bar(position="dodge", stat="identity")
-  ggsave(file_name, width=8, height=4)
+  ggplot(data_plot, aes(fill = Sample, y = CV, x = Norm)) + 
+    geom_bar(position = "dodge", stat = "identity")
+  ggsave(file_name, width = 8, height = 4)
 }
 
 #-----------------------------------------------------------------------------------------
 qc_spike_plot <- function() {
-  cat(file=stderr(), str_c("creating qc_spike_plot...."), "\n")
+  cat(file = stderr(), str_c("creating qc_spike_plot...."), "\n")
   data_in <- dpmsr_set$data$qc_spike
   data_in$Sample <- dpmsr_set$design$Label
   #data_in <- data_in[order(data_in$SpikeLevel),]
   
-  for(df_name in names(dpmsr_set$data$final)){
+  for (df_name in names(dpmsr_set$data$final)) {
       file_name <- str_c(dpmsr_set$file$qc_dir,df_name, "_QC_Spike_barplot.png")
       plot_title <- df_name
       name1 <- data_in$Sample
@@ -155,10 +155,10 @@ qc_spike_plot <- function() {
       colnames(df2) <- c("Sample", "Spike_Level", "Intensity")
       df2$Spike_Level <- as.character(df2$Spike_Level)
     
-      ggplot(df2, aes(fill=Sample, y=Intensity, x=Spike_Level)) + 
-        geom_bar(position="dodge", stat="identity")+
+      ggplot(df2, aes(fill = Sample, y = Intensity, x = Spike_Level)) + 
+        geom_bar(position = "dodge", stat = "identity") +
         theme(legend.position = "none")
-      ggsave(file_name, width=8, height=4)
+      ggsave(file_name, width = 8, height = 4)
   }
 }
 

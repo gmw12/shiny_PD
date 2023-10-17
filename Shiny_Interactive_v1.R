@@ -286,13 +286,13 @@ interactive_pca2d <- function(session, input, output, df, namex, color_list, gro
 
 interactive_pca3d <- function(session, input, output, df, namex, color_list, groupx, comp_name)
 {
-  cat(file=stderr(), "interactive_pca3d" , "\n")
+  cat(file = stderr(), "interactive_pca3d" , "\n")
   x_transpose <- t(df)
-  x_transpose <-data.frame(x_transpose)
+  x_transpose <- data.frame(x_transpose)
   row.names(x_transpose) <- NULL
-  x_transpose <-cbind(groupx, x_transpose)
+  x_transpose <- cbind(groupx, x_transpose)
   
-  x_pca <- prcomp(x_transpose[,-1], scale=TRUE)
+  x_pca <- prcomp(x_transpose[,-1], scale = TRUE)
 
     test_this <- x_transpose[,1]
   x_gr <- factor(unlist(test_this))
@@ -300,8 +300,8 @@ interactive_pca3d <- function(session, input, output, df, namex, color_list, gro
 
   create_stats_pca3d <- reactive({
     pca3d(x_pca, 
-          group=x_gr,
-          new=FALSE,
+          group = x_gr,
+          new = FALSE,
           legend = "right",
           palette = rev(unique(color_list)), 
           radius = input$stats_pca3d_dot_size,
@@ -446,6 +446,9 @@ interactive_stats_volcano <- function(session, input, output, i)
   cat(file=stderr(), "interactive_stats_volcano" , "\n")
   
   df <- dpmsr_set$data$stats[[dpmsr_set$y$stats$groups$comp_name[i]]]
+  
+  if (is.grouped_df(df)){df <- ungroup(df)}
+  
   if(input$stats_spqc_cv_filter){
     df <- subset(df, df[ , dpmsr_set$y$stats$groups$mf[i]] >= input$missing_factor )
   }

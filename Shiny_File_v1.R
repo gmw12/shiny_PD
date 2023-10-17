@@ -166,6 +166,14 @@ save_object <- function(df, file_cust_name) {
 
 
 #----------------------------------------------------------------------------------------
+# get file extention
+getExtension <- function(file){ 
+  ex <- strsplit(basename(file), split="\\.")[[1]]
+  return(ex[-1])
+} 
+
+
+#----------------------------------------------------------------------------------------
 # log app usuage
 app_log <- function() {
   cat(file=stderr(), "app_log...", "\n")

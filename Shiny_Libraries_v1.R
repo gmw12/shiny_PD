@@ -1,4 +1,4 @@
-cat(file=stderr(), "load libraries", "\n")
+cat(file = stderr(), "load libraries", "\n")
 
 #parallel and background processing
 library(callr)
@@ -22,11 +22,12 @@ library(gplots)
 library(rgl)
 library(colourpicker)
 library(randomcoloR)
-
+library(pca3d)
 
 #read write
 library(readxl)
 library(openxlsx)
+#library(tcltk)
 
 #tables
 library(rhandsontable)
@@ -38,7 +39,7 @@ library(DT)
 #library(effsize)
 
 #library(ggpubr)
-library(pca3d)
+
 
 ##library(limma)
 ##library(edgeR)
@@ -57,11 +58,6 @@ library(factoextra) # clustering algorithms & visualization
 #library(rWikiPathways)
 #library(STRINGdb)
 #library(igraph)
-
-#library(tcltk)
-
-
-
 
 #library(dplyr)
 #library(stringr)

@@ -17,7 +17,8 @@ string_id_call <- function(content_type, df, row_start, row_stop)
                      "&caller_identity=DukeProteomics" )
       res_id <- GET(string_id_api)
       test_id <- rawToChar(res_id$content)
-      df_temp <- read_delim(test_id, delim="\t", col_names = TRUE)
+      cat(file=stderr(), "function string_id_call read_delim", "\n")
+      df_temp <- read_delim(test_id, delim="\t", col_names = TRUE, show_col_types = FALSE)
       gc()
       return(df_temp)
   }
@@ -83,7 +84,7 @@ setup_string <- function(session, input, output){
   cat(file=stderr(), str_c("background data has ", nrow(dpmsr_set$string$IDs), " lines"), "\n")
   dpmsr_set$string$string_db$set_background(backgroundV)
   
-  
+  cat(file=stderr(), str_c("string setup...4"), "\n")
   for (i in 1:dpmsr_set$x$comp_number){
     cat(file=stderr(), str_c("string setup comp #  ", i), "\n")
     comp_name <- dpmsr_set$y$stats$groups$comp_name[i]

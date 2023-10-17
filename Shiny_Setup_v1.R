@@ -26,10 +26,11 @@ set_user <- function(session, input, output){
       #for greg linux laptop
       volumes <<- c(dd='/home/dpmsr/shared', wd='.', Home = fs::path_home(), getVolumes()())
       site_user <<- "dpmsr"
-    }else if (Sys.info()["nodename"] == "mascot"){
+    }else if (Sys.info()["nodename"] == "bob"){
       #for mascot search pc
-      volumes <<- c(h1='/mnt/h_black1', h2='/mnt/h_black2', dc='/mnt/DataCommons', wd='.', Home = fs::path_home(), getVolumes()())
+      volumes <<- c(h1='/home/dpmsr/mnt/h_black1', h2='/home/dpmsr/mnt/h_black2', dc='home/dpmsr/mnt/RawData', wd='.', Home = fs::path_home(), getVolumes()())
       site_user <<- "dpmsr"
+      python_path <<- "/home/dpmsr/anaconda3/envs/PDP/bin/python3"
     }else{
       #for public website
       volumes <<- c(dd='/data', wd='.', Home = fs::path_home(), getVolumes()())
@@ -307,7 +308,22 @@ load_data_sp <- function(session, input, volumes){
   #design_data <- parseFilePaths(volumes, input$design_file)
   new_path <- str_extract(raw_data$datapath, "^/.*/")
   volumes["wd"] <- new_path
-  dpmsr_set$data$data_raw_protein <<- read_excel(raw_data$datapath)
+
+  sp_data <- data.frame(Simple_fread(file=raw_data$datapath))
+  
+  if (dpmsr_set$x$raw_data_input == "Protein"){
+    dpmsr_set$data$data_raw_protein <<- sp_data
+  }else if (dpmsr_set$x$raw_data_input == "Peptide") {
+    dpmsr_set$data$data_raw_peptide <<- sp_data
+  }else if (dpmsr_set$x$raw_data_input == "Precursor") {
+    dpmsr_set$data$data_raw_precursor <<- sp_data
+  }else if (dpmsr_set$x$raw_data_input == "Precursor_PTM") {
+    dpmsr_set$data$data_raw_precursor <<- sp_data
+  }else if (dpmsr_set$x$raw_data_input == "Fragment") {
+    dpmsr_set$data$data_raw_fragment <<- sp_data
+  }
+  
+  
   save_data(raw_data$datapath)
   save_data(dpmsr_set$x$design_name)
   gc()
@@ -316,25 +332,37 @@ load_data_sp <- function(session, input, volumes){
 
 #----------------------------------------------------------------------------------------
 prepare_data <- function(session, input) {  #function(data_type, data_file_path){
-  cat(file=stderr(), "prepare_data...", "\n")
+  cat(file = stderr(), "prepare_data...", "\n")
    data_type <- input$radio_input
-   if(as.numeric(data_type) == 1){
-    cat(file=stderr(), "prepare data_type 1", "\n")
+   if (dpmsr_set$x$raw_data_input == "Protein_Peptide") {
+    cat(file = stderr(), "prepare data_type 1", "\n")
     dpmsr_set$data$data_peptide_start <<- protein_to_peptide()
     dpmsr_set$data$data_protein_start <<- protein_to_protein()
     dpmsr_set$y$state <<- "Peptide"
-  }else if(data_type ==2){
-    cat(file=stderr(), "prepare data_type 2", "\n")
+  }else if (dpmsr_set$x$raw_data_input == "Protein") {
+    cat(file = stderr(), "prepare data_type 2", "\n")
     dpmsr_set$data$data_protein_start <<- protein_to_protein()
     dpmsr_set$y$state <<- "Protein"
-  }else if(data_type ==3){
-    cat(file=stderr(), "prepare data_type 3", "\n")
+  }else if (dpmsr_set$x$raw_data_input == "Peptide") {
+    cat(file = stderr(), "prepare data_type 3", "\n")
+    dpmsr_set$data$data_peptide_start <<- peptide_to_peptide()
+    dpmsr_set$y$state <<- "Peptide"
+  }else if (dpmsr_set$x$raw_data_input == "Precursor") {
+    cat(file = stderr(), "prepare data_type 4", "\n")
+    dpmsr_set$data$data_precursor_start <<- peptide_to_peptide()
+    dpmsr_set$y$state <<- "Precursor"
+  }else if (dpmsr_set$x$raw_data_input == "Precursor_PTM") {
+    cat(file = stderr(), "prepare data_type 5", "\n")
+    dpmsr_set$data$data_precursor_start <<- precursor_PTM_to_precursor_PTM()
+    dpmsr_set$y$state <<- "Precursor"
+  }else if (dpmsr_set$x$raw_data_input == "Fragment") {
+    cat(file = stderr(), "prepare data_type 6", "\n")
     dpmsr_set$data$data_peptide_start <<- peptide_to_peptide()
     dpmsr_set$y$state <<- "Peptide"
   }else{msgBox <- tkmessageBox(title = "Whoops",
                            message = "Invalid input output in design file", icon = "info", type = "ok")}
 
-   if(input$checkbox_isoform){
+   if (input$checkbox_isoform) {
      dpmsr_set$data$data_peptide_isoform_start <<- isoform_to_isoform()
    }
    gc()
@@ -343,13 +371,13 @@ prepare_data <- function(session, input) {  #function(data_type, data_file_path)
 
 #----------------------------------------------------------------------------------------
 set_sample_groups <- function(session, input, output){
-  cat(file=stderr(), "set_sample_groups...", "\n")
+  cat(file = stderr(), "set_sample_groups...", "\n")
   
   sample_info <- dpmsr_set$design
   #sample_info <- dpmsr_set$design[,1:7]
   
   #check if using primary group for filter and impute
-  if (input$primary_group){
+  if (input$primary_group) {
     group_type <- "PrimaryGroup"
     sample_info$PrimaryGroup <- sapply(sample_info$Group, function(string) str_split(string, "_")[[1]][1])
   }else{
@@ -363,7 +391,7 @@ set_sample_groups <- function(session, input, output){
   sample_number <- nrow(sample_info)
 
   #count number of samples in each group - add column
-  sample_info$Count <- sapply(sample_info[[group_type]], function(string) sum(string==sample_info[[group_type]]))
+  sample_info$Count <- sapply(sample_info[[group_type]], function(string) sum(string == sample_info[[group_type]]))
   
   # create unqiue group dataframe with sample number
   sample_groups <- sample_info[7:ncol(sample_info)]
@@ -377,13 +405,13 @@ set_sample_groups <- function(session, input, output){
   #assign start and end columns for each group in pd output
   sample_groups$start <- 1
   sample_groups$end <- sample_groups$Count[1]
-  for(i in 2:(group_number)) {
-    sample_groups$start[i] <- sample_groups$start[i-1] + sample_groups$Count[i-1]
+  for (i in 2:(group_number)) {
+    sample_groups$start[i] <- sample_groups$start[i - 1] + sample_groups$Count[i - 1]
     sample_groups$end[i] <- sample_groups$start[i] + sample_groups$Count[i] - 1
   }
 
   #assign colors to groups
-  color_choices <-distinctColorPalette(group_number)
+  color_choices <- distinctColorPalette(group_number)
   group_color <- color_choices[1:group_number]
   sample_groups$colorlist <- color_choices[1:group_number]
   sample_info$colorlist <- with(sample_groups, colorlist[match(sample_info[[group_type]], sample_groups[[group_type]])])
@@ -402,10 +430,10 @@ set_sample_groups <- function(session, input, output){
 
   #create factor vector
   group_factor <- rep(1, sample_groups$Count[1])
-  for(i in 2:nrow(sample_groups)) {
+  for (i in 2:nrow(sample_groups)) {
     group_factor <- c(group_factor, rep(i, sample_groups$Count[i]))
   }
-  group_factor <-factor(group_factor)
+  group_factor <- factor(group_factor)
   
   #save to dpmsr_set
   dpmsr_set$y$sample_number <<- sample_number

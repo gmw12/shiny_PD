@@ -8,7 +8,9 @@ update_dpmsr_set_from_widgets <- function(session, input, output){
     if (input$radio_input==1){dpmsr_set$x$raw_data_input <<-"Protein_Peptide"}
     else if (input$radio_input==2){dpmsr_set$x$raw_data_input<<-"Protein"}
     else if (input$radio_input==3){dpmsr_set$x$raw_data_input<<-"Peptide"}
-    else if (input$radio_input==4){dpmsr_set$x$raw_data_input<<-"PSM_FDR"}
+    else if (input$radio_input==4){dpmsr_set$x$raw_data_input<<-"Precursor"}
+    else if (input$radio_input==5){dpmsr_set$x$raw_data_input<<-"Precursor_PTM"}
+    else if (input$radio_input==6){dpmsr_set$x$raw_data_input<<-"Fragment"}
   })
   
   observe({
@@ -33,8 +35,8 @@ update_dpmsr_set_from_widgets <- function(session, input, output){
     else if (input$data_source=="2"){
       dpmsr_set$x$data_source <<- "SP"
       shinyFileChoose(input,'raw_files', roots=dpmsr_set$x$volumes, session=session,
-                      filetypes=c('','xlsx'), defaultPath=dpmsr_set$x$default_path, defaultRoot=dpmsr_set$x$default_root)
-      updateActionButton(session, 'raw_files', label="Select Spectronaut Excel File", icon = NULL)
+                      filetypes=c('', 'tsv'), defaultPath=dpmsr_set$x$default_path, defaultRoot=dpmsr_set$x$default_root)
+      updateActionButton(session, 'raw_files', label="Select Spectronaut File", icon = NULL)
     }
   }) 
   

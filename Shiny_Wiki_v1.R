@@ -1,6 +1,8 @@
 run_wiki <- function(session, input, output){
-  require(clusterProfiler)
+  library(clusterProfiler)
   
+  #comp_string <- "ctrl_ER_1h_4h_recov_v_ctrl_cyto"
+
   comp_string <- input$select_data_comp_wiki
   comp_number <- which(grepl(comp_string, dpmsr_set$y$stats$groups$comp_name))
   
@@ -19,7 +21,7 @@ run_wiki <- function(session, input, output){
   cat(file=stderr(), str_c("Run wiki...2" ), "\n")
   atest <- go_df$Accession
 
-  test.df <- bitr(atest, fromType = "UNIPROT",
+  test.df <- clusterProfiler::bitr(atest, fromType = "UNIPROT",
                   toType = c("ENTREZID", "ENSEMBL", "SYMBOL","GENENAME","PATH", "ONTOLOGY"),
                   OrgDb = tax_db)
   

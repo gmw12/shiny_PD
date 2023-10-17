@@ -1,5 +1,3 @@
-#last_update <- '06-12-2023'
-
 library(shiny)
 library(shinyFiles)
 library(shinyjs)
@@ -13,13 +11,13 @@ shinyUI(
   tagList(
   fluidPage(
   useShinyjs(),
-  useShinyalert(),
+  #useShinyalert(),
   setBackgroundColor("DarkGray", shinydashboard = TRUE),
   setBackgroundColor("LightGray", shinydashboard = FALSE),
-  titlePanel("Proteome Discoverer Data Processing"),
+  titlePanel("Duke Proteomics Data Processing"),
   
-  navlistPanel(widths=c(1,11), id = "nlp1",
-    tabPanel("Load Page", value = "load", align="center",
+  navlistPanel(widths = c(1,11), id = "nlp1",
+    tabPanel("Load Page", value = "load", align = "center",
              br(),
              br(),
              br(),
@@ -27,27 +25,27 @@ shinyUI(
              br(),
              tags$h1("Loading app...") 
     ),
-    tabPanel("Load Design", value = "tp_load_design", align="center",
+    tabPanel("Load Design", value = "tp_load_design", align = "center",
                         hr(),
                         tags$h1("Choose and Load the study design file..."),
                         br(),
-                        shinyFilesButton('design_file', label='Choose Design File', title='Please select excel design file', multiple=FALSE,
-                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                        shinyFilesButton('design_file', label = 'Choose Design File', title = 'Please select excel design file', multiple = FALSE,
+                                        style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"),
                         br(),  
-                        checkboxInput("primary_group", label = "Use only primary group for filter and impute", value=FALSE),
+                        checkboxInput("primary_group", label = "Use only primary group for filter and impute", value = FALSE),
                         br(),
                         actionButton("action_load_design", label = "Load Design File", width = 200, 
-                                     style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                                     style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"),
                         br(),
                         hr(),
                         br(),
                         tags$h3("Or load saved dpmsr_set file..."),
-                       shinyFilesButton('dpmsr_set_file', label='Choose dpmsr_set File', title='Choose dpmsr_set File', multiple=FALSE,
-                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                       shinyFilesButton('dpmsr_set_file', label = 'Choose dpmsr_set File', title = 'Choose dpmsr_set File', multiple = FALSE,
+                                        style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"),
                        br(),
                        br(),
                        actionButton("action_load_dpmsr_set", label = "Load dpmsr_set", width = 200, 
-                                    style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                                    style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"),
                         br(), 
                         br(),
                         hr(),                         
@@ -55,47 +53,47 @@ shinyUI(
                         tags$h3("If needed clear data and functions..."),
                         br(),
                        actionButton("action_clear", label = "Clear Data", width = 200, 
-                           style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                           style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"),
                         br(),
                         br(),
                         br(),
                         br(),
                         br(),
                         br(),
-                        span(textOutput("app_version_text"), style="color:blue; font-size:16px")
+                        span(textOutput("app_version_text"), style = "color:blue; font-size:16px")
            ), #end tab panel
   
-    tabPanel("Load Data", value = "tp_load_data", align="center",
+    tabPanel("Load Data", value = "tp_load_data", align = "center",
              tags$h1("Choose type and load data file"),
              hr(),
              fluidRow(align = "left",
-                       column(width=3, offset =2,
+                       column(width = 3, offset = 2,
                          radioButtons("radio_input", label = h3("Select Input Data Type"),
-                                      choices = list("Protein_Peptide" = 1, "Protein" = 2, "Peptide" = 3),
+                                      choices = list("Protein_Peptide (PD)" = 1, "Protein (SP)" = 2, "Peptide (SP)" = 3, "Precursor (SP)" = 4, "Precuror PTM (SP)" = 5, "Fragment (SP)" = 6),
                                       selected = 3)
                          ),
-                        column(width=3, offset =0,
+                        column(width = 3, offset = 0,
                              radioButtons("radio_output", label = h3("Select Output Data Type"),
                                           choices = list("Protein" = 1, "Peptide" = 2),
                                           selected = 2)
                         ),
-                      column(width=3, offset =0,
+                      column(width = 3, offset = 0,
                              radioButtons("data_source", label = h3("Select Data Source"),
                                           choices = list("Proteome Discoverer" = 1, "Spectronaut" = 2),
                                           selected = 1)
                       )
                  ),
              hr(),
-             fluidRow(align="left",
-               column(width=3, offset =1,
+             fluidRow(align = "left",
+               column(width = 3, offset = 1,
                       checkboxInput("checkbox_tmt", label = "SPQC Normalized TMT sets"),
                       checkboxInput("checkbox_isoform", label = "Use Peptide Isoform?"),
                ),
-               column(width=3, offset =1,   
+               column(width = 3, offset = 1,   
                       checkboxInput("checkbox_norm_ptm", label = "Normalize on PTM?"),
                       textInput("peptide_norm_grep", label="Normalize PTM grep", value = "Enter value here")
                ),
-              column(width=3, offset = 1,       
+              column(width = 3, offset = 1,       
                       checkboxInput("checkbox_impute_ptm", label = "Impute Distribution based on PTM?"),
                       textInput("peptide_impute_grep", label="Impute PTM grep", value = "Enter value here")
                )
@@ -137,18 +135,18 @@ shinyUI(
                 imageOutput("peptide_aainfo"), 
                 imageOutput("peptide_ai") 
                ),
-            column(width=3, offset =1,
+            column(width = 3, offset = 1,
                    rHandsontableOutput("project_overview")   
             )
           )
     ),  
 
 
-      tabPanel("Filters", value = "tp_filters", align="center",
+      tabPanel("Filters", value = "tp_filters", align = "center",
                tags$h1("Apply Raw Filters"),
                hr(),
                fluidRow(
-                 column(width=3, offset = 1,
+                 column(width = 3, offset = 1,
                         fluidRow(align = "left",
                           textOutput("text1"),
                           tags$head(tags$style("#text1{color: blue; font-size: 16px; font-style: bold;}")),
@@ -239,36 +237,36 @@ shinyUI(
 
     tabPanel("Impute", value = "tp_impute",
              fluidRow(
-               column(width=4, offset =1,
+               column(width = 4, offset = 1,
                       textOutput("text_i1"),
                       tags$head(tags$style("#text_i1{color: blue; font-size: 20px; font-style: bold;}")),
                       br(),
-                      radioButtons("radio_impute", label=NULL,
+                      radioButtons("radio_impute", label = NULL,
                                    choices = list("Duke/BottomX" = 1, "Floor" = 2, "Minimum" = 3, "Average/Group" = 4,
-                                                  "Average/Global" = 9, "KNN"= 5, "LocalLeastSquares" = 6, "MLE" = 7, "BottomX" = 8
+                                                  "Average/Global" = 9, "KNN" = 5, "LocalLeastSquares" = 6, "MLE" = 7, "BottomX" = 8
                                    ),
                                    selected = 1),
                       dropdownButton(
-                        numericInput("impute_floor", label="Impute Floor Intensity", value = "Enter value here"),
-                        numericInput("missing_cutoff", label="%minimum  measured values in group to allow missing values to be imputed in measured range", value = 50, width = '100%'),
+                        numericInput("impute_floor", label = "Impute Floor Intensity", value = "Enter value here"),
+                        numericInput("missing_cutoff", label = "%minimum  measured values in group to allow missing values to be imputed in measured range", value = 50, width = '100%'),
                         checkboxInput("checkbox_misaligned", label = "Misaligned Filter"),
-                        numericInput("misaligned_cutoff", label="%missing values to be considered for misalignment if average > intensity cutoff", value = 50, width='100%'),
-                        numericInput("intensity_cutoff_mean_sd", label="#standard deviations (+/-) from mean for intensity cuttof", value = -0.5, width = '100%'),
+                        numericInput("misaligned_cutoff", label = "%missing values to be considered for misalignment if average > intensity cutoff", value = 50, width = '100%'),
+                        numericInput("intensity_cutoff_mean_sd", label = "#standard deviations (+/-) from mean for intensity cuttof", value = -0.5, width = '100%'),
                         textOutput("text_i2"),
                         br(),
                         actionButton("adjust_intensity_cutoff", label = "Calc Intensity Cutoff", width = 300,
-                                     style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                                     style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"),
                         textOutput("text_impute_ptm"),
                         br(),
-                        numericInput("bottom_x", label="Bottom X%", value = "5"),
+                        numericInput("bottom_x", label = "Bottom X%", value = "5"),
                         circle = TRUE, status = "info", icon = icon("cogs"), width = "500px", size = "sm",
                         tooltip = tooltipOptions(title = "More Imputation Options")
                         ),
                       hr(),
                       actionButton("impute1", label = "Apply Imputation", width = 300,
-                                   style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                                   style = "color: #fff; background-color: #337ab7; border-color: #2e6da4")
                     ),
-               column(width=7, offset =0,
+               column(width = 7, offset = 0,
                          "Total Intensity Histogram",
                       br(),
                       imageOutput("histogram"),
@@ -288,13 +286,13 @@ shinyUI(
     tabPanel("Protein Rollup", value = "tp_rollup",
              fluidRow(
                br(),
-               column(width=4, offset =1,
+               column(width = 4, offset = 1,
                       textOutput("text_r1"),
                       tags$head(tags$style("#text_r1{color: blue; font-size: 20px; font-style: bold;}")),
                       br(),
-                      radioButtons("radio_rollup", label=NULL,
+                      radioButtons("radio_rollup", label = NULL,
                                    choices = list("Sum" = 1, "Median" = 2, "Median_Polish" = 3, "Mean" = 4,
-                                                  "IQ_MaxLFQ" = 5, "DirectLFQ" = 6, "TopN"= 7),
+                                                  "IQ_MaxLFQ" = 5, "TopN" = 7),
                                    selected = 1),
                       br(),
                       selectInput("rollup_topN_count", label = "topN rollup", width = 150,
@@ -303,7 +301,7 @@ shinyUI(
                       br(),
                       hr(),
                       actionButton("rollup", label = "Apply Protein Rollup", width = 300,
-                                   style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                                   style = "color: #fff; background-color: #337ab7; border-color: #2e6da4")
                )
              )
     ), #end tab panel
@@ -312,22 +310,22 @@ shinyUI(
         
     tabPanel("TMT SPQC", value = "tp_tmt",
              fluidRow(
-               column(width=2, offset =0,
-               numericInput("tmt_sets", label="TMT Sets for IRS Normalization", value = "Enter value here"),
-               numericInput("tmt_channels", label="TMT Channels", value = "Enter value here"),
+               column(width = 2, offset = 0,
+               numericInput("tmt_sets", label = "TMT Sets for IRS Normalization", value = "Enter value here"),
+               numericInput("tmt_channels", label = "TMT Channels", value = "Enter value here"),
                checkboxInput("checkbox_tmt_filter", label = "Filter peptides by stdev of average %CV"),
-               numericInput("tmt_filter_sd", label="Stdev for filter", value = "Enter value here"),
+               numericInput("tmt_filter_sd", label = "Stdev for filter", value = "Enter value here"),
                br(),
-               numericInput("TMT_SPQC_bottom_x", label="Bottom X%", value = "5"),
+               numericInput("TMT_SPQC_bottom_x", label = "Bottom X%", value = "5"),
                hr(),
                actionButton("tmt_irs_go", label = "Apply IRS Norm", width = 200,
-                            style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                            style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"),
                hr(),
                actionButton("tmt_irs_qc", label = "Start Data QC", width = 200,
-                            style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                            style = "color: #fff; background-color: #337ab7; border-color: #2e6da4")
                ),
                
-               column(width=5, offset =0,
+               column(width = 5, offset = 0,
                       br(),
                       br(),
                       br(),
@@ -337,7 +335,7 @@ shinyUI(
                       br(),
                       imageOutput("histogram_tmt")   
                ),        
-               column(width=5, offset =0,
+               column(width = 5, offset = 0,
                       selectInput("tmt_step", label = h5("TMT IRS Step Barplot"), 
                                   choices = list("Step0", "Step1", "Step2", "Step3", "Step4", "Step5", "Step6", "Step7", "Final"), 
                                   selected = "Step0"),
@@ -351,8 +349,8 @@ shinyUI(
     
     
     
-    tabPanel("QC", value="tp_qc",
-             navbarPage("QC:", id ="np5",
+    tabPanel("QC", value = "tp_qc",
+             navbarPage("QC:", id = "np5",
                         tabPanel("CV",
                                  rHandsontableOutput("data_CV"),
                                  br(),
@@ -365,24 +363,24 @@ shinyUI(
                                  ),
                         tabPanel("Protein Spike",
                                  fluidRow(
-                                   column(width=6, offset =0,
+                                   column(width = 6, offset = 0,
                                     rHandsontableOutput("data_proteinQC")
                                    ),
-                                   column(width=3, offset =0,
-                                    textInput("protein_spike_list", label="Protein Spike Accession(s)")  
+                                   column(width = 3, offset = 0,
+                                    textInput("protein_spike_list", label = "Protein Spike Accession(s)")  
                                    ),
-                                   column(width=3, offset =0,
+                                   column(width = 3, offset = 0,
                                           actionButton("calc_protein_spike", label = "Recalculate Protein Spike", width = 200,
-                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")  
+                                                       style = "color: #fff; background-color: #337ab7; border-color: #2e6da4")  
                                    )
                                  ),
                                  hr(),
                                  fluidRow(
-                                   column(width=2, offset =0,
+                                   column(width = 2, offset = 0,
                                           selectInput("norm_type", label = h5("Normalization Type"), 
                                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
                                                       selected = 1)),
-                                   column(width=10, offset =0,
+                                   column(width = 10, offset = 0,
                                           imageOutput("qc_spike_plot"))
                                  ),
                                  hr(),
@@ -390,13 +388,13 @@ shinyUI(
                                    rHandsontableOutput("protein_qc_spike_levels"),
                                    hr(),
                                    actionButton("update_qc_spike_levels", label = "Save Table", width = 100,
-                                                style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                                                style = "color: #fff; background-color: #337ab7; border-color: #2e6da4")
                                  )
                                  ),
                         tabPanel("Norm Comparison",
                                  
                                  fluidRow(
-                                   column(width=2, offset =0,
+                                   column(width = 2, offset = 0,
                                           selectInput("plot_select", label = NULL, 
                                                       choices = list("barplot", "boxplot"), 
                                                       selected = "barplot"),
@@ -404,6 +402,7 @@ shinyUI(
                                           checkboxInput("checkbox_nc2", label = "Trimmed Mean - 10%"),
                                           checkboxInput("checkbox_nc3", label = "SL TMM"),
                                           checkboxInput("checkbox_nc13", label = "DirectLFQ"),
+                                          checkboxInput("checkbox_nc14", label = "DirectLFQ_full"),
                                           checkboxInput("checkbox_nc4", label = "Quantile"),
                                           checkboxInput("checkbox_nc5", label = "Linear Regression"),
                                           checkboxInput("checkbox_nc6", label = "LOESS"),
@@ -413,7 +412,7 @@ shinyUI(
                                           checkboxInput("checkbox_nc10", label = "Average Intensity"),
                                           checkboxInput("checkbox_nc11", label = "Protein")
                                    ),
-                                   column(width=4, offset =0,
+                                   column(width = 4, offset = 0,
                                           imageOutput("impute_plot"),
                                           br(),
                                           imageOutput("sl_plot"),
@@ -432,6 +431,8 @@ shinyUI(
                                           imageOutput("sltmm_plot"),
                                           br(),
                                           imageOutput("tmm_plot"),
+                                          br(),
+                                          imageOutput("directlfq_full_plot"),
                                           br(),
                                           imageOutput("vsn_plot"),
                                           br(),
@@ -452,21 +453,21 @@ shinyUI(
                                                                          "Protein1", "Protein2", "Protein3", "Protein4"), 
                                                           selected = "ADH"),
                                               
-                                              textInput("adh_list", label="ADH Accession"),
-                                              textInput("bait_list", label="Bait Accession"),
-                                              textInput("avidin_list", label="Avidin Accession"),
-                                              textInput("carbox_list", label="Carbox Accession"),
-                                              textInput("bira_list", label="BirA Accession"),
-                                              textInput("protein1_list", label="Protein1 Accession"),
-                                              textInput("protein2_list", label="Protein2 Accession"),
-                                              textInput("protein3_list", label="Protein3 Accession"),
-                                              textInput("protein4_list", label="Protein4 Accession")
+                                              textInput("adh_list", label = "ADH Accession"),
+                                              textInput("bait_list", label = "Bait Accession"),
+                                              textInput("avidin_list", label = "Avidin Accession"),
+                                              textInput("carbox_list", label = "Carbox Accession"),
+                                              textInput("bira_list", label = "BirA Accession"),
+                                              textInput("protein1_list", label = "Protein1 Accession"),
+                                              textInput("protein2_list", label = "Protein2 Accession"),
+                                              textInput("protein3_list", label = "Protein3 Accession"),
+                                              textInput("protein4_list", label = "Protein4 Accession")
                                           ),
                                           actionButton("protein_select_plots", label = "Create/Display Plots", width = 300,
-                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                                                       style = "color: #fff; background-color: #337ab7; border-color: #2e6da4")
                                           
                                    ),
-                                   column(width=4, offset =0,
+                                   column(width = 4, offset = 0,
                                           imageOutput("impute_plot_select"),
                                           br(),
                                           imageOutput("sl_plot_select"),
@@ -479,7 +480,7 @@ shinyUI(
                                           br(),
                                           imageOutput("mi_plot_select")
                                    ),
-                                   column(width=4, offset =1,
+                                   column(width = 4, offset = 1,
                                           imageOutput("sltmm_plot_select"),
                                           br(),
                                           imageOutput("tmm_plot_select"),
@@ -608,62 +609,62 @@ shinyUI(
     
     
     tabPanel("Stats", value = "tp_stats",
-             navbarPage("Stats:", id ="nbp_stats",
-                        tabPanel("Design", id="tp_stats_design",
+             navbarPage("Stats:", id = "nbp_stats",
+                        tabPanel("Design", id = "tp_stats_design",
                                  fluidRow(
-                                   column(width=12, offset =0,
+                                   column(width = 12, offset = 0,
                                           hr(),
                                           tags$head(tags$style("#stats_design_table{color: blue;
                                                            font-size: 12px;
                                                            }"
                                           )
                                           ),
-                                          DT::dataTableOutput("stats_design_table", width='100%')
+                                          DT::dataTableOutput("stats_design_table", width = '100%')
                                    )
                                  )      
                         ),
-                        tabPanel("Setup", id="tp_stats_setup", 
+                        tabPanel("Setup", id = "tp_stats_setup", 
                                  fluidRow(
-                                   column(width=1, offset =0,
+                                   column(width = 1, offset = 0,
                                           selectInput("comp_number", label = "Comp #", width = 150,
                                                       choices = list(1,2,3,4,5,6,7,8,9,10,11,12), 
                                                       selected = 1)
                                    ),
-                                   column(width=1, offset =0,
+                                   column(width = 1, offset = 0,
                                           selectInput("select_final_data_stats", label = "Normalization", width = 150,
                                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
                                                       selected = 1)
                                    ),
-                                   column(width=1, offset =0,
-                                          numericInput("pvalue_cutoff", label="pvalue cutoff", value = .05)
+                                   column(width = 1, offset = 0,
+                                          numericInput("pvalue_cutoff", label = "pvalue cutoff", value = .05)
                                    ),
-                                   column(width=1, offset =0,
-                                          numericInput("foldchange_cutoff", label="FC cutoff", value = 2)
+                                   column(width = 1, offset = 0,
+                                          numericInput("foldchange_cutoff", label = "FC cutoff", value = 2)
                                    ),
-                                   column(width=2, offset =0,
-                                          numericInput("missing_factor", label="Measured % (decimal)", value = 0.6)
+                                   column(width = 2, offset = 0,
+                                          numericInput("missing_factor", label = "Measured % (decimal)", value = 0.6)
                                    ),
-                                   column(width=2, offset =0,
+                                   column(width = 2, offset = 0,
                                           pickerInput(inputId = "comp_spqc", label = "SPQC Group?",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
                                                                      `selected-text-format` = "count > 3"),  multiple = TRUE
                                                   )
                                         ),
-                                   column(width=1, offset =0,
+                                   column(width = 1, offset = 0,
                                      dropdownButton(
                                            textOutput("stats_gear1"),
                                            checkboxInput("peptide_missing_filter", label = "Refilter peptides by requiring X% measured values in one group?"),
-                                           numericInput("peptide_missing_factor", label="Peptide X% measured cutoff (decimal)", value = 0.8),
+                                           numericInput("peptide_missing_factor", label = "Peptide X% measured cutoff (decimal)", value = 0.8),
                                            checkboxInput("peptide_cv_filter", label = "Refilter peptides by requiring X %CV one group?"),
-                                           numericInput("peptide_cv_factor", label="Peptide X CV% cutoff", value = 100),
+                                           numericInput("peptide_cv_factor", label = "Peptide X CV% cutoff", value = 100),
                                            textOutput("stats_gear2"),
                                            checkboxInput("stats_spqc_cv_filter", label = "Filter by SPQC CV"),
-                                            numericInput("stats_spqc_cv_filter_factor", label="SPQC %CV Cutoff", value = 50),
+                                            numericInput("stats_spqc_cv_filter_factor", label = "SPQC %CV Cutoff", value = 50),
                                             checkboxInput("stats_comp_cv_filter", label = "Require one group CV below cuttoff"),
-                                            numericInput("stats_comp_cv_filter_factor", label="Comp %CV Cutoff", value = 50),
+                                            numericInput("stats_comp_cv_filter_factor", label = "Comp %CV Cutoff", value = 50),
                                             checkboxInput("pair_comp", label = "Pairwise Comparisons"),
                                             checkboxInput("stats_peptide_minimum", label = "Require minimum # of peptides per protein", value = 0),
-                                            numericInput("stats_peptide_minimum_factor", label="Peptide Minimum", value = 1),
+                                            numericInput("stats_peptide_minimum_factor", label = "Peptide Minimum", value = 1),
                                             h5('Extra Stats'),
                                             checkboxInput("checkbox_adjpval", label = "Include adjusted pvalue?"),
                                             selectInput("padjust_options", label = "p.adjust method", choices = list("holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr"), 
@@ -674,23 +675,23 @@ shinyUI(
                                             checkboxInput("checkbox_limmapvalue", label = "Include Limma Pvalue?"),
                                             h5('Final Excel Options'),
                                             checkboxInput("checkbox_report_ptm", label = "Report Only PTM?"),
-                                            textInput("peptide_report_grep", label="Report PTM grep", value = "Enter value here"),
+                                            textInput("peptide_report_grep", label = "Report PTM grep", value = "Enter value here"),
                                             checkboxInput("checkbox_report_accession", label = "Report Specific Accession(s) Only"),
-                                            textInput("report_accession", label="Protein Accessions for Final Report", value = "Enter value"),
+                                            textInput("report_accession", label = "Protein Accessions for Final Report", value = "Enter value"),
                                             checkboxInput("checkbox_add_gene_column", label = "Add gene name column"),
                                             circle = TRUE, status = "info", icon = icon("cogs"), width = "300px", size = "sm",
                                             tooltip = tooltipOptions(title = "Click to see more options!")
                                      )
                                    ),
-                                   column(width=2, offset =0,
-                                          textInput("final_stats_name", label="Final Stats Excel Name", 
+                                   column(width = 2, offset = 0,
+                                          textInput("final_stats_name", label = "Final Stats Excel Name", 
                                                     value = str_c("Final_CompHere_stats.xlsx"))
                                    )
                                  ),
                                  hr(),
                                  fluidRow(
-                                   column(width=2, offset =0,
-                                          span(textOutput("comp1_text"), style="color:blue; font-size:20px"),
+                                   column(width = 2, offset = 0,
+                                          span(textOutput("comp1_text"), style = "color:blue; font-size:20px"),
                                           pickerInput(inputId = "comp_1N", label = "Numerator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
                                                                      `selected-text-format` = "count > 7"),  multiple = TRUE

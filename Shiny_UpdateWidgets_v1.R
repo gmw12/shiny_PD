@@ -1,4 +1,17 @@
+#--All-----------------------------------------------------------------
+update_widget_all <- function(session, input, output){ 
+  cat(file=stderr(), "update_widget_all...", "\n")
+  update_widget_startup(session, input, output)
+  update_widget_filter(session, input, output)
+  update_widget_norm(session, input, output)
+  update_widget_impute(session, input, output)
+  update_widget_rollup(session, input, output)
+  update_widget_stats(session, input, output)
+  update_widget_post_processing(session, input, output)
+  create_design_table(session, input, output)
+}
 
+#---------------------------------------------------------------------------
 update_widget_startup <- function(session, input, output){
   cat(file=stderr(), "update_widget_startup...1", "\n")
   updateTextInput(session, "fileprefix", value = as.character(dpmsr_set$x$file_prefix))
@@ -15,7 +28,9 @@ update_widget_startup <- function(session, input, output){
   if(dpmsr_set$x$raw_data_input == "Protein_Peptide"){rdi <- 1}
     else if(dpmsr_set$x$raw_data_input == "Protein"){rdi <- 2}
     else if(dpmsr_set$x$raw_data_input == "Peptide"){rdi <- 3}
-    else if(dpmsr_set$x$raw_data_input == "PSM_FDR"){rdi <- 4}
+    else if(dpmsr_set$x$raw_data_input == "Precursor"){rdi <- 4}
+    else if(dpmsr_set$x$raw_data_input == "Precursor_PTM"){rdi <- 5}
+    else if(dpmsr_set$x$raw_data_input == "Fragment"){rdi <- 6}
   updateRadioButtons(session, "radio_input", selected = rdi )
   
   cat(file=stderr(), "update_widget_startup...3", "\n")
@@ -166,7 +181,7 @@ update_widget_norm <- function(session, input, output){
     updateNumericInput(session, "impute_floor", value = as.numeric(dpmsr_set$x$area_floor))
     
     updateNumericInput(session, "bottom_x", value = as.numeric(dpmsr_set$x$bottom_x))
-    if(class(dpmsr_set$x$TMT_SPQC_bottom_x)=="NULL") {dpmsr_set$x$TMT_SPQC_bottom_x <<- dpmsr_set$x$bottom_x}
+    if(is.null(dpmsr_set$x$TMT_SPQC_bottom_x)) {dpmsr_set$x$TMT_SPQC_bottom_x <<- dpmsr_set$x$bottom_x}
     updateNumericInput(session, "TMT_SPQC_bottom_x", value = as.numeric(dpmsr_set$x$TMT_SPQC_bottom_x))
     
     #if (as.logical(dpmsr_set$x$duke_misaligned)) {misaligned <- 1}else{misaligned<-0}
@@ -352,19 +367,6 @@ update_stat_choices <- function(session, input, output){
   updateTextInput(session, "comp12_name", value = dpmsr_set$y$stats$comp12_name)
   
   }
-
-#--All-----------------------------------------------------------------
-update_widget_all <- function(session, input, output){ 
-  cat(file=stderr(), "update_widget_all...", "\n")
-  update_widget_startup(session, input, output)
-  update_widget_filter(session, input, output)
-  update_widget_norm(session, input, output)
-  update_widget_impute(session, input, output)
-  update_widget_rollup(session, input, output)
-  update_widget_stats(session, input, output)
-  update_widget_post_processing(session, input, output)
-  create_design_table(session, input, output)
-}
 
 
 #--All-----------------------------------------------------------------

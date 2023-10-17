@@ -1,16 +1,19 @@
 
 create_qc_plots <- function() {
-  cat(file=stderr(), "function create_qc_plots", "\n")
-  for(df_name in names(dpmsr_set$data$final)){
-    cat(file=stderr(), str_c("create_qc_plots ", df_name), "\n")
+  cat(file = stderr(), "function create_qc_plots", "\n")
+  for (df_name in names(dpmsr_set$data$final)) {
+    cat(file = stderr(), str_c("create_qc_plots ", df_name), "\n")
     plot_dir <- create_dir(str_c(dpmsr_set$file$output_dir, df_name))
     df <- dpmsr_set$data$final[[df_name]]
-    df <- df[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+dpmsr_set$y$sample_number)]
+    df <- df[(dpmsr_set$y$info_columns_final + 1):(dpmsr_set$y$info_columns_final + dpmsr_set$y$sample_number)]
     bar_plot(df, df_name, plot_dir)
     box_plot(df, df_name, plot_dir)
     densities_plot(df, df_name, plot_dir)
     MDS_plot(df, df_name, plot_dir)   #str_c(y, "Multidimension Scaling"))
-    }
+  }
+
+  
+  
 }
 
 
@@ -68,7 +71,7 @@ volcano_plot <- function(df, df_name, plot_dir)  #x, comp_name, title, plot_dir)
 
 #Bar plot-------------------------------------------------
 bar_plot <- function(df,plot_title,plot_dir) {
-  cat(file=stderr(), "Shiny_Plots -> bar_plot", "\n")
+  cat(file = stderr(), "Shiny_Plots -> bar_plot", "\n")
   namex <- dpmsr_set$design$Label
   datay <- colSums(df, na.rm = TRUE)
   df2 <- data.frame(namex)
@@ -77,26 +80,26 @@ bar_plot <- function(df,plot_title,plot_dir) {
   df2$Sample <- factor(df2$Sample, levels = df2$Sample)
   file_name <- str_c(plot_dir, plot_title, "_barplot.png")
   ymax <- max(datay)
-  ggplot(data=df2, aes(x=Sample, y=Total_Intensity)) +
-    geom_bar(stat="identity", fill=dpmsr_set$design$colorlist)+ theme_classic() + 
+  ggplot(data = df2, aes(x = Sample, y = Total_Intensity)) +
+    geom_bar(stat = "identity", fill = dpmsr_set$design$colorlist) + theme_classic() + 
     ggtitle(plot_title) + 
-    xlab(NULL)+
-    ylab(NULL)+
+    xlab(NULL) +
+    ylab(NULL) +
     #scale_y_discrete(labels = NULL) +
-    coord_cartesian(ylim=NULL, expand = TRUE) +
+    coord_cartesian(ylim = NULL, expand = TRUE) +
     theme(plot.title = element_text(hjust = 0.5), 
-          axis.text.x = element_text(size=5, angle = 90,  color="black"),
-          axis.text.y = element_text(size=5,  color="black"),
+          axis.text.x = element_text(size = 5, angle = 90,  color = "black"),
+          axis.text.y = element_text(size = 5,  color = "black"),
           ) 
-  ggsave(file_name, width=5, height=4)
+  ggsave(file_name, width = 5, height = 4)
   return("done")
 }
 
 
 #--plot densities------------------------------------------------------------------
 densities_plot <- function(x,y,plot_dir) {
-  cat(file=stderr(), "densities_plot", "\n")
-  png(filename=str_c(plot_dir, y, "_density.png"), width = 888, height = 571)  
+  cat(file = stderr(), "densities_plot", "\n")
+  png(filename = str_c(plot_dir, y, "_density.png"), width = 888, height = 571)  
   plotDensities(log2(x), 
                 group = dpmsr_set$y$sample_groups$Group,   
                 col = dpmsr_set$y$sample_groups$colorlist, 
@@ -107,19 +110,19 @@ densities_plot <- function(x,y,plot_dir) {
 
 #Box plot-------------------------------------------------
 box_plot <- function(x,y, plot_dir) {
-  cat(file=stderr(), "box_plot", "\n")
-  png(filename=str_c(plot_dir, y, "_boxplot.png"), width = 888, height = 571)
+  cat(file = stderr(), "box_plot", "\n")
+  png(filename = str_c(plot_dir, y, "_boxplot.png"), width = 888, height = 571)
   data_box <- log2(x)
-  data_box[data_box ==-Inf ] <- NA
+  data_box[data_box == -Inf ] <- NA
   boxplot(data_box, 
           col = dpmsr_set$design$colorlist, 
           notch = TRUE, 
           boxwex = 0.8,
           main = c(y),
-          axes=TRUE,
+          axes = TRUE,
           horizontal = TRUE,
-          las=1,
-          par(mar=c(8,10,4,2)))
+          las = 1,
+          par(mar = c(8,10,4,2)))
   dev.off()
 }
 
@@ -188,37 +191,37 @@ heatmap_plot <- function(y,plottitle,plot_dir)
 
 #PCA 2D 3D-------------------------------------------------
 PCA_plot <- function(x,y, plot_dir) {
-  cat(file=stderr(), "3d PCA_plot", "\n")
+  cat(file = stderr(), "3d PCA_plot", "\n")
   #x <- x[(info_columns_final+1):ncol(x)] # strip off info columns
   require(pca3d)
   require(rgl)
   x_transpose <- t(x)
-  x_transpose <-data.frame(x_transpose)
+  x_transpose <- data.frame(x_transpose)
   row.names(x_transpose) <- NULL
-  x_transpose <-cbind(dpmsr_set$design$Group, x_transpose)
-  x_pca <- prcomp(x_transpose[,-1], scale=TRUE)
-  test_this <-x_transpose[,1]
+  x_transpose <- cbind(dpmsr_set$design$Group, x_transpose)
+  x_pca <- prcomp(x_transpose[,-1], scale = TRUE)
+  test_this <- x_transpose[,1]
   x_gr <- factor(unlist(test_this))
   summary(x_gr)
   pca3d(x_pca, 
-        group=x_gr,
+        group = x_gr,
         legend = "right",
         palette = dpmsr_set$y$sample_groups$colorlist, 
         radius = 2,
         title = y)
-  snapshotPCA3d(file=str_c(plot_dir, y, "_PCA3d", ".png"))
+  snapshotPCA3d(file = str_c(plot_dir, y, "_PCA3d", ".png"))
   
   #2D PCA
-  cat(file=stderr(), "2d PCA_plot", "\n")
+  cat(file = stderr(), "2d PCA_plot", "\n")
   df_out <- as.data.frame(x_pca$x)
   file_name <- str_c(plot_dir, y, "_PCA2D.png")
-  ggplot(df_out,aes(x=PC1,y=PC2,color=x_gr )) +
-    geom_point(size =3) +
-    theme(legend.title=element_blank()) +
+  ggplot(df_out,aes(x = PC1,y = PC2,color = x_gr )) +
+    geom_point(size = 3) +
+    theme(legend.title = element_blank()) +
     ggtitle(y) +
     scale_color_manual(values = dpmsr_set$y$sample_groups$colorlist) +
     theme(plot.title = element_text(hjust = 0.5))
-  ggsave(file_name, width=5, height=4)
+  ggsave(file_name, width = 5, height = 4)
   
   #Cluster
   # file_name <- str_c(plot_dir, y, "_Cluster.png")
@@ -240,10 +243,10 @@ PCA_plot <- function(x,y, plot_dir) {
 
 #Cluster-------------------------------------------------
 Cluster_plot <- function(x,y, plot_dir) {
-  cat(file=stderr(), "Cluster_plot", "\n")
+  cat(file = stderr(), "Cluster_plot", "\n")
   #x <- x[(info_columns_final+1):ncol(x)] # strip off info columns
   df <- t(x)
-  df <-data.frame(df)
+  df <- data.frame(df)
   #row.names(df) <- NULL
   #df <- na.omit(df)
   df[] <- lapply(df, as.numeric)
@@ -254,7 +257,7 @@ Cluster_plot <- function(x,y, plot_dir) {
   file_name <- str_c(plot_dir, y, "_Cluster.png")
   #the  distance  measure  to  be  used.   This  must  be  one  of  "euclidean",  "maxi-mum", 
   #"manhattan", "canberra", "binary", "minkowski", "pearson", "spearman"or "kendall".
-  distance <- get_dist(df, method="euclidean")
+  distance <- get_dist(df, method = "euclidean")
   fviz_dist(distance,  show_labels = TRUE, gradient = list(low = "#009933", mid = "white", high = "#FF3366")) +
     theme(plot.title = element_text(hjust = 0.5), 
           axis.text.x = element_text(size=5, angle = 90,  color="black"),
@@ -272,28 +275,28 @@ histogram_plot <- function(df, plottitle)
   #df <- TS_df
   
   start <- Sys.time()
-  cat(file=stderr(), "histogram plot function called", "\n")
+  cat(file = stderr(), "histogram plot function called", "\n")
   library(grid)
   
-  x<-df[(dpmsr_set$y$info_columns+1):ncol(df)]
-  title<-as.character(dpmsr_set$x$file_prefix)
+  x <- df[(dpmsr_set$y$info_columns + 1):ncol(df)]
+  title <- as.character(dpmsr_set$x$file_prefix)
   testthis1 <- as.matrix(log2(x))
   intensity_cutoff <- as.numeric(dpmsr_set$x$int_cutoff)
   
   data_dist <- as.vector(t(testthis1))
   data_dist <- data_dist[!is.na(data_dist)]
-  data_dist <- data_dist[data_dist>0]
+  data_dist <- data_dist[data_dist > 0]
   data_dist <- data.frame(data_dist)
   data_dist$bin <- ntile(data_dist, 100)  
   #data_dist <- data_dist[data_dist$bin==1,]
-  bottom1_max <- max(data_dist[data_dist$bin==1,]$data_dist)
-  bottom2_max <- max(data_dist[data_dist$bin==2,]$data_dist)
-  bottom5_max <- max(data_dist[data_dist$bin==5,]$data_dist)
+  bottom1_max <- max(data_dist[data_dist$bin == 1,]$data_dist)
+  bottom2_max <- max(data_dist[data_dist$bin == 2,]$data_dist)
+  bottom5_max <- max(data_dist[data_dist$bin == 5,]$data_dist)
   
-  x_mean <- mean(testthis1, na.rm=TRUE)
-  x_stdev <- sd(testthis1, na.rm=TRUE)
+  x_mean <- mean(testthis1, na.rm = TRUE)
+  x_stdev <- sd(testthis1, na.rm = TRUE)
   
-  if(dpmsr_set$x$int_cutoff_sd < 0) {
+  if (dpmsr_set$x$int_cutoff_sd < 0) {
     new_cutoff <- x_mean - (as.numeric(dpmsr_set$x$int_cutoff_sd) * x_stdev)
   }else{
     new_cutoff <- x_mean + (as.numeric(dpmsr_set$x$int_cutoff_sd) * x_stdev)
@@ -302,21 +305,21 @@ histogram_plot <- function(df, plottitle)
   dpmsr_set$y$intensity_mean <<- x_mean
   dpmsr_set$y$intensity_sd <<- x_stdev
   
-  if (new_cutoff < intensity_cutoff){intensity_cutoff<-new_cutoff}
-  if (intensity_cutoff < log2(100000)){intensity_cutoff<-log2(100000)}
+  if (new_cutoff < intensity_cutoff) {intensity_cutoff <- new_cutoff}
+  if (intensity_cutoff < log2(100000)) {intensity_cutoff <- log2(100000)}
   
   file_name <- str_c(dpmsr_set$file$output_dir, title, "_histogram.png")
   testgather <- gather(x)
-  testgather <- subset(testgather, testgather$value>0)
+  testgather <- subset(testgather, testgather$value > 0)
   testgather$value <- log2(testgather$value)
   dpmsr_set$x$int_cutoff <<- trunc(2^intensity_cutoff)
-  my_legend1 <- grid.text("Default Minimum Intensity: 5e+06", x=.80, y=.95, gp=gpar(col="green4", fontsize=10))
-  my_legend2 <- grid.text(str_c("Mean: ", (trunc((2^x_mean),0))), x=.80, y=.90, gp=gpar(col="black", fontsize=10))
-  my_legend3 <- grid.text(str_c("Mean + Stdev: ",  (trunc((2^(x_mean + x_stdev) ),0))  ), x=.80, y=.85, gp=gpar(col="black", fontsize=10))
-  my_legend4 <- grid.text(str_c("Mean - Stdev: ",  (trunc((2^(x_mean - x_stdev) ),0))  ), x=.80, y=.80, gp=gpar(col="black", fontsize=10))
-  my_legend5 <- grid.text(str_c("Bottom5: ", trunc((2^bottom5_max),0)), x=.80, y=.75, gp=gpar(col="coral", fontsize=10))
-  my_legend6 <- grid.text(str_c("Bottom2: ", trunc((2^bottom2_max),0)), x=.80, y=.70, gp=gpar(col="coral", fontsize=10))
-  my_legend7 <- grid.text(str_c("Bottom1: ", trunc((2^bottom1_max),0)), x=.80, y=.65, gp=gpar(col="coral", fontsize=10))
+  my_legend1 <- grid.text("Default Minimum Intensity: 5e+06", x = .80, y = .95, gp = gpar(col = "green4", fontsize = 10))
+  my_legend2 <- grid.text(str_c("Mean: ", (trunc((2^x_mean),0))), x=.80, y=.90, gp = gpar(col = "black", fontsize = 10))
+  my_legend3 <- grid.text(str_c("Mean + Stdev: ",  (trunc((2^(x_mean + x_stdev) ),0))  ), x = .80, y = .85, gp = gpar(col = "black", fontsize = 10))
+  my_legend4 <- grid.text(str_c("Mean - Stdev: ",  (trunc((2^(x_mean - x_stdev) ),0))  ), x = .80, y = .80, gp = gpar(col = "black", fontsize = 10))
+  my_legend5 <- grid.text(str_c("Bottom5: ", trunc((2^bottom5_max),0)), x = .80, y = .75, gp = gpar(col = "coral", fontsize = 10))
+  my_legend6 <- grid.text(str_c("Bottom2: ", trunc((2^bottom2_max),0)), x = .80, y = .70, gp = gpar(col = "coral", fontsize = 10))
+  my_legend7 <- grid.text(str_c("Bottom1: ", trunc((2^bottom1_max),0)), x = .80, y = .65, gp = gpar(col = "coral", fontsize = 10))
   
   hist_plot_bg <- function(testgather, plot_dir, plottitle, my_legend1,my_legend2,my_legend3,my_legend4,my_legend5,my_legend6,my_legend7,
                            x_mean, x_stdev, bottom5_max, bottom2_max, bottom1_max){

@@ -44,15 +44,6 @@
   
 
   observe({
-    if (input$radio_input==1 || input$radio_input==2) {
-      shinyjs::hide("checkbox_isoform")
-    } else {
-      shinyjs::show("checkbox_isoform")
-    }
-  })   
-
-  
-  observe({
     if (input$checkbox_norm_include) {
       shinyjs::show("include_norm_grep")
     } else {
@@ -77,7 +68,7 @@
       shinyjs::show("peptide_cv_filter")
       shinyjs::show("stats_peptide_minimum")
     }else{
-      shinyjs::show("checkbox_isoform")
+      if(as.numeric(input$data_source)==1) {shinyjs::show("checkbox_isoform")}
       shinyjs::hide("stats_gear1")
       shinyjs::hide("stats_gear2")
       shinyjs::hide("peptide_missing_filter")
@@ -100,6 +91,7 @@
       hideTab(inputId = "nlp1", target = "tp_overview")
       hideTab(inputId = "np5", target = "One Peptide")
       hideTab(inputId = "nbp_stats", target = "tp_stats_oneprotein")
+      hideTab(inputId = "nlp1", target = "tp_rollup")
     }else{
       shinyjs::show("peptide_missing_filter")
       shinyjs::show("peptide_missing_factor")
@@ -112,6 +104,7 @@
       showTab(inputId = "nlp1", target = "tp_overview")
       showTab(inputId = "np5", target = "One Peptide")
       showTab(inputId = "nbp_stats", target = "tp_stats_oneprotein")
+      showTab(inputId = "nlp1", target = "tp_rollup")
     } 
   })   
   
@@ -375,6 +368,15 @@
       shinyjs::show("directlfq_plot")
       shinyjs::show("directlfq_plot_select")
     }
+    
+    if (!input$checkbox_nc14){
+      shinyjs::hide("directlfq_full_plot")
+      shinyjs::hide("directlfq_full_plot_select")
+    }else {
+      shinyjs::show("directlfq_full_plot")
+      shinyjs::show("directlfq_full_plot_select")
+    }
+    
     if (!input$checkbox_nc4){
       shinyjs::hide("quantile_plot")
       shinyjs::hide("quantile_plot_select")
