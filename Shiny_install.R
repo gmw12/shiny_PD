@@ -22,7 +22,8 @@ for (pack in package_list) {
     print("not installing")
   }else{
     print("installing")
-    install.packages(pack, dependencies = TRUE, lib = "/home/dpmsr/R/library_4.3") 
+    #install.packages(pack, dependencies = TRUE, lib = "/home/dpmsr/R/library_4.3") 
+    install.packages(pack, dependencies = TRUE) 
   }
 }
 
@@ -38,7 +39,8 @@ for (pack in biocmanager_list) {
     print("not installing")
   }else{
     print("installing")
-    BiocManager::install(pack, dependencies = TRUE, lib = "/home/dpmsr/R/library_4.3") 
+    #BiocManager::install(pack, dependencies = TRUE, lib = "/home/dpmsr/R/library_4.3") 
+    BiocManager::install(pack, dependencies = TRUE) 
   }
 }        
 

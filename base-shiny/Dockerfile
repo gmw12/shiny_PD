@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y \
   libcurl4-openssl-dev libxml2-dev \
   cmake  python3-pip \
   && rm -rf /var/lib/apt/lists/*
+  
 RUN pip install directlfq
 
 ADD ./Shiny_install.R /code/Shiny_install.R
