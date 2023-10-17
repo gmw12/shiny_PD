@@ -143,7 +143,7 @@ project_overview <- function(session, input, output){
       ggplot2::ggsave(file_name, width=5, height=3)
     }  
     
-    test_rt <- callr::r_bg(psm_inj, args=list(psm_inj_summary, plot_dir), supervise = TRUE)  
+    test_rtw <- callr::r_bg(psm_inj, args=list(psm_inj_summary, plot_dir), supervise = TRUE)  
     
   rtw_summary2 <- function(df2, plot_dir){    
       g <- ggplot2::ggplot(df2, ggplot2::aes(x=RT_width))
