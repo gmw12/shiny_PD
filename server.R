@@ -25,7 +25,8 @@ shinyServer(function(input, output, session) {
     }
 
     if (site_user == "not_dpmsr") {
-      shinyalert("Welcome!", "Thanks for using the DPMSR Visualization Tool.  Please contact greg.waitt@duke.edu with any questions or concerns.  We are actively trying to resolve disconnect issues.  Please rerun 'Set Comparisons' and 'Start Analysis' on the Stats Tab", type = "info")
+      #shinyalert("Welcome!", "Thanks for using the DPMSR Visualization Tool.  Please contact greg.waitt@duke.edu with any questions or concerns.  We are actively trying to resolve disconnect issues.  Please rerun 'Set Comparisons' and 'Start Analysis' on the Stats Tab", type = "info")
+      shinyalert("DPMSR Visualization Tool is currently off line.  We are upgrading the tool to work with our new Thermo Astral which primarily uses DIA workflows.  Sorry for the inconvience. Please contact greg.waitt@duke.edu with any questions or concerns. ", type = "info")
     }
     
     #find app current state and set new if clear
