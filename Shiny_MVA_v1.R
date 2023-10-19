@@ -323,20 +323,22 @@ stat_calc2 <- function(session, input, output) {
     #reduce peptide PD imputed column to only samples of comparison
     cat(file = stderr(), "stat_calc2...4", "\n")
     if (dpmsr_set$x$final_data_output == "Peptide" && (dpmsr_set$x$raw_data_input != "Precursor" && dpmsr_set$x$raw_data_input != "Precursor_PTM" )) {
+      cat(file = stderr(), "stat_calc2...4.1", "\n")
       df_impute_peptide <- cbind(comp_N_imputed, comp_D_imputed, spqc_impute_data)
       df_impute_peptide[df_impute_peptide == 0] <- "-"
       while (ncol(df_impute_peptide) > 1) {
         df_impute_peptide[,1] <- str_c(df_impute_peptide[,1], ".", df_impute_peptide[,2])
         df_impute_peptide[,2] <- NULL
       }
-      colnames(df_impute_peptide) <- "Detected_Peptides"
-      annotate_in$PD_Detected_Peptides <- df_impute_peptide$PD_Detected_Peptides
+      colnames(df_impute_peptide) <- "Detected_Imputed"
+      annotate_in$Detected_Imputed <- df_impute_peptide$Detected_Imputed
       df <- cbind(annotate_in, comp_N_data, comp_D_data, spqc_data)
     }
     
     #reduce protein PD imputed column to only samples of comparison
     cat(file = stderr(), "stat_calc2...5", "\n")
     if (dpmsr_set$x$raw_data_input == "Protein" || input$select_final_data_stats == "directlfq_full") {
+      cat(file = stderr(), "stat_calc2...5.1", "\n")
       df_impute_protein <- cbind(comp_N_imputed, comp_D_imputed, spqc_impute_data)
       df_impute_protein[df_impute_protein == 0] <- "-"
       while (ncol(df_impute_protein) > 1) {
@@ -383,6 +385,7 @@ stat_calc2 <- function(session, input, output) {
     if ((dpmsr_set$x$raw_data_input != "Protein" &  dpmsr_set$x$final_data_output == "Protein" & (!as.logical(dpmsr_set$x$tmt_spqc_norm)) & 
       input$select_final_data_stats != "directlfq_full"  ) || ((dpmsr_set$x$raw_data_input == "Precursor" || dpmsr_set$x$raw_data_input == "Precursor_PTM") &&
                                                                dpmsr_set$x$final_data_output == "Peptide")) {
+      cat(file = stderr(), "stat_calc2...6.1", "\n")
       mf <- missing_factor_gw(comp_N_imputed, comp_D_imputed)
       N_CV <- percentCV_gw(comp_N_data)
       D_CV <- percentCV_gw(comp_D_data)
@@ -395,7 +398,8 @@ stat_calc2 <- function(session, input, output) {
       if (input$peptide_missing_filter) {
         df <- df[(df$mf >= input$peptide_missing_factor),]
         df_impute <- df_impute[(df_impute$mf >= input$peptide_missing_factor),]  
-        df_impute_summary <- df_impute_summary[(df_impute_summary$mf >= input$peptide_missing_factor),]  
+        df_impute_summary <- df_impute_summary[(df_impute_summary$mf >= input$peptide_missing_factor),] 
+        #df <- df[(df$mf >= 0.6),]; df_impute <- df_impute[(df_impute$mf >= 0.6),]; df_impute_summary <- df_impute_summary[(df_impute_summary$mf >= 0.6),]  
       }
   
       if (input$peptide_cv_filter) {
@@ -425,21 +429,26 @@ stat_calc2 <- function(session, input, output) {
         df_impute_summary[,1] <- str_c(df_impute_summary[,1], ".", df_impute_summary[,2])
         df_impute_summary[,2] <- NULL
       }
-      colnames(df_impute_summary) <- "Detected_Peptides"
-
-      df$PD_Detected_Peptides <- df_impute_summary
-      dpmsr_set$data$stats$peptide[[dpmsr_set$y$stats$groups$comp_name[i]]] <<- df
       
+
+      colnames(df_impute_summary) <- "Detected_Imputed"
+      df$Detected_Imputed <- df_impute_summary
+      dpmsr_set$data$stats$peptide[[dpmsr_set$y$stats$groups$comp_name[i]]] <<- df
+
+
       #testing block
       # test_df <<- df; test_df_impute <<- df_impute; test_info_columns <<- info_columns 
       # df <- test_df; df_impute <- test_df_impute ;info_columns <- test_info_columns
       
       #collapse peptide data and imputed peptide info, this is done with only the stat groups
       cat(file = stderr(), "stat_calc2...9", "\n")
-      if (dpmsr_set$x$raw_data_input == "Precursor" || dpmsr_set$x$raw_data_input == "Precursor_PTM") {
+      if (dpmsr_set$x$final_data_output == "Peptide" && (dpmsr_set$x$raw_data_input == "Precursor" || dpmsr_set$x$raw_data_input == "Precursor_PTM")) {
+        cat(file = stderr(), "stat_calc2...9.1", "\n")
         df <- collapse_precursor(df, info_columns, stats = TRUE)
         df_impute <- collapse_precursor(df_impute, info_columns, stats = TRUE)
       }else{
+        cat(file = stderr(), "stat_calc2...9.2", "\n")
+        #test_df <<- df; test_df_impute <<- df_impute; test_info_colums <<- info_columns
         df <- collapse_peptide(df, info_columns, stats = TRUE)
         df_impute <- collapse_peptide(df_impute, info_columns, stats = TRUE, impute = TRUE)
       }
@@ -458,15 +467,17 @@ stat_calc2 <- function(session, input, output) {
       }
       
       cat(file = stderr(), "stat_calc2...11", "\n")
-      if (dpmsr_set$x$raw_data_input == "Precursor" || dpmsr_set$x$raw_data_input == "Precursor_PTM") {
-        #df <- add_column(df, test2[,1] , .after = "Sequence")
-        #names(df)[6] <- "Detected_Precursors"
+      if (dpmsr_set$x$raw_data_input == "Precursor_PTM") {
+        cat(file = stderr(), "stat_calc2...11.1", "\n")
+        df <- add_column(df, test2[,1] , .after = "Sequence")
+        names(df)[grep("Sequence", colnames(df)) + 1] <- "Detected_Imputed"
         imputed_df <- df_impute[(ncol(df_impute) - sample_N_count - sample_D_count + 1):ncol(df_impute)]  
         imputed_df[imputed_df > 1] <- 1
       }else{
+        cat(file = stderr(), "stat_calc2...11.2", "\n")
         df <- add_column(df, test2[,1] , .after = "Peptides")
-        names(df)[5] <- "Detected_Peptides"
-        imputed_df <- df_impute[4:ncol(df_impute)]  
+        names(df)[grep("Peptides", colnames(df)) + 1] <- "Detected_Imputed"
+        imputed_df <- df_impute[(ncol(df_impute) - sample_N_count - sample_D_count + 1):ncol(df_impute)]   
         imputed_df[imputed_df > 1] <- 1
       }
 
@@ -533,6 +544,7 @@ stat_calc2 <- function(session, input, output) {
       stat_df[ ,dpmsr_set$y$stats$groups$mf[i]] <- missing_factor_gw(comp_N_imputed, comp_D_imputed)
     }
     
+    cat(file = stderr(), "stat_calc2...17", "\n")
     # Create final tables--------------------------------------------------
     if (input$select_final_data_stats == "impute") {
       colnames(comp_N_data) <- dpmsr_set$design$Header3[unlist(dpmsr_set$y$stats$groups$sample_numbers_N[i])]
@@ -544,12 +556,12 @@ stat_calc2 <- function(session, input, output) {
       colnames(spqc_data) <- dpmsr_set$design$Header2[unlist(dpmsr_set$y$stats$comp_spqc_sample_numbers)]
     }
     
-    cat(file = stderr(), "stat_calc2...17", "\n")
+    cat(file = stderr(), "stat_calc2...18", "\n")
     data_table <- cbind(annotate_in, comp_N_data, comp_D_data, spqc_data, stat_df[2:ncol(stat_df)])
     
     if (input$select_final_data_stats == "directlfq_full") {
-      cat(file = stderr(), "remove Detected_Peptides column from directlfq_full", "\n")
-      data_table <- data_table[, !names(data_table) %in% c("Detected_Peptides")]
+      cat(file = stderr(), "remove Detected_Imputed column from directlfq_full", "\n")
+      data_table <- data_table[, !names(data_table) %in% c("Detected_Imputed")]
     }
     
     data_table$Stats <- ""
@@ -577,7 +589,7 @@ stat_calc2 <- function(session, input, output) {
       data_table$pepmin <- ifelse(data_table$Peptides >= input$stats_peptide_minimum_factor, 0, 1)
     }
     
-    cat(file = stderr(), "stat_calc2...18", "\n")
+    cat(file = stderr(), "stat_calc2...19", "\n")
     
     data_table$sum <- rowSums(data_table[(data_table_cols + 1):ncol(data_table)])
     
@@ -682,7 +694,8 @@ stats_Final_Excel <- function(session, input, output) {
     
     if (site_user == "dpmsr" && dpmsr_set$x$raw_data_input != "Protein" &&
         dpmsr_set$x$raw_data_input != "Precursor" && dpmsr_set$x$raw_data_input != "Precursor_PTM") {
-
+      cat(file = stderr(), "Creating Excel Output File...3.1", "\n")
+      
       if (as.logical(dpmsr_set$x$peptide_isoform) ) {
           raw_peptide <- dpmsr_set$data$data_peptide_isoform_start
         }else{
@@ -702,8 +715,34 @@ stats_Final_Excel <- function(session, input, output) {
       nextsheet <- nextsheet + 1
     }
     
+    
+    
+    if (site_user == "dpmsr" && dpmsr_set$x$raw_data_input == "Precursor" && dpmsr_set$x$final_data_output == "Protein") {
+      cat(file = stderr(), "Creating Excel Output File...3.2", "\n")
+      
+      precursor_impute <- dpmsr_set$data$impute$impute
+      
+      raw_peptide <- collapse_precursor(dpmsr_set$data$data_precursor_start, info_columns = 0, stats = FALSE)
+      
+      addWorksheet(wb, "Sample Info")
+      writeData(wb, sheet = nextsheet, dpmsr_set$protocol)
+      nextsheet <- nextsheet + 1
+      addWorksheet(wb, "Raw Precursor Data")
+      writeData(wb, sheet = nextsheet, df_raw)
+      nextsheet <- nextsheet + 1
+      addWorksheet(wb, "Raw Peptide Data")
+      writeData(wb, sheet = nextsheet, raw_peptide)
+      nextsheet <- nextsheet + 1
+      addWorksheet(wb, "Imputed Precursor Data")
+      writeData(wb, sheet = nextsheet, dpmsr_set$data$impute$impute) 
+      nextsheet <- nextsheet + 1
+    }
+    
+    
+    
     if (site_user == "dpmsr" && dpmsr_set$x$final_data_output == "Peptide" &&
         (dpmsr_set$x$raw_data_input == "Precursor" || dpmsr_set$x$raw_data_input == "Precursor_PTM")) {
+      cat(file = stderr(), "Creating Excel Output File...3.3", "\n")
       
       raw_precursor <- dpmsr_set$data$data_raw_precursor
       precursor_impute <- dpmsr_set$data$impute$impute
@@ -722,6 +761,7 @@ stats_Final_Excel <- function(session, input, output) {
     
     
     if (site_user == "dpmsr" && dpmsr_set$x$raw_data_input == "Protein") {
+      cat(file = stderr(), "Creating Excel Output File...3.4", "\n")
       raw_protein <- dpmsr_set$data$data_protein_start
       protein_impute <- dpmsr_set$data$impute$impute
       
@@ -737,7 +777,7 @@ stats_Final_Excel <- function(session, input, output) {
     }
     #----------------------------------------
     
-    
+    cat(file = stderr(), "Creating Excel Output File...4", "\n")
     
     #addWorksheet(wb, deparse(substitute(df2)))
     addWorksheet(wb, "Normalized Data")
@@ -761,47 +801,47 @@ stats_Final_Excel <- function(session, input, output) {
 # data table filter ------------------------------------------------------
 
 stats_data_table_filter <- function(session, input, output) {
-  cat(file=stderr(), "stats_data_table_filter... start", "\n")
+  cat(file = stderr(), "stats_data_table_filter... start", "\n")
   
   comp_string <- input$stats_select_data_comp
   comp_number <- which(grepl(comp_string, dpmsr_set$y$stats$groups$comp_name))
   sample_number <- dpmsr_set$y$stats$groups$N_count[comp_number] + dpmsr_set$y$stats$groups$D_count[comp_number]
   
-  cat(file=stderr(), "stats_data_table_filter... 1", "\n")
+  cat(file = stderr(), "stats_data_table_filter... 1", "\n")
   df_filter <- dpmsr_set$data$stats[[comp_string]]
   
-  if(is.grouped_df(df_filter)) {df_filter <- ungroup(df_filter)}
+  if (is.grouped_df(df_filter)) {df_filter <- ungroup(df_filter)}
   
   #test_df_filter <<- df_filter
   
   
   
-  cat(file=stderr(), "stats_data_table_filter... 2", "\n")
-  if(input$stats_add_filters){
+  cat(file = stderr(), "stats_data_table_filter... 2", "\n")
+  if (input$stats_add_filters) {
     df_filter <- df_filter %>% filter(df_filter$Stats == "Up" | df_filter$Stats == "Down")
   }
   
-  cat(file=stderr(), "stats_data_table_filter... 3", "\n")
+  cat(file = stderr(), "stats_data_table_filter... 3", "\n")
   
-  if(input$stats_data_topn != 0 ){
-    df_filter$sum <- rowSums(df_filter[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final+sample_number)])
+  if (input$stats_data_topn != 0 ) {
+    df_filter$sum <- rowSums(df_filter[(dpmsr_set$y$info_columns_final + 1):(dpmsr_set$y$info_columns_final + sample_number)])
     df_filter <- df_filter[order(-df_filter$sum),]                      
     df_filter <- df_filter[1:input$stats_data_topn,]
     df_filter$sum <- NULL
   }
   
-  cat(file=stderr(), "stats_data_table_filter... 4", "\n")
+  cat(file = stderr(), "stats_data_table_filter... 4", "\n")
   
-  if(input$stats_data_accession != "0" ){
+  if (input$stats_data_accession != "0" ) {
     #df_filter <-subset(df_filter, Accession %in% as.character(input$stats_data_accession)  )
     #df_filter <- filter(df_filter, grepl(as.character(input$stats_data_accession)), Accession)
-    df_filter <-df_filter[grep(as.character(input$stats_data_accession), df_filter$Accession), ]
+    df_filter <- df_filter[grep(as.character(input$stats_data_accession), df_filter$Accession), ]
   }
   
-  if(input$stats_data_description != "0") {
-    df_filter <-df_filter[grep(as.character(input$stats_data_description), df_filter$Description), ]
+  if (input$stats_data_description != "0") {
+    df_filter <- df_filter[grep(as.character(input$stats_data_description), df_filter$Description), ]
   }
-  cat(file=stderr(), "stats_data_table_filter... end", "\n")
+  cat(file = stderr(), "stats_data_table_filter... end", "\n")
   return(df_filter)
 }
 
@@ -811,12 +851,12 @@ stats_data_table_filter <- function(session, input, output) {
 
 peptide_zscore <- function(df_peptide, info_columns) {
   info_df <- df_peptide[1:info_columns]
-  df <- df_peptide[(info_columns+1):ncol(df_peptide)]
-  df<- log(df, 2)
+  df <- df_peptide[(info_columns + 1):ncol(df_peptide)]
+  df <- log(df, 2)
   z_mean <- rowMeans(df)
   z_stdev  <- apply(df[1:ncol(df)], 1, sd)
   
-  df <- apply(df, MARGIN = 2, function(x) (x-z_mean)/z_stdev  )
+  df <- apply(df, MARGIN = 2, function(x) (x - z_mean)/z_stdev  )
   df <- data.frame(cbind(info_df, df), stringsAsFactors = FALSE)
   
   return(df)
@@ -827,25 +867,25 @@ peptide_zscore <- function(df_peptide, info_columns) {
 
 TMT_IRS_protein_data <- function(session, input, output) {
   
-  cat(file=stderr(), "TMT IRS Protein stats and plots..." , "\n")
+  cat(file = stderr(), "TMT IRS Protein stats and plots..." , "\n")
   
   comp_string <- input$stats_oneprotein_plot_comp
   comp_number <- which(dpmsr_set$y$stats$groups$comp_name == comp_string)
   
   df <- dpmsr_set$data$stats[[comp_string]]
-  df <-subset(df, Accession %in% as.character(input$stats_oneprotein_accession)  )
+  df <- subset(df, Accession %in% as.character(input$stats_oneprotein_accession)  )
   sample_number <- dpmsr_set$y$stats$groups$N_count[comp_number] + dpmsr_set$y$stats$groups$D_count[comp_number]
   
   #add spqc to plots
-  if(input$stats_oneprotein_plot_spqc){
-    df <- df[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final + sample_number + dpmsr_set$y$stats$comp_spqc_number)]
+  if (input$stats_oneprotein_plot_spqc) {
+    df <- df[(dpmsr_set$y$info_columns_final + 1):(dpmsr_set$y$info_columns_final + sample_number + dpmsr_set$y$stats$comp_spqc_number)]
   }else{
-    df <- df[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final + sample_number)]
+    df <- df[(dpmsr_set$y$info_columns_final + 1):(dpmsr_set$y$info_columns_final + sample_number)]
   }
   
   comp_rows <- c(dpmsr_set$y$stats$groups$sample_numbers_N[comp_number],dpmsr_set$y$stats$groups$sample_numbers_D[comp_number] )
   #add spqc to plots
-  if(input$stats_oneprotein_plot_spqc){
+  if (input$stats_oneprotein_plot_spqc) {
     comp_rows <- c(comp_rows, dpmsr_set$y$stats$comp_spqc_sample_numbers)
   }
   
@@ -855,31 +895,31 @@ TMT_IRS_protein_data <- function(session, input, output) {
   groupx <- dpmsr_set$design$Group[comp_rows]
 
   
-  return(list("df"=df, "namex"=namex, "color_list"=color_list, "comp_string"=comp_string))
+  return(list("df" = df, "namex" = namex, "color_list" = color_list, "comp_string" = comp_string))
 }
 
 # one protein data ------------------------------------------------------
 
 oneprotein_data <- function(session, input, output) {
   
-  cat(file=stderr(), "One Protein stats and plots..." , "\n")
+  cat(file = stderr(), "One Protein stats and plots..." , "\n")
 
   comp_string <- input$stats_oneprotein_plot_comp
   comp_number <- which(dpmsr_set$y$stats$groups$comp_name == comp_string)
-  cat(file=stderr(), str_c("comp_string=", comp_string, "   comp_number=", comp_number), "\n")
+  cat(file = stderr(), str_c("comp_string=", comp_string, "   comp_number=", comp_number), "\n")
   
-  cat(file=stderr(), "One Protein stats and plots...1" , "\n")
+  cat(file = stderr(), "One Protein stats and plots...1" , "\n")
   df <- dpmsr_set$data$stats[[comp_string]]
 
-  cat(file=stderr(), str_c("accession=", input$stats_oneprotein_accession), "\n")
-  df <-df[grep(as.character(input$stats_oneprotein_accession), df$Accession), ]
+  cat(file = stderr(), str_c("accession=", input$stats_oneprotein_accession), "\n")
+  df <- df[grep(as.character(input$stats_oneprotein_accession), df$Accession), ]
   #df <-subset(df, df$Accession %in% as.character(input$stats_oneprotein_accession)  )
   
   sample_number <- dpmsr_set$y$stats$groups$N_count[comp_number] + dpmsr_set$y$stats$groups$D_count[comp_number]
   
-  cat(file=stderr(), "One Protein stats and plots...2" , "\n")
+  cat(file = stderr(), "One Protein stats and plots...2" , "\n")
   
-  if (dpmsr_set$x$final_data_output=="Peptide"){
+  if (dpmsr_set$x$final_data_output == "Peptide") {
     df_peptide <- dpmsr_set$data$stats[[comp_string]]
     df_peptide <- df_peptide[1:(dpmsr_set$y$info_columns_final + sample_number + dpmsr_set$y$stats$comp_spqc_number)]
   }else{
@@ -890,49 +930,49 @@ oneprotein_data <- function(session, input, output) {
   peptide_info_columns <- ncol(df_peptide) - sample_number - dpmsr_set$y$stats$comp_spqc_number
   
   #add spqc to plots
-  cat(file=stderr(), "One Protein stats and plots...3" , "\n")
-  if(input$stats_oneprotein_plot_spqc){
-    df <- df[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final + sample_number + dpmsr_set$y$stats$comp_spqc_number)]
+  cat(file = stderr(), "One Protein stats and plots...3" , "\n")
+  if (input$stats_oneprotein_plot_spqc) {
+    df <- df[(dpmsr_set$y$info_columns_final + 1):(dpmsr_set$y$info_columns_final + sample_number + dpmsr_set$y$stats$comp_spqc_number)]
   }else{
-    df <- df[(dpmsr_set$y$info_columns_final+1):(dpmsr_set$y$info_columns_final + sample_number)]
+    df <- df[(dpmsr_set$y$info_columns_final + 1):(dpmsr_set$y$info_columns_final + sample_number)]
   }
   
   comp_rows <- c(dpmsr_set$y$stats$groups$sample_numbers_N[comp_number],dpmsr_set$y$stats$groups$sample_numbers_D[comp_number] )
   #add spqc to plots
-  if(input$stats_oneprotein_plot_spqc){
+  if (input$stats_oneprotein_plot_spqc) {
     comp_rows <- c(comp_rows, dpmsr_set$y$stats$comp_spqc_sample_numbers)
   }
   
   #test_df_peptide <<- df_peptide
   
-  cat(file=stderr(), "One Protein stats and plots...4" , "\n")
+  cat(file = stderr(), "One Protein stats and plots...4" , "\n")
   comp_rows <- unlist(comp_rows)
   namex <- dpmsr_set$design$Label[comp_rows]
   color_list <- dpmsr_set$design$colorlist[comp_rows]
   groupx <- dpmsr_set$design$Group[comp_rows]
   
-  cat(file=stderr(), "One Protein stats and plots...5" , "\n")
-  if (dpmsr_set$x$final_data_output != "Peptide"){
-    colnames(df_peptide)[(peptide_info_columns+1):ncol(df_peptide)] <- 
+  cat(file = stderr(), "One Protein stats and plots...5" , "\n")
+  if (dpmsr_set$x$final_data_output != "Peptide") {
+    colnames(df_peptide)[(peptide_info_columns + 1):ncol(df_peptide)] <- 
       c(dpmsr_set$design$Header1[unlist(dpmsr_set$y$stats$groups$sample_numbers_N[comp_number])],
         dpmsr_set$design$Header1[unlist(dpmsr_set$y$stats$groups$sample_numbers_D[comp_number])],
         dpmsr_set$design$Header1[unlist(dpmsr_set$y$stats$comp_spqc_sample_numbers)] )
   } 
   
   #sort peptides by intensity, keep highest abundant peptide
-  cat(file=stderr(), "One Protein stats and plots...6" , "\n")
-  df_peptide$sum <- rowSums(df_peptide[(peptide_info_columns+1):(peptide_info_columns+sample_number+1)])
+  cat(file = stderr(), "One Protein stats and plots...6" , "\n")
+  df_peptide$sum <- rowSums(df_peptide[(peptide_info_columns + 1):(peptide_info_columns + sample_number + 1)])
   df_peptide <- df_peptide[order(df_peptide$sum), ]
   df_peptide$sum <- NULL
   df_peptide <- df_peptide[!duplicated(df_peptide$Sequence),]
   
   #test_df_peptide <<- df_peptide
   
-  if(input$stats_use_zscore){df_peptide <- peptide_zscore(df_peptide, peptide_info_columns)}
+  if (input$stats_use_zscore) {df_peptide <- peptide_zscore(df_peptide, peptide_info_columns)}
   
-  cat(file=stderr(), "One Protein stats and plots...end" , "\n")
+  cat(file = stderr(), "One Protein stats and plots...end" , "\n")
   
-  df_list <- list("df"=df, "df_peptide"=df_peptide, "namex"=namex, "color_list"=color_list, "comp_string"=comp_string, "peptide_info_columns"=peptide_info_columns)
+  df_list <- list("df" = df, "df_peptide" = df_peptide, "namex" = namex, "color_list" = color_list, "comp_string" = comp_string, "peptide_info_columns" = peptide_info_columns)
   #test_df_list_one_protein <<- df_list
   return(df_list)
 }
@@ -941,22 +981,22 @@ oneprotein_data <- function(session, input, output) {
 
 onepeptide_data <- function(session, input, output) {
     
-    cat(file=stderr(), "One Peptide stats and plots..." , "\n")
+    cat(file = stderr(), "One Peptide stats and plots..." , "\n")
     
     comp_string <- input$stats_onepeptide_plot_comp
     comp_number <- which(dpmsr_set$y$stats$groups$comp_name == comp_string)
     
-    cat(file=stderr(), "One Peptide stats and plots...1" , "\n")
+    cat(file = stderr(), "One Peptide stats and plots...1" , "\n")
     df <- dpmsr_set$data$stats[[comp_string]]
-    df <-df[grep(as.character(input$stats_onepeptide_accession), df$Accession), ]
+    df <- df[grep(as.character(input$stats_onepeptide_accession), df$Accession), ]
     sample_number <- dpmsr_set$y$stats$groups$N_count[comp_number] + dpmsr_set$y$stats$groups$D_count[comp_number]
     df_peptide <- df
-    info_columns <-dpmsr_set$y$info_columns_final
-    df_peptide_stats <- df_peptide[(info_columns + sample_number + dpmsr_set$y$stats$comp_spqc_number+1):ncol(df_peptide)]
+    info_columns <- dpmsr_set$y$info_columns_final
+    df_peptide_stats <- df_peptide[(info_columns + sample_number + dpmsr_set$y$stats$comp_spqc_number + 1):ncol(df_peptide)]
     
     #continue filtering of df, used for first plot of a single peptide
-    cat(file=stderr(), "One Peptide stats and plots...2" , "\n")
-    df <-subset(df, Sequence %in% as.character(input$stats_onepeptide_sequence)  )
+    cat(file = stderr(), "One Peptide stats and plots...2" , "\n")
+    df <- subset(df, Sequence %in% as.character(input$stats_onepeptide_sequence)  )
     grep_mod <- stringr::str_replace_all(input$stats_onepeptide_modification, "\\[", "\\\\[")
     grep_mod <- stringr::str_replace_all(grep_mod, "\\]", "\\\\]")
     grep_mod <- stringr::str_replace_all(grep_mod,"\\(", "\\\\(")
@@ -964,31 +1004,31 @@ onepeptide_data <- function(session, input, output) {
     df <- df %>% filter(stringr::str_detect(Modifications, grep_mod) )
     
     #add spqc to plots
-    cat(file=stderr(), "One Peptide stats and plots...3" , "\n")
-    if(input$stats_onepeptide_plot_spqc){
+    cat(file = stderr(), "One Peptide stats and plots...3" , "\n")
+    if (input$stats_onepeptide_plot_spqc) {
       df_peptide <- df_peptide[1:(info_columns + sample_number + dpmsr_set$y$stats$comp_spqc_number)]
-      df <- df[(info_columns+1):(info_columns + sample_number + dpmsr_set$y$stats$comp_spqc_number)]
+      df <- df[(info_columns + 1):(info_columns + sample_number + dpmsr_set$y$stats$comp_spqc_number)]
       comp_rows <- c(dpmsr_set$y$stats$groups$sample_numbers_N[comp_number],dpmsr_set$y$stats$groups$sample_numbers_D[comp_number], 
                      dpmsr_set$y$stats$comp_spqc_sample_numbers )
     }else{
       df_peptide <- df_peptide[1:(info_columns + sample_number)]
-      df <- df[(info_columns+1):(info_columns + sample_number)]
+      df <- df[(info_columns + 1):(info_columns + sample_number)]
       comp_rows <- c(dpmsr_set$y$stats$groups$sample_numbers_N[comp_number],dpmsr_set$y$stats$groups$sample_numbers_D[comp_number] )
     }
 
-    cat(file=stderr(), "One Peptide stats and plots...4" , "\n")
+    cat(file = stderr(), "One Peptide stats and plots...4" , "\n")
     comp_rows <- unlist(comp_rows)
     namex <- dpmsr_set$design$Label[comp_rows]
     color_list <- dpmsr_set$design$colorlist[comp_rows]
     groupx <- dpmsr_set$design$Group[comp_rows]
 
 
-    if(input$stats_onepeptide_use_zscore){df_peptide <- peptide_zscore(df_peptide, info_columns)}
+    if (input$stats_onepeptide_use_zscore) {df_peptide <- peptide_zscore(df_peptide, info_columns)}
     
-    df_list <- list("df"=df, "df_peptide"=df_peptide, "df_peptide_stats"=df_peptide_stats, "info_columns"=info_columns, "namex"=namex, "color_list"=color_list, "comp_string"=comp_string)
+    df_list <- list("df" = df, "df_peptide" = df_peptide, "df_peptide_stats" = df_peptide_stats, "info_columns" = info_columns, "namex" = namex, "color_list" = color_list, "comp_string" = comp_string)
     #test_df_list <<- df_list
     
-    cat(file=stderr(), "One Peptide stats and plots...end" , "\n")
+    cat(file = stderr(), "One Peptide stats and plots...end" , "\n")
     return(df_list)
 }
     
@@ -1005,11 +1045,11 @@ onepeptide_data <- function(session, input, output) {
       filtered_df <- filter(filtered_df, filtered_df[[dpmsr_set$y$stats$groups$mf[comp_number] ]] >= as.numeric(dpmsr_set$x$missing_factor))
       
       
-      if(dpmsr_set$y$stats$stats_spqc_cv_filter){
+      if (dpmsr_set$y$stats$stats_spqc_cv_filter) { 
         filtered_df <- filter(filtered_df, filtered_df[[str_c(dpmsr_set$y$stats$comp_spqc, "_CV")]] <= as.numeric(dpmsr_set$y$stats$stats_spqc_cv_filter_factor ) )
       }
       
-      if(dpmsr_set$y$stats$stats_comp_cv_filter){
+      if (dpmsr_set$y$stats$stats_comp_cv_filter) {
         filtered_df <- filter(filtered_df, filtered_df[[dpmsr_set$y$stats$groups$cv_N[comp_number]]] <= as.numeric(dpmsr_set$y$stats$stats_comp_cv_filter_factor) | 
                                 filtered_df[[dpmsr_set$y$stats$groups$cv_D[comp_number]]] <= as.numeric(dpmsr_set$y$stats$stats_comp_cv_filter_factor) )
       }
@@ -1020,13 +1060,13 @@ onepeptide_data <- function(session, input, output) {
     
     
   peptide_position_lookup <- function(session, input, output, protein_accession)  {
-    cat(file=stderr(), "peptide_position_lookup...", "\n")
+    cat(file = stderr(), "peptide_position_lookup...", "\n")
     
     #----------------------------------------------------------------------------------------------------
-    if (dpmsr_set$x$data_source == "PD"){
+    if (dpmsr_set$x$data_source == "PD") {
       # create peptide lookup table
-      if(dpmsr_set$x$final_data_output == "Protein"){
-        if(class(dpmsr_set$data$data_raw_peptide$Positions.in.Master.Proteins)=="NULL"){
+      if (dpmsr_set$x$final_data_output == "Protein") {
+        if (class(dpmsr_set$data$data_raw_peptide$Positions.in.Master.Proteins) == "NULL") {
           peptide_pos_lookup <- try(dpmsr_set$data$data_raw_peptide %>% dplyr::select(Sequence, Positions.in.Proteins))
         }else{
           peptide_pos_lookup <- try(dpmsr_set$data$data_raw_peptide %>% dplyr::select(Sequence, Positions.in.Master.Proteins))
@@ -1039,7 +1079,7 @@ onepeptide_data <- function(session, input, output) {
         }
       }
       
-      cat(file=stderr(), "peptide_position_lookup...1", "\n")
+      cat(file = stderr(), "peptide_position_lookup...1", "\n")
       colnames(peptide_pos_lookup) <- c("Sequence", "Position")
       peptide_pos_lookup$Position <- gsub("\\]; \\[", "xxx",  peptide_pos_lookup$Position)
       s <- strsplit(peptide_pos_lookup$Position, split = "; ")
@@ -1050,7 +1090,7 @@ onepeptide_data <- function(session, input, output) {
       peptide_pos_lookup$Start_Stop <- gsub("\\]", "",  peptide_pos_lookup$Start_Stop)
       peptide_pos_lookup$Start_Stop <- gsub("xxx", ", ",  peptide_pos_lookup$Start_Stop)
       peptide_pos_lookup$AS <- str_c(peptide_pos_lookup$Accession, " ", peptide_pos_lookup$Sequence)
-      cat(file=stderr(), "peptide_position_lookup...2", "\n")
+      cat(file = stderr(), "peptide_position_lookup...2", "\n")
       s <- strsplit(peptide_pos_lookup$Start_Stop, split = ", ")
       peptide_pos_lookup <- data.frame(AS = rep(peptide_pos_lookup$AS, sapply(s, length)), Position = unlist(s))
       peptide_pos_lookup <- peptide_pos_lookup %>% separate(AS, c("Accession", "Sequence"), sep = " ")
@@ -1058,17 +1098,17 @@ onepeptide_data <- function(session, input, output) {
     }
     
     #------------------------------------------------------------------------------------------------------------------
-    if (dpmsr_set$x$data_source == "SP"){
+    if (dpmsr_set$x$data_source == "SP") {
       # create peptide lookup table
-      if(dpmsr_set$x$final_data_output == "Protein"){
+      if (dpmsr_set$x$final_data_output == "Protein") {
           peptide_pos_lookup <- try(dpmsr_set$data$data_raw_peptide %>% dplyr::select(PG.ProteinAccessions, EG.ModifiedSequence, PEP.PeptidePosition))
       }
       
-      cat(file=stderr(), "peptide_position_lookup...3", "\n")
+      cat(file = stderr(), "peptide_position_lookup...3", "\n")
       colnames(peptide_pos_lookup) <- c("Accession", "Sequence", "Start")
       peptide_pos_lookup <- peptide_pos_lookup %>% distinct()
       
-      cat(file=stderr(), "peptide_position_lookup...4", "\n")
+      cat(file = stderr(), "peptide_position_lookup...4", "\n")
       peptide_pos_lookup <- expand_spectronaut_protein_lookup(peptide_pos_lookup)
       
       peptide_pos_lookup$Stop <- nchar(peptide_pos_lookup$Sequence) + as.numeric(peptide_pos_lookup$Start)
@@ -1081,7 +1121,7 @@ onepeptide_data <- function(session, input, output) {
   
     peptide_pos_lookup <- subset(peptide_pos_lookup, Accession %in% protein_accession )
     #peptide_pos_lookup <- subset(peptide_pos_lookup, Accession %in% "P60202"  )  
-    cat(file=stderr(), "peptide_position_lookup...end", "\n")
+    cat(file = stderr(), "peptide_position_lookup...end", "\n")
     return(peptide_pos_lookup)
     
   }
@@ -1110,7 +1150,7 @@ set_stat_parameters <- function(session, input, output)  {
 
   #----------------------------------------------------------------------------------------
 set_stat_headers <- function(comp_groups, i)  {  
-  cat(file=stderr(), "set stat headers...", "\n")
+  cat(file = stderr(), "set stat headers...", "\n")
   #set comp groups names
   comp_groups$fc[i] <- str_c(comp_groups$comp_name[i], "_FC")
   comp_groups$fc2[i] <- str_c(comp_groups$comp_name[i], "_FC2")
@@ -1121,7 +1161,7 @@ set_stat_headers <- function(comp_groups, i)  {
   comp_groups$cohensd[i] <- str_c(comp_groups$comp_name[i], "_cohensd")
   comp_groups$mf[i] <- str_c(comp_groups$comp_name[i], "_MF")
   
-  if(dpmsr_set$x$primary_group){
+  if (dpmsr_set$x$primary_group) {
     comp_groups$cv_N[i] <- str_c(comp_groups$primary_comp_N[i], "_CV")  
     comp_groups$cv_D[i] <- str_c(comp_groups$primary_comp_D[i], "_CV")
   }else{
@@ -1137,28 +1177,28 @@ set_stat_headers <- function(comp_groups, i)  {
 expand_spectronaut <- function(df)  {    
     
   df <- df %>% add_column(ProteinGroup = "", .after = 'ProteinName')
-  dpmsr_set$y$info_columns <<- dpmsr_set$y$info_columns +1
-  dpmsr_set$y$info_columns_final <<- dpmsr_set$y$info_columns_final +1
+  dpmsr_set$y$info_columns <<- dpmsr_set$y$info_columns + 1
+  dpmsr_set$y$info_columns_final <<- dpmsr_set$y$info_columns_final + 1
   df$ProteinGroup <- df$Accession
   
   #expand protein groups
   df$group <- ""
   #find groups
-  for (i in 1:nrow(df)){
+  for (i in 1:nrow(df)) {
     df$group[i] <- grepl(";", df$Accession[i])
   }
   #isolate groups from singles
-  test1 <- df[df$group==FALSE,]
-  test2 <- df[df$group==TRUE,]
+  test1 <- df[df$group == FALSE,]
+  test2 <- df[df$group == TRUE,]
   
   #loop through groups and create single entry for each accession
-  for (i in 1:nrow(test2)){
+  for (i in 1:nrow(test2)) {
     accessions <- unlist(str_split(test2$Accession[i], ";"))
     genes <- unlist(str_split(test2$Gene[i], ";"))
     descriptions <- unlist(str_split(test2$Description[i], ";"))
     names <- unlist(str_split(test2$ProteinName[i], ";"))
 
-    for (a in 1:length(accessions)){
+    for (a in 1:length(accessions)) {
       temp_df <- test2[i,]
       temp_df$Gene <- genes[a]
       temp_df$Accession <- accessions[a]
@@ -1179,21 +1219,21 @@ expand_spectronaut <- function(df)  {
     df$group <- ""
     
     #find groups
-    for (i in 1:nrow(df)){
+    for (i in 1:nrow(df)) {
       df$group[i] <- grepl(";", df$Accession[i])
     }
     
     #isolate groups from singles
-    test1 <- df[df$group==FALSE,]
-    test2 <- df[df$group==TRUE,]
+    test1 <- df[df$group == FALSE,]
+    test2 <- df[df$group == TRUE,]
     
     #loop through groups and create single entry for each accession
-    for (i in 1:nrow(test2)){
+    for (i in 1:nrow(test2)) {
       accessions <- unlist(str_split(test2$Accession[i], ";"))
       sequence <- test2$Sequence[i]
       start <- unlist(str_split(test2$Start[i], ";"))
       
-      for (a in 1:length(accessions)){
+      for (a in 1:length(accessions)) {
         temp_df <- test2[i,]
         temp_df$Accession <- accessions[a]
         temp_df$Sequence <- sequence

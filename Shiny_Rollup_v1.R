@@ -24,14 +24,16 @@ stat_prep_rollup <- function(session, input, output){
 }
 
 #--- collapse precursor to peptide-------------------------------------------------------------
-collapse_precursor <- function(precursor_data, info_columns=0, stats=FALSE) {
+collapse_precursor <- function(precursor_data, info_columns = 0, stats = FALSE) {
   cat(file = stderr(), "precursor rollup_sum triggered...", "\n")
   
   #precursor_data <- dpmsr_set$data$impute$sltmm
-
+  #precursor_data <- df_raw
+  precursor_data <- dpmsr_set$data$data_precursor_start
+  
   #drop columns 
   precursor_data$PrecursorId <- NULL
-  precursor_data$PD_Detected_Peptides <- NULL
+  precursor_data$Detected_Imputed <- NULL
   
   if (info_columns == 0) {
     info_columns <- ncol(precursor_data) - dpmsr_set$y$sample_number
@@ -53,9 +55,13 @@ collapse_precursor <- function(precursor_data, info_columns=0, stats=FALSE) {
   
   peptide_data <- data.frame(ungroup(peptide_data))
   
-  peptide_data <- add_column(peptide_data, dpmsr_set$data$peptide_missing, .after = "Sequence")
-  names(peptide_data)[6] <- "Detected_Precursors"
+  if (nrow(peptide_data) == length(dpmsr_set$data$peptide_missing)) {
+    peptide_data <- add_column(peptide_data, dpmsr_set$data$peptide_missing, .after = "Sequence")
+    #col_pos <- grep("Sequence", colnames(peptide_data)) + 1
+    names(peptide_data)[grep("Sequence", colnames(peptide_data)) + 1] <- "Detected_Imputed"
+  } 
   
+  cat(file = stderr(), "precursor rollup_sum triggered...end", "\n")
   return(peptide_data)
    
 }
@@ -102,16 +108,28 @@ collapse_peptide <- function(peptide_data, info_columns=0, stats=FALSE, impute=F
   
   #add imputed column info
   if (!stats) {
-  cat(file = stderr(), "collapse peptide to protein... 4", "\n")
-  if ((dpmsr_set$x$raw_data_input == "Protein_Peptide" || dpmsr_set$x$raw_data_input == "Peptide") 
-      && dpmsr_set$x$final_data_output == "Protein" && !as.logical(dpmsr_set$x$tmt_spqc_norm)   )
-  {
-    protein_data <- add_column(protein_data, dpmsr_set$data$protein_missing, .after = "Peptides")
-    #dpmsr_set$y$info_columns_final <<- ncol(protein_data)-dpmsr_set$y$sample_number
-    dpmsr_set$y$info_columns_final <<- ncol(protein_data) - sample_columns
-    names(protein_data)[5] <- "Detected_Peptides"
+    cat(file = stderr(), "collapse peptide to protein... 4", "\n")
+    if ((dpmsr_set$x$raw_data_input == "Protein_Peptide" || dpmsr_set$x$raw_data_input == "Peptide") 
+        && dpmsr_set$x$final_data_output == "Protein" && !as.logical(dpmsr_set$x$tmt_spqc_norm)   )
+      {
+        cat(file = stderr(), "collapse peptide to protein... 4.1", "\n")
+        protein_data <- add_column(protein_data, dpmsr_set$data$protein_missing, .after = "Peptides")
+        #dpmsr_set$y$info_columns_final <<- ncol(protein_data)-dpmsr_set$y$sample_number
+        dpmsr_set$y$info_columns_final <<- ncol(protein_data) - sample_columns
+        names(protein_data)[grep("Peptides", colnames(protein_data)) + 1] <- "Detected_Imputed"
+      }
+    
+    if (dpmsr_set$x$raw_data_input == "Precursor" && dpmsr_set$x$final_data_output == "Protein" && !as.logical(dpmsr_set$x$tmt_spqc_norm))
+    {
+      cat(file = stderr(), "collapse to protein... 4.2", "\n")
+      protein_data <- add_column(protein_data, dpmsr_set$data$protein_missing, .after = "Peptides")
+      #dpmsr_set$y$info_columns_final <<- ncol(protein_data)-dpmsr_set$y$sample_number
+      dpmsr_set$y$info_columns_final <<- ncol(protein_data) - sample_columns
+      names(protein_data)[grep("Peptides", colnames(protein_data)) + 1] <- "Detected_Imputed"
+    }
+    
   }
-}
+
   
   cat(file = stderr(), "finished collapse_peptide...", "\n")
   

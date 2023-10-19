@@ -237,7 +237,7 @@ directlfq_normalize <- function(data_to_norm, data_title){
   colnames(protein_out)[which(names(protein_out) == "peptide_count")] <- "Peptides"
   
   protein_out <- add_column(protein_out, dpmsr_set$data$protein_missing, .after = "Peptides")
-  colnames(protein_out)[which(names(protein_out) == "dpmsr_set$data$protein_missing")] <- "Detected_Peptides"
+  colnames(protein_out)[which(names(protein_out) == "dpmsr_set$data$protein_missing")] <- "Detected_Imputed"
   
   dpmsr_set$data$directlfq$directlfq_protein <<- protein_out
   

@@ -29,7 +29,7 @@ protein_to_peptide <- function(){
     mutate(Master.Protein.Accessions = strsplit(as.character(Master.Protein.Accessions), "; ", fixed = TRUE)) %>% 
     unnest(Master.Protein.Accessions)
   
-  if (dpmsr_set$x$peptides_to_use == "Razor"){
+  if (dpmsr_set$x$peptides_to_use == "Razor") {
     #reduce df to only peptides that have proteins that PD lists as having "razor" peptides
     peptide_shared_expand <- subset(peptide_shared_expand, Master.Protein.Accessions %in% razor_accessions )
     #gather df for razor proteins
@@ -167,19 +167,18 @@ precursor_to_precursor <- function(){
   
   precursor_out <- precursor_groups %>% dplyr::select(contains('ProteinAccessions'), contains('ProteinDescriptions'), contains('Genes'), 
                                                     contains('ModifiedSequence'), contains('PrecursorId'), contains('PeptidePosition'),
-                                                    contains('ProteinPTMLocations'),
                                                     contains("TotalQuantity"))
     
-  if (ncol(precursor_out) != (7 + dpmsr_set$y$sample_number))
+  if (ncol(precursor_out) != (6 + dpmsr_set$y$sample_number))
   {
     shinyalert("Oops!", "Number of columns extracted is not as expected", type = "error")  
   }
     
-  colnames(precursor_out)[1:7] <- c("Accession", "Description", "Genes", "Sequence", "PrecursorId", "PeptidePosition", "PTMLocations")  
+  colnames(precursor_out)[1:7] <- c("Accession", "Description", "Genes", "Sequence", "PrecursorId", "PeptidePosition")  
   
   # set "Filtered" in TotalQuantity to NA
   precursor_out[precursor_out ==  "Filtered"] <- NA
-  precursor_out[8:ncol(precursor_out)] <- as.data.frame(lapply(precursor_out[8:ncol(precursor_out)], as.numeric))
+  precursor_out[7:ncol(precursor_out)] <- as.data.frame(lapply(precursor_out[8:ncol(precursor_out)], as.numeric))
   
   Simple_Excel(precursor_out, "precursor_precursor_Raw",  str_c(dpmsr_set$file$extra_prefix, "_Precursor_to_Precursor_Raw.xlsx", collapse = " "))
   cat(file = stderr(), "precursor_to_precursor complete", "\n")
@@ -329,12 +328,12 @@ psm_set_fdr <- function(){
 add_imputed_column <- function(df){
   cat(file = stderr(), "add_imputed_column_start...", "\n")
   #check to see if this was already completed, if so skip step
-  if ("Detected_Peptides" %in% colnames(df)) {
+  if ("Detected_Imputed" %in% colnames(df)) {
     return(df)
   }else{
       #imputed column for protein output
       cat(file = stderr(), "add_imputed_column protein output...", "\n")
-      if ((dpmsr_set$x$raw_data_input == "Protein_Peptide" || dpmsr_set$x$raw_data_input == "Peptide") 
+      if ((dpmsr_set$x$raw_data_input == "Protein_Peptide" || dpmsr_set$x$raw_data_input == "Peptide" || dpmsr_set$x$raw_data_input == "Precursor") 
           && dpmsr_set$x$final_data_output == "Protein") {
         peptide_data <- df
         peptide_annotate <- peptide_data[,1:(dpmsr_set$y$info_columns)]
@@ -359,6 +358,7 @@ add_imputed_column <- function(df){
         }
         dpmsr_set$data$protein_missing <<- test2[,1]
       }
+    
     #imputed column for peptide output when rolling up from precursor
     cat(file = stderr(), "add_imputed_column peptide output from precursor...", "\n")
     if (dpmsr_set$x$raw_data_input == "Precursor" || dpmsr_set$x$raw_data_input == "Precursor_PTM") {
@@ -402,7 +402,7 @@ add_imputed_column <- function(df){
         df[,2] <- NULL
       }
       
-      df_annotation$PD_Detected_Peptides <- df[,1]
+      df_annotation$Detected_Imputed <- df[,1]
       df <- cbind(df_annotation,df_data)
       #add another column to info columns
       cat(file = stderr(), "add_imputed_column_end...", "\n")
