@@ -165,20 +165,26 @@ precursor_to_precursor <- function(){
   cat(file = stderr(), "precursor_to_precursor", "\n")
   precursor_groups <- dpmsr_set$data$data_raw_precursor
   
-  precursor_out <- precursor_groups %>% dplyr::select(contains('ProteinAccessions'), contains('ProteinDescriptions'), contains('Genes'), 
+  precursor_colnames <- c("Accession", "Description", "Genes", "Organisms", "Sequence", "PrecursorId", "PeptidePosition")  
+  n_col <- length(precursor_colnames)
+  
+  precursor_out <- precursor_groups %>% dplyr::select(contains('ProteinAccessions'), contains('ProteinDescriptions'), contains('Genes'), contains('Organisms'),
                                                     contains('ModifiedSequence'), contains('PrecursorId'), contains('PeptidePosition'),
                                                     contains("TotalQuantity"))
     
-  if (ncol(precursor_out) != (6 + dpmsr_set$y$sample_number))
+  if (ncol(precursor_out) != (n_col + dpmsr_set$y$sample_number))
   {
     shinyalert("Oops!", "Number of columns extracted is not as expected", type = "error")  
   }
     
-  colnames(precursor_out)[1:7] <- c("Accession", "Description", "Genes", "Sequence", "PrecursorId", "PeptidePosition")  
+  colnames(precursor_out)[1:n_col] <- precursor_colnames  
   
   # set "Filtered" in TotalQuantity to NA
   precursor_out[precursor_out ==  "Filtered"] <- NA
-  precursor_out[7:ncol(precursor_out)] <- as.data.frame(lapply(precursor_out[8:ncol(precursor_out)], as.numeric))
+  precursor_out[(n_col + 1):ncol(precursor_out)] <- as.data.frame(lapply(precursor_out[(n_col + 1):ncol(precursor_out)], as.numeric))
+  
+  precursor_out$Description <- str_c(precursor_out$Description, ", org=", precursor_out$Organisms) 
+  precursor_out$Organisms <- NULL
   
   Simple_Excel(precursor_out, "precursor_precursor_Raw",  str_c(dpmsr_set$file$extra_prefix, "_Precursor_to_Precursor_Raw.xlsx", collapse = " "))
   cat(file = stderr(), "precursor_to_precursor complete", "\n")
@@ -188,38 +194,28 @@ precursor_to_precursor <- function(){
 #----------------------------------------------------------------------------------------
 precursor_PTM_to_precursor_PTM <- function(){
   cat(file = stderr(), "precursor_PTM_to_precursor_PTM", "\n")
-  precursor_groups <- dpmsr_set$data$data_raw_precursor
   
-  # precursor_out <- precursor_groups %>% dplyr::select(contains('ProteinAccessions'), contains('ProteinDescriptions'), contains('Genes'), 
-  #                                                     contains('StrippedSequence'), contains('ModifiedSequence'), contains('PrecursorId'), contains('PeptidePosition'),
-  #                                                     contains('ProteinPTMLocations'), contains('PTMProbabilities'),
-  #                                                     contains("TotalQuantity"))
-  # 
-  # if (ncol(precursor_out) != (8 + dpmsr_set$y$sample_number + dpmsr_set$y$sample_number))
-  # {
-  #   shinyalert("Oops!", "Number of columns extracted is not as expected", type = "error")  
-  # }
-  # 
-  # colnames(precursor_out)[1:8] <- c("Accession", "Description", "Genes", "Stripped_Seq", "Sequence", "PrecursorId", "PeptidePosition", "PTMLocations")  
-  # 
-  # 
-  precursor_out <- precursor_groups %>% dplyr::select(contains('ProteinAccessions'), contains('ProteinDescriptions'), contains('Genes'), 
+  precursor_groups <- dpmsr_set$data$data_raw_precursor
+  precursor_colnames <- c("Accession", "Description", "Genes", "Organisms", "Stripped_Seq", "Sequence", "PrecursorId", "PeptidePosition", "PTMLocations") 
+  n_col <- length(precursor_colnames)
+
+  precursor_out <- precursor_groups %>% dplyr::select(contains('ProteinAccessions'), contains('ProteinDescriptions'), contains('Genes'), contains('Organisms'),
                                                       contains('StrippedSequence'), contains('ModifiedSequence'), contains('PrecursorId'), contains('PeptidePosition'),
                                                       contains('ProteinPTMLocations'), contains("TotalQuantity"))
   
-  if (ncol(precursor_out) != (8 + dpmsr_set$y$sample_number))
+  if (ncol(precursor_out) != (n_col + dpmsr_set$y$sample_number))
   {
     shinyalert("Oops!", "Number of columns extracted is not as expected", type = "error")  
   }
   
-  colnames(precursor_out)[1:8] <- c("Accession", "Description", "Genes", "Stripped_Seq", "Sequence", "PrecursorId", "PeptidePosition", "PTMLocations")  
-
+  colnames(precursor_out)[1:n_col] <- precursor_colnames  
   
   # set "Filtered" in TotalQuantity to NA
   precursor_out[precursor_out ==  "Filtered"] <- NA
+  precursor_out[(n_col + 1):ncol(precursor_out)] <- as.data.frame(lapply(precursor_out[(n_col + 1):ncol(precursor_out)], as.numeric))
   
-  #No current reason to force data to numeric for SP
-  #precursor_out[(ncol(precursor_out)-dpmsr_set$y$sample_number):ncol(precursor_out)] <- as.data.frame(lapply(precursor_out[8:ncol(precursor_out)], as.numeric))
+  precursor_out$Description <- str_c(precursor_out$Description, ", org=", precursor_out$Organisms) 
+  precursor_out$Organisms <- NULL
   
   Simple_Excel(precursor_out, "precursor_precursor_Raw",  str_c(dpmsr_set$file$extra_prefix, "_Precursor_to_Precursor_Raw.xlsx", collapse = " "))
   cat(file = stderr(), "precursor_to_precursor complete", "\n")

@@ -29,7 +29,7 @@ collapse_precursor <- function(precursor_data, info_columns = 0, stats = FALSE) 
   
   #precursor_data <- dpmsr_set$data$impute$sltmm
   #precursor_data <- df_raw
-  precursor_data <- dpmsr_set$data$data_precursor_start
+  #precursor_data <- dpmsr_set$data$data_precursor_start
   
   #drop columns 
   precursor_data$PrecursorId <- NULL

@@ -623,9 +623,7 @@ observeEvent(input$data_show, {
     
     #-------------------------------------------------------------------------------------------------------------      
     #-------------------------------------------------------------------------------------------------------------  
-    
-    
-    
+
     observeEvent(input$stats_data_show, { 
       showModal(modalDialog("Getting data...", footer = NULL))  
       cat(file = stderr(), "stats data show triggered..." , "\n")

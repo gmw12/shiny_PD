@@ -258,11 +258,18 @@ stat_calc2 <- function(session, input, output) {
   cat(file = stderr(), str_c("Final data input is ", dpmsr_set$x$raw_data_input), "\n")
   cat(file = stderr(), str_c("Final data output is ", dpmsr_set$x$final_data_output), "\n")
   
+  input_select_final_data_stats <- input$select_final_data_stats
+  input_peptide_missing_filter <- input$peptide_missing_filter
+  input_peptide_cv_filter <- input$peptide_cv_filter
+  input_peptide_missing_factor <- input$peptide_missing_factor
+  input_peptide_cv_factor <- input$peptide_cv_factor
+  input_checkbox_add_gene_column <- input$checkbox_add_gene_column
+  
   #get stat parameters from inputs
   set_stat_parameters(session, input, output)
   
   # Primary Loop
-  # Testing - data_in <- dpmsr_set$data$impute$impute;  i=1
+  # Testing - data_in <- dpmsr_set$data$impute$impute;  i=1; input_select_final_data_stats="impute"; input_peptide_missing_filter <- TRUE; input_peptide_cv_filter <- FALSE; input_peptide_missing_factor <- 0.6; input_peptide_cv_factor <- 100; input_checkbox_add_gene_column <- FALSE
   
   for (i in 1:nrow(dpmsr_set$y$stats$groups)) 
   {
@@ -277,13 +284,15 @@ stat_calc2 <- function(session, input, output) {
   
     #get data for stats
     cat(file = stderr(), "stat_calc2...1", "\n")
-    if (input$select_final_data_stats == "directlfq_full") {
+    if (input_select_final_data_stats == "directlfq_full") {
+      cat(file = stderr(), "stat_calc2...1.1", "\n")
       data_in <- dpmsr_set$data$directlfq$directlfq_protein_impute
     # }else if ((dpmsr_set$x$raw_data_input == "Precursor" || dpmsr_set$x$raw_data_input == "Precursor_PTM") && dpmsr_set$x$final_data_output == "Peptide") {
     #   data_in <- dpmsr_set$data$final[[input$select_final_data_stats]]
     #   data_in <- data_in %>% dplyr::select(!ends_with("_CV"))
     } else {
-      data_in <- dpmsr_set$data$impute[[input$select_final_data_stats]]
+      cat(file = stderr(), "stat_calc2...1.2", "\n")
+      data_in <- dpmsr_set$data$impute[[input_select_final_data_stats]]
       #data_in <- dpmsr_set$data$impute$sltmm
     }
     
@@ -293,10 +302,12 @@ stat_calc2 <- function(session, input, output) {
     
     # get impute data for stats
     cat(file = stderr(), "stat_calc2...2", "\n")
-    if (dpmsr_set$x$raw_data_input == "Protein" || input$select_final_data_stats == "directlfq_full") {
+    if (dpmsr_set$x$raw_data_input == "Protein" || input_select_final_data_stats == "directlfq_full") {
+      cat(file = stderr(), "stat_calc2...2.1", "\n")
       imputed_info_columns <- ncol(dpmsr_set$data$protein_imputed_df) - dpmsr_set$y$sample_number
       imputed_df <- dpmsr_set$data$protein_imputed_df[(imputed_info_columns + 1):ncol(dpmsr_set$data$protein_imputed_df)]  
     }else{
+      cat(file = stderr(), "stat_calc2...2.2", "\n")
       imputed_info_columns <- ncol(dpmsr_set$data$peptide_imputed_df) - dpmsr_set$y$sample_number
       imputed_df <- dpmsr_set$data$peptide_imputed_df[(imputed_info_columns + 1):ncol(dpmsr_set$data$peptide_imputed_df)]  
     }
@@ -337,7 +348,7 @@ stat_calc2 <- function(session, input, output) {
     
     #reduce protein PD imputed column to only samples of comparison
     cat(file = stderr(), "stat_calc2...5", "\n")
-    if (dpmsr_set$x$raw_data_input == "Protein" || input$select_final_data_stats == "directlfq_full") {
+    if (dpmsr_set$x$raw_data_input == "Protein" || input_select_final_data_stats == "directlfq_full") {
       cat(file = stderr(), "stat_calc2...5.1", "\n")
       df_impute_protein <- cbind(comp_N_imputed, comp_D_imputed, spqc_impute_data)
       df_impute_protein[df_impute_protein == 0] <- "-"
@@ -375,15 +386,16 @@ stat_calc2 <- function(session, input, output) {
     
     # if TMT SPQC norm will skip the peptide to protein section, set df now
     if (as.logical(dpmsr_set$x$tmt_spqc_norm)) {
+      cat(file = stderr(), "tmt_spqc_norm is set", "\n")
       df <- cbind(annotate_in, comp_N_data, comp_D_data, spqc_data)
     }
     
     
     #--------------------------------------------------------------------------------------------------------------
     #section for peptide to protein final data, and precursor to peptide
-    cat(file = stderr(), "stat_calc2...6 (peptide to protein)", "\n")
+    cat(file = stderr(), "stat_calc2...6 (peptide to protein - or - precursor to peptide)", "\n")
     if ((dpmsr_set$x$raw_data_input != "Protein" &  dpmsr_set$x$final_data_output == "Protein" & (!as.logical(dpmsr_set$x$tmt_spqc_norm)) & 
-      input$select_final_data_stats != "directlfq_full"  ) || ((dpmsr_set$x$raw_data_input == "Precursor" || dpmsr_set$x$raw_data_input == "Precursor_PTM") &&
+      input_select_final_data_stats != "directlfq_full"  ) || ((dpmsr_set$x$raw_data_input == "Precursor" || dpmsr_set$x$raw_data_input == "Precursor_PTM") &&
                                                                dpmsr_set$x$final_data_output == "Peptide")) {
       cat(file = stderr(), "stat_calc2...6.1", "\n")
       mf <- missing_factor_gw(comp_N_imputed, comp_D_imputed)
@@ -395,14 +407,14 @@ stat_calc2 <- function(session, input, output) {
       df_impute <- cbind(annotate_in, comp_N_imputed, comp_D_imputed, mf, N_CV, D_CV, minCV)
       df_impute_summary <- cbind(annotate_in, comp_N_imputed, comp_D_imputed, spqc_impute_data, mf, N_CV, D_CV, minCV)
     
-      if (input$peptide_missing_filter) {
-        df <- df[(df$mf >= input$peptide_missing_factor),]
-        df_impute <- df_impute[(df_impute$mf >= input$peptide_missing_factor),]  
-        df_impute_summary <- df_impute_summary[(df_impute_summary$mf >= input$peptide_missing_factor),] 
+      if (input_peptide_missing_filter) {
+        df <- df[(df$mf >= input_peptide_missing_factor),]
+        df_impute <- df_impute[(df_impute$mf >= input_peptide_missing_factor),]  
+        df_impute_summary <- df_impute_summary[(df_impute_summary$mf >= input_peptide_missing_factor),] 
         #df <- df[(df$mf >= 0.6),]; df_impute <- df_impute[(df_impute$mf >= 0.6),]; df_impute_summary <- df_impute_summary[(df_impute_summary$mf >= 0.6),]  
       }
   
-      if (input$peptide_cv_filter) {
+      if (input_peptide_cv_filter) {
         df <- df[(df$minCV <= input$peptide_cv_factor),]
         df_impute <- df_impute[(df_impute$minCV <= input$peptide_cv_factor),]  
         df_impute_summary <- df_impute_summary[(df_impute_summary$minCV <= input$peptide_cv_factor),]  
@@ -430,14 +442,13 @@ stat_calc2 <- function(session, input, output) {
         df_impute_summary[,2] <- NULL
       }
       
-
       colnames(df_impute_summary) <- "Detected_Imputed"
-      df$Detected_Imputed <- df_impute_summary
+      df$Detected_Imputed <- df_impute_summary$Detected_Imputed
       dpmsr_set$data$stats$peptide[[dpmsr_set$y$stats$groups$comp_name[i]]] <<- df
 
 
       #testing block
-      # test_df <<- df; test_df_impute <<- df_impute; test_info_columns <<- info_columns 
+      #test_df <<- df; test_df_impute <<- df_impute; test_info_columns <<- info_columns 
       # df <- test_df; df_impute <- test_df_impute ;info_columns <- test_info_columns
       
       #collapse peptide data and imputed peptide info, this is done with only the stat groups
@@ -469,8 +480,8 @@ stat_calc2 <- function(session, input, output) {
       cat(file = stderr(), "stat_calc2...11", "\n")
       if (dpmsr_set$x$raw_data_input == "Precursor_PTM") {
         cat(file = stderr(), "stat_calc2...11.1", "\n")
-        df <- add_column(df, test2[,1] , .after = "Sequence")
-        names(df)[grep("Sequence", colnames(df)) + 1] <- "Detected_Imputed"
+        df <- add_column(df, test2[,1] , .after = "PTMLocations")
+        names(df)[grep("PTMLocations", colnames(df)) + 1] <- "Detected_Imputed"
         imputed_df <- df_impute[(ncol(df_impute) - sample_N_count - sample_D_count + 1):ncol(df_impute)]  
         imputed_df[imputed_df > 1] <- 1
       }else{
@@ -486,19 +497,19 @@ stat_calc2 <- function(session, input, output) {
       comp_N_imputed <- imputed_df[1:dpmsr_set$y$stats$groups$N_count[i]]
       comp_D_imputed <- imputed_df[(dpmsr_set$y$stats$groups$N_count[i] + 1):(dpmsr_set$y$stats$groups$N_count[i] + dpmsr_set$y$stats$groups$D_count[i])]
     
-      annotate_in <- df[1:dpmsr_set$y$info_columns_final]
+      annotate_in <- df[1:(ncol(df) - sample_count)]
       cat(file = stderr(), "stat_calc2...13", "\n")
       
-      if (input$checkbox_add_gene_column) {
+      if (input_checkbox_add_gene_column) {
         add_gene <- str_extract(annotate_in$Description, "GN=\\w*")
         add_gene <- gsub("GN=", "", add_gene)
         annotate_in <- annotate_in %>% add_column(Gene = add_gene, .before = 3)
-        dpmsr_set$data$final[[input$select_final_data_stats]] <<- dpmsr_set$data$final[[input$select_final_data_stats]] %>% 
+        dpmsr_set$data$final[[input_select_final_data_stats]] <<- dpmsr_set$data$final[[input_select_final_data_stats]] %>% 
           add_column(Gene = annotate_in$Gene, .before = 3)
       }
       
       cat(file = stderr(), "stat_calc2...14", "\n")
-      data_in <- df[(dpmsr_set$y$info_columns_final + 1):(ncol(df))]
+      data_in <- df[(ncol(df)-sample_count+1):(ncol(df))]
       comp_N_data <- data_in[1:dpmsr_set$y$stats$groups$N_count[i]]
       comp_D_data <- data_in[(dpmsr_set$y$stats$groups$N_count[i] + 1):(dpmsr_set$y$stats$groups$N_count[i] + dpmsr_set$y$stats$groups$D_count[i])]
       spqc_data <- data_in[(dpmsr_set$y$stats$groups$N_count[i] + dpmsr_set$y$stats$groups$D_count[i] + 1):ncol(data_in)]
@@ -507,8 +518,8 @@ stat_calc2 <- function(session, input, output) {
     #-------------------------------------------------------------------------------------------------------------------------
 
     #test block
-    test_imputed_df <<- imputed_df; test_df <<- df; test_data_in <<- data_in; test_comp_N_data <<- comp_N_data; test_comp_D_data <<- comp_D_data; test_spqc_data <<- spqc_data; test_comp_N_imputed <<- comp_N_imputed; test_comp_D_imputed <<- comp_D_imputed
-    # imputed_df <- test_imputed_df; comp_N_data <- test_comp_N_data; comp_D_data <- test_comp_D_data; comp_N_imputed <- test_comp_N_imputed; comp_D_imputed <- test_comp_D_imputed; spqc_data <- test_spqc_data; df <- test_df; annotate_in <- df[1:dpmsr_set$y$info_columns_final]; i=1
+    test_imputed_df <<- imputed_df; test_df <<- df; test_data_in <<- data_in; test_comp_N_data <<- comp_N_data; test_comp_D_data <<- comp_D_data; test_spqc_data <<- spqc_data; test_comp_N_imputed <<- comp_N_imputed; test_comp_D_imputed <<- comp_D_imputed; test_annotate_in <<- annotate_in
+    # imputed_df <- test_imputed_df; comp_N_data <- test_comp_N_data; comp_D_data <- test_comp_D_data; comp_N_imputed <- test_comp_N_imputed; comp_D_imputed <- test_comp_D_imputed; spqc_data <- test_spqc_data; df <- test_df; annotate_in <- test_annotate_in; i=1
     
     
     #start df for stats -----------------------------------------
@@ -546,11 +557,13 @@ stat_calc2 <- function(session, input, output) {
     
     cat(file = stderr(), "stat_calc2...17", "\n")
     # Create final tables--------------------------------------------------
-    if (input$select_final_data_stats == "impute") {
+    if (input_select_final_data_stats == "impute") {
+      cat(file = stderr(), "stat_calc2...17.1", "\n")
       colnames(comp_N_data) <- dpmsr_set$design$Header3[unlist(dpmsr_set$y$stats$groups$sample_numbers_N[i])]
       colnames(comp_D_data) <- dpmsr_set$design$Header3[unlist(dpmsr_set$y$stats$groups$sample_numbers_D[i])]
       colnames(spqc_data) <- dpmsr_set$design$Header3[unlist(dpmsr_set$y$stats$comp_spqc_sample_numbers)]
     }else{
+      cat(file = stderr(), "stat_calc2...17.2", "\n")
       colnames(comp_N_data) <- dpmsr_set$design$Header2[unlist(dpmsr_set$y$stats$groups$sample_numbers_N[i])]
       colnames(comp_D_data) <- dpmsr_set$design$Header2[unlist(dpmsr_set$y$stats$groups$sample_numbers_D[i])]
       colnames(spqc_data) <- dpmsr_set$design$Header2[unlist(dpmsr_set$y$stats$comp_spqc_sample_numbers)]

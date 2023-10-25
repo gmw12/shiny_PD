@@ -446,7 +446,7 @@ shinyUI(
                         
                           tabPanel("Selected Proteins",
                                  fluidRow(
-                                   column(width=2, offset =0,
+                                   column(width = 2, offset = 0,
                                           div(style = "font-size:12px;",
                                               selectInput("protein_select", label = "Select barplot type", 
                                                           choices = list("ADH", "BiraA", "Bait", "Carbox", "Avidin", 
@@ -502,20 +502,20 @@ shinyUI(
                                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
                                                       selected = 1)
                                    ),
-                                   column(width=1, offset =0,
-                                          textInput("oneprotein_accession", label="Accession", value = "0", width = 100)
+                                   column(width = 1, offset = 0,
+                                          textInput("oneprotein_accession", label = "Accession", value = "0", width = 100)
                                    ),
-                                   column(width=1, offset =0,
+                                   column(width = 1, offset = 0,
                                           actionButton("oneprotein_show", label = "Show Graph", width = 100,
-                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                                                       style = "color: #fff; background-color: #337ab7; border-color: #2e6da4")
                                    )
                                  ),
                                  fluidRow(
                                    hr(),
-                                   column(width=4, offset =1,
+                                   column(width = 4, offset = 1,
                                           imageOutput("oneprotein_plot_select")
                                    ), 
-                                   column(width=4, offset =1,
+                                   column(width = 4, offset = 1,
                                           rHandsontableOutput("oneprotein_stats")
                                    )
                                  )),

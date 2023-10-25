@@ -1,50 +1,54 @@
 #----------------------------------------------------------------------------------------
 preprocess_order <- function(){
   # data stat info
-  cat(file = stderr(), "preprocess_order()...1", "\n")
+  cat(file = stderr(), "preprocess_order()...start", "\n")
   
   if (dpmsr_set$x$raw_data_input == "Protein") {
+    cat(file = stderr(), "preprocess_order()...1.1", "\n")
     dpmsr_set$y$total_columns <<- ncol(dpmsr_set$data$data_protein_start)
   }else if (dpmsr_set$x$raw_data_input == "Peptide") {
+    cat(file = stderr(), "preprocess_order()...1.2", "\n")
     dpmsr_set$y$total_columns <<- ncol(dpmsr_set$data$data_peptide_start)
   }else if (dpmsr_set$x$raw_data_input == "Precursor" || dpmsr_set$x$raw_data_input == "Precursor_PTM") {
+    cat(file = stderr(), "preprocess_order()...1.3", "\n")
     dpmsr_set$y$total_columns <<- ncol(dpmsr_set$data$data_precursor_start)
   }
   
   dpmsr_set$y$info_columns <<- dpmsr_set$y$total_columns - dpmsr_set$y$sample_number
   cat(file = stderr(), str_c("dpmsr_set$y$info_columns=", dpmsr_set$y$info_columns ), "\n")
   
-  cat(file = stderr(), "preprocess_order()...2", "\n")
   if ((dpmsr_set$x$raw_data_input == "Protein_Peptide" || dpmsr_set$x$raw_data_input == "Peptide") 
       && dpmsr_set$x$final_data_output == "Protein") {
+    cat(file = stderr(), "preprocess_order()...2", "\n")
     dpmsr_set$y$info_columns_final <<- 3  #reference collapse peptide function in transform
   }else{
     dpmsr_set$y$info_columns_final <<- dpmsr_set$y$info_columns
   }
   
-  cat(file = stderr(), "preprocess_order()...3", "\n")
   if (dpmsr_set$x$raw_data_input == "Protein_Peptide" || dpmsr_set$x$raw_data_input == "Peptide") {
+    cat(file = stderr(), "preprocess_order()...3", "\n")
+    cat(file = stderr(), "preprocess_order()...3", "\n")
     df <- order_columns(dpmsr_set$data$data_peptide_start)
     colnames(df)[(dpmsr_set$y$info_columns + 1):ncol(df)] <- dpmsr_set$design$Header1
     dpmsr_set$data$data_peptide_start <<- df
   } 
   
-  cat(file = stderr(), "preprocess_order()...4", "\n")
   if (dpmsr_set$x$raw_data_input == "Precursor" || dpmsr_set$x$raw_data_input == "Precursor_PTM") {
+    cat(file = stderr(), "preprocess_order()...4", "\n")
     df <- order_columns(dpmsr_set$data$data_precursor_start)
     colnames(df)[(dpmsr_set$y$info_columns + 1):ncol(df)] <- dpmsr_set$design$Header1
     dpmsr_set$data$data_precursor_start <<- df
   } 
   
-  cat(file = stderr(), "preprocess_order()...5", "\n")
   if (dpmsr_set$x$raw_data_input == "Protein") {
+    cat(file = stderr(), "preprocess_order()...5", "\n")
     df <- order_columns(dpmsr_set$data$data_protein_start)
     colnames(df)[(dpmsr_set$y$info_columns + 1):ncol(df)] <- dpmsr_set$design$Header1
     dpmsr_set$data$data_protein_start <<- df
   } 
   
-  cat(file = stderr(), "preprocess_order()...6", "\n")
   if (as.logical(dpmsr_set$x$peptide_isoform)) {
+    cat(file = stderr(), "preprocess_order()...6", "\n")
     df <- order_columns(dpmsr_set$data$data_peptide_isoform_start)
     colnames(df)[(dpmsr_set$y$info_columns + 1):ncol(df)] <- dpmsr_set$design$Header1
     dpmsr_set$data$data_peptide_isoform_start <<- df

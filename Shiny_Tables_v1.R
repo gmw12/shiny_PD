@@ -19,7 +19,7 @@ protein_table <- function(session, input, output, filter_df){
   sample_col_numbers <- unlist(sample_col_numbers)
   cv_cols <- colnames(filter_df %>% dplyr::select(contains("CV") ) )
   mf_cols <- colnames(filter_df %>% dplyr::select(contains("MF") ) )
-  stat_col <- ncol(filter_df) -1
+  stat_col <- ncol(filter_df) - 1
   
  stats_DT <-  DT::datatable(filter_df,
                                rownames = FALSE,
@@ -29,10 +29,10 @@ protein_table <- function(session, input, output, filter_df){
                                  #dom = 'Bfrtipl',
                                  autoWidth = TRUE,
                                  scrollX = TRUE,
-                                 scrollY=500,
-                                 scrollCollapse=TRUE,
-                                 columnDefs = list(list(targets = c(0), visibile = TRUE, "width"='30', className = 'dt-center'),
-                                                   list(targets = c(2), visible = TRUE, "width"='20', className = 'dt-center'),
+                                 scrollY = 500,
+                                 scrollCollapse = TRUE,
+                                 columnDefs = list(list(targets = c(0), visibile = TRUE, "width" = '30', className = 'dt-center'),
+                                                   list(targets = c(2), visible = TRUE, "width" = '20', className = 'dt-center'),
                                                    list(
                                                      targets = c(1),
                                                      width = '250',
@@ -53,14 +53,14 @@ protein_table <- function(session, input, output, filter_df){
                                                    )
                                  ),
                                  ordering = TRUE,
-                                 orderClasses= TRUE,
+                                 orderClasses = TRUE,
                                  fixedColumns = list(leftColumns = 1),
                                  pageLength = 100, lengthMenu = c(10,50,100,200)),
                                #buttons=c('copy', 'csv', 'excelHtml5', 'pdf')),
                                callback = JS('table.page(3).draw(false);'
                                ))
     
-    stats_DT <- stats_DT %>%  formatRound(columns=c(sample_col_numbers), digits=0)
+    stats_DT <- stats_DT %>%  formatRound(columns = c(sample_col_numbers + 1), digits = 0)
     #stats_DT <- stats_DT %>%  formatRound(columns=c(pval_col_numbers), digits=2)
     
  return(stats_DT)   

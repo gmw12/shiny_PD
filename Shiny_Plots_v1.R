@@ -99,6 +99,7 @@ bar_plot <- function(df,plot_title,plot_dir) {
 #--plot densities------------------------------------------------------------------
 densities_plot <- function(x,y,plot_dir) {
   cat(file = stderr(), "densities_plot", "\n")
+  require("limma")
   png(filename = str_c(plot_dir, y, "_density.png"), width = 888, height = 571)  
   plotDensities(log2(x), 
                 group = dpmsr_set$y$sample_groups$Group,   
