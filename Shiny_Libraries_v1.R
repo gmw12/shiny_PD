@@ -22,7 +22,9 @@ library(gplots)
 library(rgl)
 library(colourpicker)
 library(randomcoloR)
-library(pca3d)
+
+#not updated on CRAN anymore
+require(pca3d)
 
 #read write
 library(readxl)

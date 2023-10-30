@@ -8,8 +8,8 @@ RUN apt-get update && apt-get install -y \
   libsodium-dev python3-pip \
   && rm -rf /var/lib/apt/lists/*
 
+#removed iq package for now, requires python 3.8, may not need for customer version
 #Run apt install -y python3.8
-  
 #RUN pip install directlfq
 
 ADD ./Shiny_install.R /code/Shiny_install.R
