@@ -108,7 +108,7 @@ collapse_peptide <- function(peptide_data, info_columns=0, stats=FALSE, impute=F
   
   #add imputed column info
   if (!stats) {
-    cat(file = stderr(), "collapse peptide to protein... 4", "\n")
+    cat(file = stderr(), "collapse peptide/precursor... 4", "\n")
     if ((dpmsr_set$x$raw_data_input == "Protein_Peptide" || dpmsr_set$x$raw_data_input == "Peptide") 
         && dpmsr_set$x$final_data_output == "Protein" && !as.logical(dpmsr_set$x$tmt_spqc_norm)   )
       {
@@ -130,9 +130,7 @@ collapse_peptide <- function(peptide_data, info_columns=0, stats=FALSE, impute=F
     
   }
 
-  
   cat(file = stderr(), "finished collapse_peptide...", "\n")
-  
   return(protein_data) 
   
   

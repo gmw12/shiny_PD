@@ -1,36 +1,53 @@
 
 #--------------------------------------------------------------------------------------
 stat_prep <- function(){
+  cat(file = stderr(), ("------------------------------"), "\n")
   cat(file = stderr(), ("stat_prep function started..."), "\n")
+  cat(file = stderr(), (str_c("rollup_method = ", dpmsr_set$x$rollup_method)), "\n")
   ncores <- detectCores()
   if (is.na(ncores) | ncores < 1) {ncores <- 1}
 
   data_list <- dpmsr_set$data$impute
+
   #clear previous data
-  dpmsr_set$data$final <- NULL
+  dpmsr_set$data$final <<- NULL
+  dpmsr_set$data$final <<- list()
+  for (name in names(data_list)) {
+    dpmsr_set$data$final[[name]] <<- data.frame()
+  }
+
+  #check if cleared
+  if (nrow(dpmsr_set$data$final$impute) == 0) {
+    cat(file = stderr(), ("dpmsr_set$data$final is empty..."), "\n")
+  }else{
+    cat(file = stderr(), ("dpmsr_set$data$final is NOT empty..."), "\n")
+  }
   
   #iq:fast_maxlfq function has issue with parallel processing, only works on first pass (c++ ???)
   #directlfq is python code 
-  cat(file = stderr(), (str_c("stat_prep function started...1  cores=", ncores)), "\n")
+  cat(file = stderr(), (str_c("stat_prep function...1  cores=", ncores)), "\n")
   if (dpmsr_set$x$rollup_method != "IQ_MaxLFQ" && dpmsr_set$x$rollup_method != "DirectLFQ") {
+    cat(file = stderr(), (str_c("stat_prep function...1.1, ncores=", ncores)), "\n")
     dpmsr_set$data$final <<- mclapply(data_list, stat_prep_parallel, mc.cores = ncores)
   }
   
   #check that the parallel processing went through, if not do it again one at a time, MaxLFQ will run here
-  cat(file = stderr(), ("stat_prep function started...2"), "\n")
+  cat(file = stderr(), ("stat_prep function...2"), "\n")
   check_stats_prep_parallel(data_list)
   
-  cat(file = stderr(), ("stat_prep function started...3"), "\n")
+  cat(file = stderr(), ("stat_prep function...3"), "\n")
   if (dpmsr_set$y$state == "Peptide" && dpmsr_set$x$final_data_output == "Protein") {
+    cat(file = stderr(), ("stat_prep function...3.1"), "\n")
     dpmsr_set$data$finalraw <<- collapse_peptide(dpmsr_set$data$normalized$impute)
     Simple_Excel(dpmsr_set$data$finalraw, "final_raw_protein", str_c(dpmsr_set$file$extra_prefix, "_final_raw_protein.xlsx", collapse = " "))
   } else{
+    cat(file = stderr(), ("stat_prep function...3.2"), "\n")
     dpmsr_set$data$finalraw <<- dpmsr_set$data$normalized$impute
     Simple_Excel(dpmsr_set$data$finalraw, "final_raw_peptide", str_c(dpmsr_set$file$extra_prefix,  "_final_raw_peptide.xlsx", collapse = " "))
   }
   
   
-  cat(file = stderr(), ("stat_prep function started...4"), "\n")
+  cat(file = stderr(), ("stat_prep function...4"), "\n")
   
   if (is.null(dpmsr_set$data$directlfq$directlfq_protein_impute)) {
     cat(file = stderr(), ("no directlfq data..."), "\n")
@@ -64,15 +81,22 @@ stat_prep_parallel <- function(data_list){
 
 #--------------------------------------------------------------------------------------
 stat_prep_collapse <- function(data_in, directlfq=FALSE) {
+  cat(file = stderr(), ("stat_prep_collapse function start..."), "\n")
+  #data_in <- dpmsr_set$data$impute$impute; directlfq=FALSE
   
+  cat(file = stderr(), ("stat_prep_collapse function... 1"), "\n")
   if (dpmsr_set$y$state != "Protein" && dpmsr_set$x$final_data_output == "Protein" && !directlfq) {
+    cat(file = stderr(), ("stat_prep_collapse function... 1.1"), "\n")
     data_in <- collapse_peptide(data_in)
     }
   
   if (dpmsr_set$y$state != "Protein" && dpmsr_set$x$final_data_output != "Protein" && !directlfq) {
+    cat(file = stderr(), ("stat_prep_collapse function... 1.2"), "\n")
     data_in <- collapse_precursor(data_in)
   }
   
+  
+  cat(file = stderr(), ("stat_prep_collapse function... 2"), "\n")
   
   #this sets the final table for graphs to use only those that will be reported
   if (as.logical(dpmsr_set$x$peptide_ptm_norm)) {
@@ -83,9 +107,13 @@ stat_prep_collapse <- function(data_in, directlfq=FALSE) {
     } 
   }
   
+  cat(file = stderr(), ("stat_prep_collapse function... 3"), "\n")
+  
   info_columns_final <- ncol(data_in) - dpmsr_set$y$sample_number
   annotate_in <- data_in[1:info_columns_final]
 
+  cat(file = stderr(), ("stat_prep_collapse function... 4"), "\n")
+  
   data_in <- data_in[(info_columns_final + 1):ncol(data_in)]
   #start df for stats
   stat_df <- annotate_in[1:1]
@@ -95,21 +123,28 @@ stat_prep_collapse <- function(data_in, directlfq=FALSE) {
     stat_df[ , str_c(dpmsr_set$y$sample_groups$Group[i], "_CV")] <- percentCV_gw(data_in[dpmsr_set$y$sample_groups$start[i]:dpmsr_set$y$sample_groups$end[i]])
   } 
   
+  cat(file = stderr(), ("stat_prep_collapse function... 5"), "\n")
   stat_df <- stat_df[2:ncol(stat_df)]
   colnames(data_in) <- dpmsr_set$design$Header2
   data_table <- cbind(annotate_in, data_in, stat_df)
   
+  cat(file = stderr(), ("stat_prep_collapse function... end"), "\n")
   return(data_table)
 }
 
 #--------------------------------------------------------------------------------------
 check_stats_prep_parallel <- function(data_list){
+  cat(file = stderr(), "function check_stats_prep_parallel... start", "\n")
   for (data_name in names(data_list)) {
-    if (is.null(dpmsr_set$data$final[[data_name]] )) {
-      cat(file = stderr(), str_c("Stats Prep Parallel function...", data_name), "\n")
+    if (ncol(dpmsr_set$data$final[[data_name]]) == 0) {
+      cat(file = stderr(), str_c("Stats Check Prep Parallel function...", data_name), "\n")
+      #dpmsr_set$data$final$impute <- stat_prep_collapse(dpmsr_set$data$impute$impute)
       dpmsr_set$data$final[[data_name]] <<- stat_prep_collapse(dpmsr_set$data$impute[[data_name]])
+    }else{
+      cat(file = stderr(), str_c("Already exists... ", data_name), "\n")
     }
   }
+  cat(file = stderr(), "function check_stats_prep_parallel... end", "\n")
 }
 
 #--------------------------------------------------------------------------------------

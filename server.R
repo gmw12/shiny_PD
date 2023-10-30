@@ -261,10 +261,11 @@ shinyServer(function(input, output, session) {
     # set_comp_groups()
     # removeModal()
     if (dpmsr_set$x$raw_data_input == "Protein" || dpmsr_set$x$final_data_output == "Peptide") {
-      cat(file = stderr(), "Peptide output, skipping rollup, stat prep...", "\n")
+      cat(file = stderr(), "impute 1.1,  Protein input or Peptide output, skipping rollup, stat prep...", "\n")
       stat_prep_rollup(session, input, output)
       updateTabsetPanel(session, "nlp1", selected = "tp_qc")
     }else{
+      cat(file = stderr(), "impute 1.2 ...", "\n")
       updateTabsetPanel(session, "nlp1", selected = "tp_rollup") 
     }
     
