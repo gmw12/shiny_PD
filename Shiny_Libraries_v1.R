@@ -24,7 +24,11 @@ library(colourpicker)
 library(randomcoloR)
 
 #not updated on CRAN anymore
-require(pca3d)
+test_pca3d <- require(pca3d)
+if (!test_pca3d) {
+  cat(file = stderr(), "Package pca3d not found, adding from project directory", "\n")
+  library("pca3d", lib.loc = '/code/Packages/')
+}
 
 #read write
 library(readxl)
