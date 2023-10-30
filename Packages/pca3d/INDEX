@@ -1,0 +1,7 @@
+defaultPalettePCA3D     Default palette
+listShapes              Show all permissible shapes for pca3d
+makeMoviePCA            Create a PCA movie
+metabo                  Metabolic profiles in tuberculosis.
+pca2d                   Show a three- or two-dimensional plot of a
+                        prcomp object
+snapshotPCA3d           Save a 3D PCA snapshot
