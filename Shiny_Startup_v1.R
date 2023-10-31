@@ -79,6 +79,7 @@ app_startup <- function(session, input, output){
 # update dpmsr_set file (older versions missing variables)
 
 update_version <- function(session, input, output){
+  cat(file = stderr(), ("function - update_version"), "\n")
   
   if (is.null(dpmsr_set$x$primary_group)) {
     cat(file = stderr(), ("Older dpmsr_set file, adding primary group field"), "\n")
@@ -100,6 +101,7 @@ update_version <- function(session, input, output){
   }
  
   #change imputed column name
+  cat(file = stderr(), ("Updating column name to Detected_Imputed"), "\n")
   for (name in names(dpmsr_set$data$impute)) {
     df <- dpmsr_set$data$impute[[name]]
     names(df)[names(df) == 'PD_Detected_Peptides'] <- 'Detected_Imputed'

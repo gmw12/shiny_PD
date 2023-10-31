@@ -11,7 +11,7 @@ set_user(session, input, output)
 
 
 shinyServer(function(input, output, session) {
-  app_version <<- '2023.10.10'
+  app_version <<- '2023.10.31'
   cat(file = stderr(), "Shiny Server started ...1", "\n")
   useShinyjs()
   
@@ -1657,6 +1657,7 @@ observeEvent(input$data_show, {
           #check dpmsr_set file, update if out of date
           update_version(session, input, output)
 
+          
           #reload shiny
           cat(file = stderr(), "update widgets", "\n")
           update_widget_all(session, input, output)
