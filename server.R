@@ -544,6 +544,7 @@ observeEvent(input$data_show, {
                 comp_rows <- c(comp_rows, dpmsr_set$y$stats$groups$sample_numbers_N[comp_number],dpmsr_set$y$stats$groups$sample_numbers_D[comp_number] )
               }
             }
+            
             #add spqc to plots
             cat(file = stderr(), "Stats Plots...1" , "\n")
             if (input$stats_plot_spqc) {
@@ -778,18 +779,18 @@ observeEvent(input$data_show, {
     observeEvent(input$create_stats_oneprotein_plots, { 
       cat(file = stderr(), str_c("Create stats oneprotein plots"), "\n")
       
-      comp_number <- try(which(dpmsr_set$data$stats[[input$stats_oneprotein_plot_comp]] == input$stats_oneprotein_accession), silent =TRUE)
+      comp_number <- try(which(dpmsr_set$data$stats[[input$stats_oneprotein_plot_comp]] == input$stats_oneprotein_accession), silent = TRUE)
         
-      if (length(comp_number)!=0){  
+      if (length(comp_number) != 0) {  
 
         # do not run peptide section if TMT SPQC Norm
-        if(!dpmsr_set$x$tmt_spqc_norm) {
+        if (!dpmsr_set$x$tmt_spqc_norm) {
           
           df_list <- oneprotein_data(session, input, output)
           #
-          test_df_list <<- df_list
+          #test_df_list <<- df_list
           
-          for(j in names(df_list)){assign(j, df_list[[j]]) }
+          for (j in names(df_list)) {assign(j, df_list[[j]]) }
           
           interactive_barplot(session, input, output, df, namex, color_list, "stats_oneprotein_barplot", input$stats_oneprotein_plot_comp)
           
@@ -799,31 +800,31 @@ observeEvent(input$data_show, {
           interactive_grouped_barplot(session, input, output, comp_string, df_peptide, peptide_info_columns, 
                                       input$stats_oneprotein_plot_comp, peptide_pos_lookup, grouped_color)
           
-          test_df_peptide <<- df_peptide
-          test_peptide_pos_lookup <<- peptide_pos_lookup
+          #test_df_peptide <<- df_peptide
+          #test_peptide_pos_lookup <<- peptide_pos_lookup
           
-          df_peptide <- merge(df_peptide, peptide_pos_lookup, by=(c("Accession", "Sequence"))    )
+          df_peptide <- merge(df_peptide, peptide_pos_lookup, by = (c("Accession", "Sequence"))    )
           df_peptide$Start <- as.numeric(df_peptide$Start)
           df_peptide$Stop <- as.numeric(df_peptide$Stop)
-          df_peptide<- df_peptide %>% dplyr::select(Stop, everything())
+          df_peptide <- df_peptide %>% dplyr::select(Stop, everything())
           df_peptide <- df_peptide %>% dplyr::select(Start, everything())
           df_peptide <- df_peptide[order(df_peptide$Start, df_peptide$Stop), ]
           
-          sample_col_numbers <- seq(from=14, to = ncol(df_peptide) )
+          sample_col_numbers <- seq(from = 14, to = ncol(df_peptide) )
           
           dpmsr_set$data$oneprotein_peptide_DT <<- df_peptide
           
           oneprotein_peptide_DT <-  DT::datatable(df_peptide,
                                      rownames = FALSE,
                                      extensions = c("FixedColumns"), #, "Buttons"),
-                                     options=list(
+                                     options = list(
                                        #dom = 'Bfrtipl',
                                        autoWidth = TRUE,
                                        scrollX = TRUE,
-                                       scrollY=500,
-                                       scrollCollapse=TRUE,
-                                       columnDefs = list(list(targets = c(0,1), visibile = TRUE, "width"='30', className = 'dt-center'),
-                                                         list(targets = c(2), visible = TRUE, "width"='20', className = 'dt-center'),
+                                       scrollY = 500,
+                                       scrollCollapse = TRUE,
+                                       columnDefs = list(list(targets = c(0,1), visibile = TRUE, "width" = '30', className = 'dt-center'),
+                                                         list(targets = c(2), visible = TRUE, "width" = '20', className = 'dt-center'),
                                                          list(
                                                            targets = c(5),
                                                            width = '250',
@@ -853,20 +854,20 @@ observeEvent(input$data_show, {
                                                          )
                                        ),
                                        ordering = TRUE,
-                                       orderClasses= TRUE,
+                                       orderClasses = TRUE,
                                        fixedColumns = list(leftColumns = 2),
                                        pageLength = 100, lengthMenu = c(10,50,100,200)),
                                      #buttons=c('copy', 'csv', 'excelHtml5', 'pdf')),
                                      callback = JS('table.page(3).draw(false);'
                                      ))
           
-          oneprotein_peptide_DT <- oneprotein_peptide_DT %>%  formatRound(columns=c(sample_col_numbers), digits=2)
+          oneprotein_peptide_DT <- oneprotein_peptide_DT %>%  formatRound(columns = c(sample_col_numbers), digits = 2)
           
-          output$oneprotein_peptide_table<-  DT::renderDataTable({oneprotein_peptide_DT })
+          output$oneprotein_peptide_table <-  DT::renderDataTable({oneprotein_peptide_DT })
         }else {
           
           df_list <- TMT_IRS_protein_data(session, input, output)
-          for(j in names(df_list)){assign(j, df_list[[j]]) }
+          for (j in names(df_list)) {assign(j, df_list[[j]]) }
 
           interactive_barplot(session, input, output, df, namex, color_list, "stats_oneprotein_barplot", input$stats_oneprotein_plot_comp)
 
@@ -1259,10 +1260,10 @@ observeEvent(input$data_show, {
     observeEvent(input$go_show, {
       showModal(modalDialog("Go Enrichment Analysis...", footer = NULL))  
       
-      go_data <- try(run_go_analysis(session, input, output), silent=TRUE)
+      go_data <- try(run_go_analysis(session, input, output), silent = TRUE)
       #go_data <- goresult
       
-      if ( class(go_data) != "try-error"){
+      if ( class(go_data) != "try-error") {
         dpmsr_set$data$pathway$mergedf <<- setup_go_volcano(session, input, output)
         #go_data <- try(go_data[order(go_data$pvalue),], silent = TRUE)
         
@@ -1567,6 +1568,7 @@ observeEvent(input$data_show, {
       cat(file = stderr(), str_c("Original data directory --> ", original_data_dir), "\n")
       
       #reset file locations
+      showModal(modalDialog("Working...", footer = NULL))
       dpmsr_set$file$data_dir <<- dirname(dpmsr_file$datapath)
       dpmsr_set$file$data_path <<- gsub("(.*)/.*","\\1",dpmsr_set$file$data_dir)
       dpmsr_set$file$output_dir <<- str_replace_all(dpmsr_set$file$data_dir, "/", "//")
@@ -1578,27 +1580,11 @@ observeEvent(input$data_show, {
       dpmsr_set$file$extra_prefix2 <<- str_c(dpmsr_set$file$extra_dir, dpmsr_set$x$file_prefix)
       dpmsr_set$file$phos <<- str_c(dpmsr_set$file$output_dir, "Phos//")
       
-      #new version, 5/2023 
-      #does not have this field
-      if (is.null(dpmsr_set$x$primary_group)) {
-        cat(file = stderr(), ("Older dpmsr_set file, adding primary group field"), "\n")
-        dpmsr_set$x$primary_group <<- FALSE
-      }
-      #does not have this field
-      if (is.null(dpmsr_set$x$rollup_method)) {
-        cat(file = stderr(), ("Older dpmsr_set file, adding rollup method"), "\n")
-        dpmsr_set$x$rollup_method <<- "Sum"
-      }
-      
-      
-      #update sample groups
-      if (ncol(dpmsr_set$y$sample_groups) < 7) {
-        cat(file = stderr(), ("Older dpmsr_set file, rerunning function set_sample_groups"), "\n")
-        set_sample_groups(session, input, output)
-        }
-      
+      #check dpmsr_set file, update if out of date
+      update_version(session, input, output)
+
       #create dir for excel reports        
-      if(!is_dir(str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp))) {
+      if (!is_dir(str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp))) {
           create_dir(str_c(dpmsr_set$file$output_dir, dpmsr_set$data$stats$final_comp))
       }
       #reload shiny
@@ -1649,45 +1635,28 @@ observeEvent(input$data_show, {
       
       req(input$customer_dpmsr_set)
       
-      if(!is.null(input$customer_dpmsr_set)) {fileUploaded <- TRUE  }  
+      if (!is.null(input$customer_dpmsr_set)) {fileUploaded <- TRUE  }  
       
-      if (fileUploaded){
+      if (fileUploaded) {
         showModal(modalDialog("Working...", footer = NULL))  
         cat(file = stderr(), str_c("load file location:  ", input$customer_dpmsr_set$datapath), "\n")
         
-        load(file=input$customer_dpmsr_set$datapath, envir = .GlobalEnv)
+        load(file = input$customer_dpmsr_set$datapath, envir = .GlobalEnv)
         
         original_data_dir <- dpmsr_set$file$data_dir
         cat(file = stderr(), str_c("Original data directory --> ", original_data_dir), "\n")
         
         update_try <- 1
-        while(original_data_dir == dpmsr_set$file$data_dir){
+        while (original_data_dir == dpmsr_set$file$data_dir) {
           cat(file = stderr(), str_c("dpmsr_set file update attempt --> ", update_try), "\n")
-          if (update_try > 1){
-            load(file=input$customer_dpmsr_set$datapath, envir = .GlobalEnv)
+          if (update_try > 1) {
+            load(file = input$customer_dpmsr_set$datapath, envir = .GlobalEnv)
           }
-          update_try <- update_try+1
+          update_try <- update_try + 1
           
-          #new version, 5/2023 
-          #does not have this field
-          if (is.null(dpmsr_set$x$primary_group)) {
-            cat(file = stderr(), ("Older dpmsr_set file, adding primary group field"), "\n")
-            dpmsr_set$x$primary_group <<- FALSE
-          }
-          
-          #does not have this field
-          if (is.null(dpmsr_set$x$rollup_method)) {
-            cat(file = stderr(), ("Older dpmsr_set file, adding rollup method"), "\n")
-            dpmsr_set$x$rollup_method <<- "Sum"
-          }
-          
-          
-          #update sample groups
-          if (ncol(dpmsr_set$y$sample_groups) < 7) {
-            cat(file = stderr(), ("Older dpmsr_set file, rerunning function set_sample_groups"), "\n")
-            set_sample_groups(session, input, output)
-          }
-          
+          #check dpmsr_set file, update if out of date
+          update_version(session, input, output)
+
           #reload shiny
           cat(file = stderr(), "update widgets", "\n")
           update_widget_all(session, input, output)
@@ -1736,7 +1705,7 @@ observeEvent(input$data_show, {
     
     # This code will be run after the client has disconnected
     session$onSessionEnded(function() {
-      if (site_user != "dpmsr"){
+      if (site_user != "dpmsr") {
         cat(file = stderr(), "Running session end...", "\n")
         name <- dpmsr_set$file$tmp_dir
         cat(file = stderr(), str_c("Temp dir ", name,  " exists? ", dir.exists(name)), "\n")

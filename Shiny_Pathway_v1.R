@@ -1,63 +1,63 @@
 set_pathway <- function(input, output, session){
   
-  cat(file=stderr(), "Set Pathway..." , "\n")
+  cat(file = stderr(), "Set Pathway..." , "\n")
   tax_choice <- input$select_organism
 
-  if(!is.null(dpmsr_set$tax_choice)){
-    if (tax_choice == dpmsr_set$tax_choice){
-      cat(file=stderr(), "Tax choice same as previous..." , "\n")
+  if (!is.null(dpmsr_set$tax_choice)) {
+    if (tax_choice == dpmsr_set$tax_choice) {
+      cat(file = stderr(), "Tax choice same as previous..." , "\n")
     }else{
-      cat(file=stderr(), "Tax has changed..." , "\n")
+      cat(file = stderr(), "Tax has changed..." , "\n")
       dpmsr_set$x$pathway_set <<- 0
     }
   }
   
-  cat(file=stderr(), str_c("Pathway tax choice...", tax_choice), "\n")
+  cat(file = stderr(), str_c("Pathway tax choice...", tax_choice), "\n")
   
   string_dir <- str_c(getwd(), "/")
   
-  load(file=str_c(string_dir,"Pathway_wp2gene_",tax_choice), envir = .GlobalEnv)
-  load(file=str_c(string_dir,"Pathway_myGENE2GO_",tax_choice), envir = .GlobalEnv)
+  load(file = str_c(string_dir,"Pathway_wp2gene_",tax_choice), envir = .GlobalEnv)
+  load(file = str_c(string_dir,"Pathway_myGENE2GO_",tax_choice), envir = .GlobalEnv)
   
-  if (tax_choice == "Human"){
-    cat(file=stderr(), str_c("Load tax library...", tax_choice ), "\n")
+  if (tax_choice == "Human") {
+    cat(file = stderr(), str_c("Load tax library...", tax_choice ), "\n")
     library(org.Hs.eg.db)
     tax_db <<- org.Hs.eg.db}
   
-  if (tax_choice == "Mouse"){
-    cat(file=stderr(), str_c("Load tax library...", tax_choice ), "\n")
+  if (tax_choice == "Mouse") {
+    cat(file = stderr(), str_c("Load tax library...", tax_choice ), "\n")
     library(org.Mm.eg.db)
     tax_db <<- org.Mm.eg.db}
   
-  if (tax_choice == "Rat"){
-    cat(file=stderr(), str_c("Load tax library...", tax_choice ), "\n")
+  if (tax_choice == "Rat") {
+    cat(file = stderr(), str_c("Load tax library...", tax_choice ), "\n")
     library(org.Rn.eg.db)
     tax_db <<- org.Rn.eg.db} 
   
 
   
   if (dpmsr_set$x$pathway_set == 1) {
-    cat(file=stderr(), "Pathway previously set, skipping string download..." , "\n")
+    cat(file = stderr(), "Pathway previously set, skipping string download..." , "\n")
   }else{
-    cat(file=stderr(), "Set String..." , "\n")
+    cat(file = stderr(), "Set String..." , "\n")
     setup_string(session, input, output)
-    cat(file=stderr(), "String setup complete..." , "\n")
+    cat(file = stderr(), "String setup complete..." , "\n")
   }
   
   dpmsr_set$x$pathway_set <<- 1
   dpmsr_set$tax_choice <<- tax_choice
   
   gc()
-  cat(file=stderr(), "Pathway setup complete..." , "\n")
+  cat(file = stderr(), "Pathway setup complete..." , "\n")
 }
 
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 set_pathway_old <- function(input, output, session){
-  cat(file=stderr(), "Set Pathway...1" , "\n")
+  cat(file = stderr(), "Set Pathway...1" , "\n")
   tax_choice <- input$select_organism
-  cat(file=stderr(), str_c("Pathway tax choice...", tax_choice), "\n")
+  cat(file = stderr(), str_c("Pathway tax choice...", tax_choice), "\n")
   
   #---Wiki Setup----------------------------
   db_get <- function(tax_choice)

@@ -18,7 +18,10 @@ run_go_analysis <- function(session, input, output){
   
 
   atest <- go_df$Accession
-    
+  selection <- atest
+  background <- data_in$Accession
+  ont_go <- input$select_ont_go
+  
     #selection <<- atest; background <<- data_in$Accession; ont_go <<- input$select_ont_go
     
     

@@ -91,11 +91,11 @@ shinyUI(
                ),
                column(width = 3, offset = 1,   
                       checkboxInput("checkbox_norm_ptm", label = "Normalize on PTM?"),
-                      textInput("peptide_norm_grep", label="Normalize PTM grep", value = "Enter value here")
+                      textInput("peptide_norm_grep", label = "Normalize PTM grep", value = "Enter value here")
                ),
               column(width = 3, offset = 1,       
                       checkboxInput("checkbox_impute_ptm", label = "Impute Distribution based on PTM?"),
-                      textInput("peptide_impute_grep", label="Impute PTM grep", value = "Enter value here")
+                      textInput("peptide_impute_grep", label = "Impute PTM grep", value = "Enter value here")
                )
              ),
              fluidRow(        
@@ -105,22 +105,22 @@ shinyUI(
                     ),
               hr(),
             fluidRow(
-                      textInput("fileprefix", label="Enter file prefix for data output", value = "Enter value here"),
+                      textInput("fileprefix", label = "Enter file prefix for data output", value = "Enter value here"),
  
-                      shinyFilesButton('raw_files', label='Select PD Text Export Files', title='Please select raw data files', multiple=TRUE,
-                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                      shinyFilesButton('raw_files', label = 'Select PD Text Export Files', title = 'Please select raw data files', multiple = TRUE,
+                                       style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"),
                       br(),
                       br(),
                       
                       actionButton("load_data", label = "Load Data File(s)",
-                                    style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                                    style = "color: #fff; background-color: #337ab7; border-color: #2e6da4")
                      )
         ), #end tab panel
     
     tabPanel("Overview", value = "tp_overview",
           hr(),
           fluidRow(  
-            column(width=3, offset =1,
+            column(width = 3, offset = 1,
                imageOutput("mass_accuracy"), 
                imageOutput("inj_summary"), 
                imageOutput("peptide_MZ"),
@@ -128,7 +128,7 @@ shinyUI(
                imageOutput("peptide_PI"), 
                imageOutput("peptide_cruc") 
             ),
-            column(width=3, offset =1,
+            column(width = 3, offset = 1,
                 imageOutput("peptide_RT"),
                 imageOutput("feature_width"),
                 imageOutput("peptide_Charge"),
@@ -158,21 +158,21 @@ shinyUI(
                           tags$head(tags$style("#text4{color: blue; font-size: 16px; font-style: bold;}"))
                            )
                         ),
-                  column(width=6, offset = 1,
+                  column(width = 6, offset = 1,
                     fluidRow(align = "left",
-                          numericInput("minimum_measured_all", label="Enter minimum # measured values (all samples)", value = 2),
+                          numericInput("minimum_measured_all", label = "Enter minimum # measured values (all samples)", value = 2),
                           hr(),
                           checkboxInput("checkbox_require_x", label = "Require X% measured values in at least one group"),
-                          numericInput("require_x_cutoff", label="Enter X% measured values (decimal)", value = 0.8),
+                          numericInput("require_x_cutoff", label = "Enter X% measured values (decimal)", value = 0.8),
                           hr(),
                           checkboxInput("checkbox_filtercv", label = "Filter on Specific Group CV"),
-                          selectInput("text_filtercvgroup", label="Enter group for CV filter", 
+                          selectInput("text_filtercvgroup", label = "Enter group for CV filter", 
                                       choices = list("SPQC"), selected = "SPQC"),
-                          numericInput("number_filtercvcutoff", label="Enter CV% for cutoff", value = "Enter value here"),
+                          numericInput("number_filtercvcutoff", label = "Enter CV% for cutoff", value = "Enter value here"),
                           hr(),
                           br(),
                           actionButton("filter_apply", label = "Apply Filters", width = 300,
-                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                                       style = "color: #fff; background-color: #337ab7; border-color: #2e6da4")
                        )
                       )
                  )
@@ -181,17 +181,17 @@ shinyUI(
 
       tabPanel("Normalize", value = "tp_normalize",
                fluidRow(
-                 column(width=4, offset =1,
+                 column(width = 4, offset = 1,
                      br(),
                      hr(),
                      textOutput("text_f1"),
                      tags$head(tags$style("#text_f1{color: blue; font-size: 20px; font-style: bold;}")),
                      checkboxInput("checkbox_norm_include", label = "Include only grep for norm"),
-                     textInput("include_norm_grep", label="Filter Include grep", value = "Enter value here"),
+                     textInput("include_norm_grep", label = "Filter Include grep", value = "Enter value here"),
                      checkboxInput("checkbox_norm_exclude", label = "Exclude grep from norm"),
-                     textInput("exclude_norm_grep", label="Filter Exclude grep", value = "Enter value here"),
+                     textInput("exclude_norm_grep", label = "Filter Exclude grep", value = "Enter value here"),
                      actionButton("include_exclude", label = "Apply Filter", width = 300,
-                                  style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                                  style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"),
                      br(),
                      hr(),
                      textOutput("text_n1"),
@@ -208,13 +208,13 @@ shinyUI(
                      checkboxInput("checkbox_n9", label = "Median Intensity"),
                      checkboxInput("checkbox_n10", label = "Average Intensity"),
                      checkboxInput("checkbox_n11", label = "Protein"),
-                     textInput("protein_norm_list", label="Protein Norm List", value = "Enter value here"),
+                     textInput("protein_norm_list", label = "Protein Norm List", value = "Enter value here"),
                      br(),
                      actionButton("norm1", label = "Apply Normalization", width = 300,
-                                  style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                                  style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"),
                      hr()
                      ),
-               column(width=7, offset =0,
+               column(width = 7, offset =0,
                       "Raw Data Total Intensity",
                       br(),
                       fluidRow(
@@ -427,7 +427,7 @@ shinyUI(
                                           br(),
                                           imageOutput("mi_plot")
                                    ),
-                                   column(width=4, offset =1,
+                                   column(width = 4, offset = 1,
                                           imageOutput("sltmm_plot"),
                                           br(),
                                           imageOutput("tmm_plot"),
@@ -497,7 +497,7 @@ shinyUI(
                         
                         tabPanel("One Protein",
                                  fluidRow( 
-                                   column(width=2, offset =0,
+                                   column(width = 2, offset =0,
                                           selectInput("select_oneprotein_norm", label = "Normalization", width = 150,
                                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
                                                       selected = 1)
@@ -522,25 +522,25 @@ shinyUI(
                         
                         tabPanel("One Peptide",
                                  fluidRow( 
-                                   column(width=2, offset =0,
+                                   column(width = 4, offset = 0,
                                           selectInput("select_onepeptide_norm", label = "Normalization", width = 150,
                                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
                                                       selected = 1)
                                    ),
-                                   column(width=1, offset =0,
-                                          textInput("onepeptide_sequence", label="Sequence", value = "0", width = 100)
+                                   column(width = 1, offset = 0,
+                                          textInput("onepeptide_sequence", label = "Sequence", value = "0", width = 100)
                                    ),
-                                   column(width=1, offset =0,
+                                   column(width = 1, offset = 0,
                                           actionButton("onepeptide_show", label = "Show Graph", width = 100,
-                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                                                       style = "color: #fff; background-color: #337ab7; border-color: #2e6da4")
                                    )
                                  ),
                                  fluidRow(
                                    hr(),
-                                   column(width=4, offset =1,
+                                   column(width = 4, offset = 1 ,
                                           imageOutput("onepeptide_plot_select")
                                    ), 
-                                   column(width=4, offset =1,
+                                   column(width = 4 , offset = 1,
                                           rHandsontableOutput("onepeptide_stats")
                                    )
                                  )),
@@ -548,23 +548,23 @@ shinyUI(
                         tabPanel("Data", value = "tp10",
                                  fluidRow( 
                                    
-                                   column(width=2, offset =0,
+                                   column(width = 2, offset = 0,
                                           selectInput("select_final_data", label = "Normalization", width = 150,
                                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
                                                       selected = 1)
                                    ),
-                                   column(width=1, offset =0,  
-                                          numericInput("data_topn", label="TopN", value = 0, width = 100)
+                                   column(width = 1, offset = 0,  
+                                          numericInput("data_topn", label = "TopN", value = 0, width = 100)
                                    ),
-                                   column(width=1, offset =0,
-                                          textInput("data_accession", label="Accession", value = "0", width = 100)
+                                   column(width = 1, offset = 0,
+                                          textInput("data_accession", label = "Accession", value = "0", width = 100)
                                    ),
-                                   column(width=1, offset =0,
-                                          textInput("data_description", label="Description", value = "0", width = 100)
+                                   column(width = 1, offset = 0,
+                                          textInput("data_description", label = "Description", value = "0", width = 100)
                                    ),
-                                   column(width=1, offset =0,
+                                   column(width = 1, offset = 0,
                                           actionButton("data_show", label = "Filter Data", width = 100,
-                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                                                       style = "color: #fff; background-color: #337ab7; border-color: #2e6da4")
                                    )
                                  ),
                                  fluidRow(
@@ -581,7 +581,7 @@ shinyUI(
           ), #end of qc tabpanel
     
     
-    tabPanel("Load Data", value = "tp_customer_load", align="center",
+    tabPanel("Load Data", value = "tp_customer_load", align = "center",
              hr(),
              tags$h1("Welcome to DPMSR Proteome Discoverer Data Visualization Tool"),
              br(),
@@ -597,13 +597,13 @@ shinyUI(
             br(),
             br(),
             actionButton("load_customer_dpmsr_set", label = "Load dpmsr_set", width = 200, 
-                         style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                         style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"),
             br(),
             br(),
             br(),
             br(),
             br(),
-            span(textOutput("app_version_text2"), style="color:blue; font-size:16px"),
+            span(textOutput("app_version_text2"), style = "color:blue; font-size:16px"),
     ),
     
     
@@ -702,7 +702,7 @@ shinyUI(
                                           ),
                                           textInput("comp1_name", label="Description", value = "")
                                    ),
-                                   column(width=2, offset =0,
+                                   column(width =2, offset =0,
                                           span(textOutput("comp2_text"), style="color:blue; font-size:20px"),
                                           pickerInput(inputId = "comp_2N", label = "Numerator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
@@ -714,7 +714,7 @@ shinyUI(
                                           ),
                                           textInput("comp2_name", label="Description", value = "")
                                    ),
-                                   column(width=2, offset =0,
+                                   column(width =2, offset =0,
                                           span(textOutput("comp3_text"), style="color:blue; font-size:20px"),
                                           pickerInput(inputId = "comp_3N", label = "Numerator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
@@ -726,7 +726,7 @@ shinyUI(
                                           ),
                                           textInput("comp3_name", label="Description", value = "")
                                    ),
-                                   column(width=2, offset =0,
+                                   column(width =2, offset =0,
                                           span(textOutput("comp4_text"), style="color:blue; font-size:20px"),
                                           pickerInput(inputId = "comp_4N", label = "Numerator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
@@ -738,7 +738,7 @@ shinyUI(
                                           ),
                                           textInput("comp4_name", label="Description", value = "")
                                    ) ,            
-                                   column(width=2, offset =0,
+                                   column(width =2, offset =0,
                                           span(textOutput("comp5_text"), style="color:blue; font-size:20px"),
                                           pickerInput(inputId = "comp_5N", label = "Numerator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
@@ -750,7 +750,7 @@ shinyUI(
                                           ),
                                           textInput("comp5_name", label="Description", value = "")
                                    ),            
-                                   column(width=2, offset =0,
+                                   column(width =2, offset =0,
                                           span(textOutput("comp6_text"), style="color:blue; font-size:20px"),
                                           pickerInput(inputId = "comp_6N", label = "Numerator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
@@ -767,7 +767,7 @@ shinyUI(
                                    hr()
                                  ),
                                  fluidRow(
-                                   column(width=2, offset =0,
+                                   column(width =2, offset =0,
                                           span(textOutput("comp7_text"), style="color:blue; font-size:20px"),
                                           pickerInput(inputId = "comp_7N", label = "Numerator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
@@ -779,7 +779,7 @@ shinyUI(
                                           ),
                                           textInput("comp7_name", label="Description", value = "")                     
                                    ),
-                                   column(width=2, offset =0,
+                                   column(width =2, offset =0,
                                           span(textOutput("comp8_text"), style="color:blue; font-size:20px"),
                                           pickerInput(inputId = "comp_8N", label = "Numerator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
@@ -791,7 +791,7 @@ shinyUI(
                                           ),
                                           textInput("comp8_name", label="Description", value = "")  
                                    ),
-                                   column(width=2, offset =0,
+                                   column(width =2, offset =0,
                                           span(textOutput("comp9_text"), style="color:blue; font-size:20px"),
                                           pickerInput(inputId = "comp_9N", label = "Numerator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
@@ -803,7 +803,7 @@ shinyUI(
                                           ),
                                           textInput("comp9_name", label="Description", value = "")  
                                    ),
-                                   column(width=2, offset =0,
+                                   column(width =2, offset =0,
                                           span(textOutput("comp10_text"), style="color:blue; font-size:20px"),
                                           pickerInput(inputId = "comp_10N", label = "Numerator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
@@ -815,7 +815,7 @@ shinyUI(
                                           ),
                                           textInput("comp10_name", label="Description", value = "")  
                                    ) ,            
-                                   column(width=2, offset =0,
+                                   column(width =2, offset =0,
                                           span(textOutput("comp11_text"), style="color:blue; font-size:20px"),
                                           pickerInput(inputId = "comp_11N", label = "Numerator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
@@ -827,7 +827,7 @@ shinyUI(
                                           ),
                                           textInput("comp11_name", label="Description", value = "")  
                                    ),            
-                                   column(width=2, offset =0,
+                                   column(width =2, offset =0,
                                           span(textOutput("comp12_text"), style="color:blue; font-size:20px"),
                                           pickerInput(inputId = "comp_12N", label = "Numerator",  choices = "None", 
                                                       options = list(`actions-box` = TRUE,size = 10,
@@ -863,21 +863,21 @@ shinyUI(
                         
                         tabPanel("Graphs", id="tp_stats_graph1", 
                                  fluidRow(
-                                   column(width=3, offset =0,
+                                   column(width =3, offset =0,
                                           pickerInput(inputId = "stats_plot_comp", label = "Comparison(s) to plot",  choices = "None", 
                                                       options = list(`actions-box` = TRUE, size = 100,
                                                                      `selected-text-format` = "count > 5"),  multiple = TRUE)
                                    ),
-                                   column(width=2, offset =0,
+                                   column(width =2, offset =0,
                                           checkboxInput("stats_plot_spqc", label = "Add SPQC?")
                                    ),
-                                   column(width=4, offset =0,
+                                   column(width =4, offset =0,
                                           actionButton("create_stats_plots", label = "Create Plots", width = 100,
                                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
                                    )
                                  ),
                                  fluidRow(
-                                   column(width=6, offset =0,
+                                   column(width =6, offset =0,
                                           dropdownButton(
                                             textInput("stats_barplot_y_axis_label", label="y axis label", value = "Intensity", width = 200),
                                             textInput("stats_barplot_title", label="plot title", value = "Total Summed Intensity", width = 200),
@@ -895,7 +895,7 @@ shinyUI(
                                           downloadButton('download_stats_barplot')
                                    ),  
                                    
-                                   column(width=6, offset =0,
+                                   column(width =6, offset =0,
                                           dropdownButton(
                                             textInput("stats_boxplot_y_axis_label", label="y axis label", value = "Intensity", width = 200),
                                             textInput("stats_boxplot_title", label="plot title", value = "Total Summed Intensity", width = 200),
@@ -915,7 +915,7 @@ shinyUI(
                                  ),
                                  hr(),
                                  fluidRow(
-                                   column(width=6, offset =0,
+                                   column(width =6, offset =0,
                                           dropdownButton(
                                             selectInput("stats_pca2d_x", label = "pca xaxis", choices = list("PC1", "PC2", "PC3", "PC4", "PC5"), 
                                                         selected = "PC1"),
@@ -940,9 +940,9 @@ shinyUI(
                                           downloadButton('download_stats_pca2d')
                                    ),  
                                    
-                                   column(width=6, offset =0,
+                                   column(width = 6, offset = 0,
                                           dropdownButton(
-                                            textInput("stats_pca3d_title", label="plot title", value = "pca3d", width = 200),
+                                            textInput("stats_pca3d_title", label = "plot title", value = "pca3d", width = 200),
                                             sliderInput("stats_pca3d_label_size", label = h5("Label Size"), min = 1, 
                                                         max = 50, value = 11),
                                             sliderInput("stats_pca3d_title_size", label = h5("Title Size"), min = 10, 
@@ -961,9 +961,9 @@ shinyUI(
                                  ),
                                  hr(),
                                  fluidRow(
-                                   column(width=6, offset =0,
+                                   column(width = 6, offset = 0,
                                           dropdownButton(
-                                            textInput("stats_cluster_title", label="plot title", value = "cluster", width = 200),
+                                            textInput("stats_cluster_title", label = "plot title", value = "cluster", width = 200),
                                             sliderInput("stats_cluster_label_size", label = h5("Label Size"), min = 1, 
                                                         max = 50, value = 11),
                                             sliderInput("stats_cluster_title_size", label = h5("Title Size"), min = 10, 
@@ -980,9 +980,9 @@ shinyUI(
                                           downloadButton('download_stats_cluster')
                                    ),  
                                    
-                                   column(width=6, offset =0,
+                                   column(width = 6, offset = 0,
                                           dropdownButton(
-                                            textInput("stats_heatmap_title", label="plot title", value = "heatmap", width = 200),
+                                            textInput("stats_heatmap_title", label = "plot title", value = "heatmap", width = 200),
                                             circle = TRUE, status = "danger", icon = icon("cogs"), width = "300px", size = "sm",
                                             tooltip = tooltipOptions(title = "Click to see inputs !")
                                           ),
@@ -995,17 +995,17 @@ shinyUI(
                                  )  
                         ),   # end graphs
                         
-                        tabPanel("Volcano", id="tp_stats_volcano", 
+                        tabPanel("Volcano", id = "tp_stats_volcano", 
                                  fluidRow(
-                                   column(width=3, offset =0,
+                                   column(width = 3, offset = 0,
                                           actionButton("create_stats_volcano", label = "Create Volcano Plots", width = 300,
-                                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                                                       style = "color: #fff; background-color: #337ab7; border-color: #2e6da4")
                                    ), 
-                                   column(width=2, offset = 0,
+                                   column(width = 2, offset = 0,
                                           textInput("volcano_highlight", label = "Highlight search term (description)")
                                    ),
                                    
-                                   column(width=1, offset =0,
+                                   column(width = 1, offset = 0,
                                           dropdownButton(
                                             h3('Highlight Proteins'),
                                             h5('Enter list of strings to search in protein descriptions.'),
@@ -1024,24 +1024,24 @@ shinyUI(
                                             tooltip = tooltipOptions(title = "Click for help on Volcano protein highlights")
                                           )
                                    ),
-                                   column(width=3, offset = 0,
+                                   column(width = 3, offset = 0,
                                           checkboxInput("stats_volcano_fixed_axis", label = "Fix x and y axis for all plots?"),
                                           checkboxInput("stats_volcano_highlight_signif", label = "Highlight statistically signifigant?")
                                           ),
-                                   column(width=1, offset = 0,
-                                           numericInput("stats_volcano_y_axis", label = "y axis", value=10)
+                                   column(width = 1, offset = 0,
+                                           numericInput("stats_volcano_y_axis", label = "y axis", value = 10)
                                    ),                                   
-                                   column(width=1, offset = 0,
-                                           numericInput("stats_volcano_x_axis", label = "x axis", value=5)
+                                   column(width = 1, offset = 0,
+                                           numericInput("stats_volcano_x_axis", label = "x axis", value = 5)
                                    )
                                  ), 
                                  fluidRow(
-                                   column(width=5, offset =0,
+                                   column(width = 5, offset = 0,
                                           dropdownButton(
-                                            textInput("volcano1_stats_plot_title", label="plot title", 
+                                            textInput("volcano1_stats_plot_title", label = "plot title", 
                                                       value = "Volcano", width = 200),
-                                            textInput("volcano1_stats_plot_y_axis_label", label="y axis label", value = "-log_pvalue", width = 200),
-                                            textInput("volcano1_stats_plot_x_axis_label", label="x axis label", value = "log_FC", width = 200),
+                                            textInput("volcano1_stats_plot_y_axis_label", label = "y axis label", value = "-log_pvalue", width = 200),
+                                            textInput("volcano1_stats_plot_x_axis_label", label = "x axis label", value = "log_FC", width = 200),
                                             colourpicker::colourInput("volcano1_stats_dot_color", "Select Color", "blue"),
                                             sliderInput("volcano1_stats_plot_dot_size", label = h5("Point Size"), min = 1, 
                                                         max = 10, value = 2),
@@ -1061,7 +1061,7 @@ shinyUI(
                                           ),
                                           downloadButton('download_stats_volcano1')
                                    ), # end col
-                                   column(width=5, offset =0,
+                                   column(width = 5, offset = 0,
                                           dropdownButton(
                                             textInput("volcano2_stats_plot_title", label="plot title", 
                                                       value = "Volcano", width = 200),
@@ -1089,7 +1089,7 @@ shinyUI(
                                  ), #end fr
                                  
                                  fluidRow(
-                                   column(width=5, offset =0,
+                                   column(width =5, offset =0,
                                           dropdownButton(
                                             textInput("volcano3_stats_plot_title", label="plot title", 
                                                       value = "Volcano", width = 200),
@@ -1114,7 +1114,7 @@ shinyUI(
                                           ),
                                           downloadButton('download_stats_volcano3')
                                    ), # end col
-                                   column(width=5, offset =0,
+                                   column(width =5, offset =0,
                                           dropdownButton(
                                             textInput("volcano4_stats_plot_title", label="plot title", 
                                                       value = "Volcano", width = 200),
@@ -1142,7 +1142,7 @@ shinyUI(
                                  ), #end fr   
                                  
                                  fluidRow(
-                                   column(width=5, offset =0,
+                                   column(width =5, offset =0,
                                           dropdownButton(
                                             textInput("volcano5_stats_plot_title", label="plot title", 
                                                       value = "Volcano", width = 200),
@@ -1167,7 +1167,7 @@ shinyUI(
                                           ),
                                           downloadButton('download_stats_volcano5')
                                    ), # end col
-                                   column(width=5, offset =0,
+                                   column(width =5, offset =0,
                                           dropdownButton(
                                             textInput("volcano6_stats_plot_title", label="plot title", 
                                                       value = "Volcano", width = 200),
@@ -1195,7 +1195,7 @@ shinyUI(
                                  ), #end fr   
                                  
                                  fluidRow(
-                                   column(width=5, offset =0,
+                                   column(width =5, offset =0,
                                           dropdownButton(
                                             textInput("volcano7_stats_plot_title", label="plot title", 
                                                       value = "Volcano", width = 200),
@@ -1220,7 +1220,7 @@ shinyUI(
                                           ),
                                           downloadButton('download_stats_volcano7')
                                    ), # end col
-                                   column(width=5, offset =0,
+                                   column(width =5, offset =0,
                                           dropdownButton(
                                             textInput("volcano8_stats_plot_title", label="plot title", 
                                                       value = "Volcano", width = 200),
@@ -1248,7 +1248,7 @@ shinyUI(
                                  ), #end fr
                                  
                                  fluidRow(
-                                   column(width=5, offset =0,
+                                   column(width =5, offset =0,
                                           dropdownButton(
                                             textInput("volcano9_stats_plot_title", label="plot title", 
                                                       value = "Volcano", width = 200),
@@ -1273,7 +1273,7 @@ shinyUI(
                                           ),
                                           downloadButton('download_stats_volcano9')
                                    ), # end col
-                                   column(width=5, offset =0,
+                                   column(width =5, offset =0,
                                           dropdownButton(
                                             textInput("volcano10_stats_plot_title", label="plot title", 
                                                       value = "Volcano", width = 200),
@@ -1301,7 +1301,7 @@ shinyUI(
                                  ), #end fr   
                                  
                                  fluidRow(
-                                   column(width=5, offset =0,
+                                   column(width =5, offset =0,
                                           dropdownButton(
                                             textInput("volcano11_stats_plot_title", label="plot title", 
                                                       value = "Volcano", width = 200),
@@ -1326,7 +1326,7 @@ shinyUI(
                                           ),
                                           downloadButton('download_stats_volcano11')
                                    ), # end col
-                                   column(width=5, offset =0,
+                                   column(width =5, offset =0,
                                           dropdownButton(
                                             textInput("volcano12_stats_plot_title", label="plot title", 
                                                       value = "Volcano", width = 200),
@@ -1358,31 +1358,31 @@ shinyUI(
                         
                         tabPanel("Data", value = "tp_stats_data",
                                  fluidRow( 
-                                   column(width=1, offset =0,  
+                                   column(width =1, offset =0,  
                                           numericInput("stats_data_topn", label="TopN", value = 0, width = 100)
                                    ),
-                                   column(width=1, offset =0,
+                                   column(width =1, offset =0,
                                           textInput("stats_data_accession", label="Accession", value = "0", width = 100)
                                    ),
-                                   column(width=1, offset =0,
+                                   column(width =1, offset =0,
                                           textInput("stats_data_description", label="Description", value = "0", width = 200)
                                    ),
-                                   column(width=3, offset =0,
+                                   column(width =3, offset =0,
                                           selectInput("stats_select_data_comp", label = "comparison", 
                                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
                                                       selected = 1)
                                    ),
-                                   column(width=2, offset =0,
+                                   column(width =2, offset =0,
                                           checkboxInput("stats_add_filters", label="Apply stat filters (from setup)?", value = 0)
                                    ),
-                                   column(width=1, offset =0,
+                                   column(width =1, offset =0,
                                           actionButton("stats_data_show", label = "Filter Data", width = 100,
                                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
                                    ),
-                                   column(width=2, offset =0,
+                                   column(width =2, offset =0,
                                           textInput("stats_data_filename", label="File Name", value = "my_data.xlsx", width = 250)
                                    ),
-                                   column(width=1, offset =0,
+                                   column(width =1, offset =0,
                                           actionButton("stats_data_save", label = "Save Data", width = 100,
                                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
                                           br(),
@@ -1396,14 +1396,14 @@ shinyUI(
                                  ),
                                  
                                  fluidRow(
-                                   column(width=12, offset =0,
+                                   column(width =12, offset =0,
                                    hr(),
                                    tags$head(tags$style("#stats_data_final{color: blue;
                                                            font-size: 12px;
                                                            }"
                                    )
                                    ),
-                                   DT::dataTableOutput("stats_data_final", width='100%')
+                                   DT::dataTableOutput("stats_data_final", width ='100%')
                                  )
                               ),
                               br(),
@@ -1420,29 +1420,29 @@ shinyUI(
                         
                         tabPanel("Protein Plots", value = "tp_stats_oneprotein",
                                  fluidRow(
-                                   column(width=1, offset =0,
+                                   column(width =1, offset =0,
                                           textInput("stats_oneprotein_accession", label="Accession", value = "0", width = 100)
                                    ),
-                                   column(width=3, offset =0,
+                                   column(width =3, offset =0,
                                           selectInput("stats_oneprotein_plot_comp", label = "comparison", 
                                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
                                                       selected = 1)
                                    ),
                                    
-                                   column(width=1, offset =0,
+                                   column(width =1, offset =0,
                                           checkboxInput("stats_oneprotein_plot_spqc", label = "Add SPQC?")
                                    ),
-                                   column(width=1, offset =0,
+                                   column(width =1, offset =0,
                                           checkboxInput("stats_use_zscore", label = "Use zscore?")
                                    ),
-                                   column(width=1, offset =0,
+                                   column(width =1, offset =0,
                                           actionButton("create_stats_oneprotein_plots", label = "Create Plots", width = 100,
                                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
                                    ),
-                                   column(width=2, offset =1,
+                                   column(width =2, offset =1,
                                           textInput("stats_oneprotein_data_filename", label="File Name", value = "my_protein_data.xlsx", width = 250)
                                    ),
-                                   column(width=1, offset =0,
+                                   column(width =1, offset =0,
                                           actionButton("stats_oneprotein_data_save", label = "Save Data", width = 100,
                                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
                                           br(),
@@ -1451,7 +1451,7 @@ shinyUI(
                                    )
                                  ),
                                  fluidRow(
-                                   column(width=12, offset =0,
+                                   column(width =12, offset =0,
                                           dropdownButton(
                                             textInput("stats_oneprotein_barplot_y_axis_label", label="y axis label", value = "Intensity", width = 200),
                                             textInput("stats_oneprotein_barplot_title", label="plot title", value = "Total Summed Intensity", width = 200),
@@ -1470,7 +1470,7 @@ shinyUI(
                                    )
                                    ),
                                   fluidRow(
-                                   column(width=12, offset =0,
+                                   column(width =12, offset =0,
                                           dropdownButton(
                                             textInput("stats_oneprotein_grouped_barplot_y_axis_label", label="y axis label", value = "Intensity", width = 200),
                                             textInput("stats_oneprotein_grouped_barplot_x_axis_label", label="x axis label", value = "Sequence", width = 200),
@@ -1493,14 +1493,14 @@ shinyUI(
                                    ),
                                  
                                  fluidRow(
-                                   column(width=12, offset =0,
+                                   column(width =12, offset =0,
                                           hr(),
                                           tags$head(tags$style("#oneprotein_peptide_table{color: blue;
                                                            font-size: 12px;
                                                            }"
                                           )
                                           ),
-                                          DT::dataTableOutput("oneprotein_peptide_table", width='100%')
+                                          DT::dataTableOutput("oneprotein_peptide_table", width ='100%')
                                    )
                                  )
                                  # 
@@ -1514,37 +1514,37 @@ shinyUI(
               
               tabPanel("Peptide Plots", value = "tp_stats_onepeptide",
                        fluidRow(
-                         column(width=1, offset =0,
+                         column(width =1, offset =0,
                                 textInput("stats_onepeptide_accession", label="Accession", value = "0", width = 100)
                          ),
-                         column(width=2, offset =0,
+                         column(width =2, offset =0,
                                 textInput("stats_onepeptide_sequence", label="Peptide Sequence", width = 250)
                          ),
-                         column(width=2, offset =0,
+                         column(width =2, offset =0,
                                 textInput("stats_onepeptide_modification", label="Peptide Modification", width = 250)
                          ),
-                         column(width=3, offset =0,
+                         column(width =3, offset =0,
                                 selectInput("stats_onepeptide_plot_comp", label = "comparison", 
                                             choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
                                             selected = 1)
                          ),
                          
-                         column(width=1, offset =0,
+                         column(width =1, offset =0,
                                 checkboxInput("stats_onepeptide_plot_spqc", label = "Add SPQC?")
                          ),
-                         column(width=1, offset =0,
+                         column(width =1, offset =0,
                                 checkboxInput("stats_onepeptide_use_zscore", label = "Use zscore?")
                          ),
-                         column(width=1, offset =0,
+                         column(width =1, offset =0,
                               numericInput("stats_onepeptide_residue", label="Residue", value = 0, width = 100)
                          ),
-                         column(width=1, offset =0,
+                         column(width =1, offset =0,
                                 actionButton("create_stats_onepeptide_plots", label = "Create Plots", width = 100,
                                              style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
                          )
                        ),
                        fluidRow(
-                         column(width=12, offset =0,
+                         column(width =12, offset =0,
                                 dropdownButton(
                                   textInput("stats_onepeptide_barplot_y_axis_label", label="y axis label", value = "Intensity", width = 200),
                                   textInput("stats_onepeptide_barplot_title", label="plot title", value = "Total Summed Intensity", width = 200),
@@ -1563,7 +1563,7 @@ shinyUI(
                          )
                        ),
                        fluidRow(
-                         column(width=12, offset =0,
+                         column(width =12, offset =0,
                                 dropdownButton(
                                   textInput("stats_onepeptide_grouped_barplot_y_axis_label", label="y axis label", value = "Intensity", width = 200),
                                   textInput("stats_onepeptide_grouped_barplot_x_axis_label", label="x axis label", value = "Sequence", width = 200),
@@ -1587,19 +1587,19 @@ shinyUI(
                        ),
                        
                        fluidRow(
-                         column(width=12, offset =0,
+                         column(width =12, offset =0,
                                 hr(),
                                 tags$head(tags$style("#onepeptide_peptide_table{color: blue;
                                                            font-size: 12px;
                                                            }"
                                 )
                                 ),
-                                DT::dataTableOutput("onepeptide_peptide_table", width='100%')
+                                DT::dataTableOutput("onepeptide_peptide_table", width ='100%')
                          ),
-                         column(width=2, offset =0,
+                         column(width =2, offset =0,
                                 textInput("stats_onepeptide_data_filename", label="File Name", value = "my_peptide_data.xlsx", width = 250)
                          ),
-                         column(width=1, offset =0,
+                         column(width =1, offset =0,
                                 actionButton("stats_onepeptide_data_save", label = "Save Data", width = 100,
                                              style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
                          )
@@ -1613,8 +1613,8 @@ shinyUI(
     
     
     tabPanel("Pathway", value = "pathway",
-      navbarPage("Pathway:", id ="path",
-        tabPanel("Organism", value = "tp_save", align="center",
+      navbarPage("Pathway:", id = "path",
+        tabPanel("Organism", value = "tp_save", align = "center",
                  tags$h1("Select organism for pathway analysis/enrichment..."),
                  hr(),
                  selectInput("select_organism", label = "organism", 
@@ -1622,22 +1622,22 @@ shinyUI(
                              selected = "Human"),
                  br(),
                  actionButton("set_pathway", label = "Set Pathway", width = 300, 
-                              style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                              style = "color: #fff; background-color: #337ab7; border-color: #2e6da4")
         ),
         
-        tabPanel("WikiPathways", id="wiki",
+        tabPanel("WikiPathways", id = "wiki",
                  fluidRow( 
-                   column(width=3, offset =0,
+                   column(width = 3, offset = 0,
                           selectInput("select_data_comp_wiki", label = "comparison", 
                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
                                       selected = 1)
                    ),
-                   column(width=3, offset =0,  
-                          radioButtons("wiki_direction", label="Fold Change Direction", choices = list("Up", "Down", "UpDown"),  selected = "Up", width = 200)
+                   column(width = 3, offset = 0,  
+                          radioButtons("wiki_direction", label = "Fold Change Direction", choices = list("Up", "Down", "UpDown"),  selected = "Up", width = 200)
                    ),
-                   column(width=1, offset =1,
+                   column(width = 1, offset = 1,
                           actionButton("wiki_show", label = "Find WikiPathway", width = 150,
-                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                                       style = "color: #fff; background-color: #337ab7; border-color: #2e6da4")
                    )
                  ),
                  
@@ -1656,32 +1656,32 @@ shinyUI(
         
         tabPanel("Go Profile", id="go_profile",
                  fluidRow( 
-                   column(width=2, offset =0,
+                   column(width = 2, offset =0,
                           selectInput("select_data_comp_profile", label = "comparison", 
                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
                                       selected = 1)
                    ),
-                   column(width=3, offset =0,  
+                   column(width = 3, offset =0,  
                           radioButtons("profile_direction", label="Fold Change Direction", choices = list("Up", "Down", "UpDown"),  selected = "Up", width = 200)
                    ),
-                   column(width=2, offset =0,
+                   column(width = 2, offset =0,
                           selectInput("select_ont_profile", label = "ontology", 
                                       choices = list("CC", "BP", "MF"), 
                                       selected = "BP")
                    ),
-                   column(width=2, offset =0,
+                   column(width = 2, offset =0,
                           selectInput("select_level_profile", label = "ontology level", 
                                       choices = list("1", "2", "3", "4", "5", "6"), 
                                       selected = "3")
                    ),
-                   column(width=1, offset =0,
+                   column(width = 1, offset =0,
                           actionButton("profile_show", label = "Find Go Profile", width = 150,
                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
                    )
                  ),  
                  fluidRow(
                    hr(),
-                   column(width=6, offset =0,
+                   column(width = 6, offset = 0,
                           tags$head(tags$style("#data_final{color: blue;
                                      font-size: 12px;
                                      }"
@@ -1691,7 +1691,7 @@ shinyUI(
                           br(),
                           downloadButton('download_go_profile_table')
                    ),
-                   column(width=6, offset =0,
+                   column(width = 6, offset = 0,
                           plotOutput("go_profile_plot"),
                           br(),
                           downloadButton('download_go_profile_plot')
@@ -1701,25 +1701,25 @@ shinyUI(
         
         tabPanel("Go Analysis", id="go",
                  fluidRow( 
-                   column(width=3, offset =0,
+                   column(width =3 , offset =0,
                           selectInput("select_data_comp_go", label = "comparison", 
                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
                                       selected = 1)
                    ),
-                   column(width=3, offset =0,  
+                   column(width = 3, offset = 0,  
                           radioButtons("go_direction", label="Fold Change Direction", choices = list("Up", "Down", "UpDown"),  selected = "Up", width = 200)
                    ),
-                   column(width=1, offset =0,
+                   column(width = 1, offset = 0,
                           selectInput("select_ont_go", label = "ontology", 
                                       choices = list("CC", "BP", "MF"), 
                                       selected = "BP")
                    ),
-                   # column(width=1, offset =0,
+                   # column(width =1, offset =0,
                    #        selectInput("select_algorithm", label = "algorithm", 
                    #                    choices = list("classic", "elim", "weight", "weight01"), 
                    #                    selected = "classic")
                    # ),
-                   column(width=1, offset =0,
+                   column(width = 1, offset = 0,
                           actionButton("go_show", label = "Go Analysis", width = 100,
                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
                    )
@@ -1737,9 +1737,9 @@ shinyUI(
                  )
            ), #end of go analysis
         
-        tabPanel("Go Volcano", id="go_volcano",
+        tabPanel("Go Volcano", id = "go_volcano",
                  fluidRow(
-                   column(width=2, offset =0,
+                   column(width =2, offset =0,
                           textInput("go_volcano_id", label="GO ID", value = "", width = 200),
                           textInput("plot_y_axis_label", label="y axis label", value = "-log_pvalue", width = 200),
                           textInput("plot_x_axis_label", label="x axis label", value = "log_FC", width = 200),
@@ -1748,7 +1748,7 @@ shinyUI(
                           actionButton("go_volcano", label = "Volcano", width = 100,
                                         style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
                           ),  
-                   column(width=2, offset =0,
+                   column(width =2, offset =0,
                           sliderInput("plot_dot_size", label = h5("Point Size"), min = 1, 
                                       max = 10, value = 2),
                           sliderInput("plot_label_size", label = h5("Label Size"), min = 1, 
@@ -1757,7 +1757,7 @@ shinyUI(
                                       max = 50, value = 20),   
                           downloadButton('download_go_volcano')
                    ),
-                   column(width=8, offset =0,  
+                   column(width =8, offset =0,  
                      div(
                        style = "position:relative",
                        plotOutput("volcano_go_plot", width = 800, height = 600,
@@ -1767,14 +1767,14 @@ shinyUI(
                    )
                  ),
                  fluidRow(
-                   column(width=12, offset =0,
+                   column(width =12, offset =0,
                           hr(),
                           tags$head(tags$style("#volcano_data_final{color: blue;
                                                            font-size: 12px;
                                                            }"
                           )
                           ),
-                          DT::dataTableOutput("volcano_data_final", width='100%'),
+                          DT::dataTableOutput("volcano_data_final", width ='100%'),
                           downloadButton('download_go_volcano_table')
                    )
                  )
@@ -1783,20 +1783,20 @@ shinyUI(
         
         tabPanel("StringDB", id="string",
                  fluidRow( 
-                   column(width=3, offset =0,
+                   column(width =3, offset =0,
                           selectInput("select_data_comp_string", label = "comparison", 
                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
                                       selected = 1)
                    ),
-                   column(width=2, offset =0,  
+                   column(width =2, offset =0,  
                           radioButtons("string_direction", label="Fold Change Direction", choices = list("Up", "Down", "UpDown"),  selected = "Up", width = 200)
                    ),
-                   column(width=1, offset =0,
+                   column(width =1, offset =0,
                           selectInput("protein_number", label = "Max #Proteins", 
                                       choices = list(10, 25, 50, 75, 100), #150, 200, 250, 300, 350, 400), 
                                       selected = 100)
                    ),                   
-                   column(width=2, offset =2,
+                   column(width =2, offset =2,
                           actionButton("go_string", label = "String Analysis", width = 150,
                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
                    )
@@ -1820,20 +1820,20 @@ shinyUI(
         
         tabPanel("StringDB_enrich", id="string_enrich",
                  fluidRow( 
-                   column(width=3, offset =0,
+                   column(width =3, offset =0,
                           selectInput("select_data_comp_string_enrich", label = "comparison", 
                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
                                       selected = 1)
                    ),
-                   column(width=3, offset =0,  
+                   column(width =3, offset =0,  
                           radioButtons("string_enrich_direction", label="Fold Change Direction", choices = list("Up", "Down", "UpDown"),  selected = "Up", width = 200)
                    ),
-                   # column(width=1, offset =0,
+                   # column(width =1, offset =0,
                    #        selectInput("select_string_enrich", label = "Enrichment", 
                    #                    choices = list("Process", "Component", "Function", "KEGG", "Pfam", "InterPro"), 
                    #                    selected = "Process")
                    # ),
-                   column(width=2, offset =0,
+                   column(width =2, offset =0,
                           actionButton("go_string_enrich", label = "String Enrichment", width = 150,
                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
                    )
@@ -1881,21 +1881,21 @@ shinyUI(
                         ),
                         tabPanel("MotifX", id="motif",
                                  fluidRow(
-                                   column(width=2, offset =0,
+                                   column(width =2, offset =0,
                                           selectInput("select_data_comp_motif", label = "comparison", 
                                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
                                                       selected = 1)
                                    ),
-                                   column(width=2, offset =0,  
+                                   column(width =2, offset =0,  
                                           numericInput("pval_motif", label="MotifX pval (x1e-5)", value =1, width = 150)
                                    ),
-                                   column(width=2, offset =0,  
+                                   column(width =2, offset =0,  
                                           numericInput("motif_min_seq", label="Minimum sequences", value =20, width = 150)
                                    ),
-                                   column(width=3, offset =0,  
+                                   column(width =3, offset =0,  
                                           textInput("protein_filter", label="Specific Protein Filter Accession", value ="", width = 250)
                                    ),
-                                   column(width=1, offset =0,
+                                   column(width =1, offset =0,
                                           actionButton("motif_show", label = "Send to MotifX", width = 150,
                                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
                                    )
@@ -1954,7 +1954,7 @@ shinyUI(
     tabPanel("Report", value = "tp_report", align="center",
              tags$h1("Create report from templates..."),
              hr(),
-             column(width=3, offset =0,
+             column(width =3, offset =0,
                     selectInput("select_final_data_report", label = "Normalization", width = 150,
                                 choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
                                 selected = 1),
@@ -1963,7 +1963,7 @@ shinyUI(
                     actionButton("create_report", label = "Create Report", width = 200,
                                  style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
                     ),
-             column(width=9, offset =0, align="left",
+             column(width =9, offset =0, align="left",
                     textOutput("report1_output")
              )
     ) # end of tab panel Save      

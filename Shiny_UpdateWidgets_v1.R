@@ -1,6 +1,6 @@
 #--All-----------------------------------------------------------------
 update_widget_all <- function(session, input, output){ 
-  cat(file=stderr(), "update_widget_all...", "\n")
+  cat(file = stderr(), "update_widget_all...", "\n")
   update_widget_startup(session, input, output)
   update_widget_filter(session, input, output)
   update_widget_norm(session, input, output)
@@ -13,41 +13,41 @@ update_widget_all <- function(session, input, output){
 
 #---------------------------------------------------------------------------
 update_widget_startup <- function(session, input, output){
-  cat(file=stderr(), "update_widget_startup...1", "\n")
+  cat(file = stderr(), "update_widget_startup...1", "\n")
   updateTextInput(session, "fileprefix", value = as.character(dpmsr_set$x$file_prefix))
   
-  if(dpmsr_set$x$final_data_output == "Protein"){
+  if (dpmsr_set$x$final_data_output == "Protein") {
     fdo <- 1
-  }else if(dpmsr_set$x$final_data_output == "Peptide"){
+  }else if (dpmsr_set$x$final_data_output == "Peptide") {
     fdo <- 2
     }
   updateRadioButtons(session, "radio_output", selected = fdo )
   
-  cat(file=stderr(), "update_widget_startup...2", "\n")
+  cat(file = stderr(), "update_widget_startup...2", "\n")
   
-  if(dpmsr_set$x$raw_data_input == "Protein_Peptide"){rdi <- 1}
-    else if(dpmsr_set$x$raw_data_input == "Protein"){rdi <- 2}
-    else if(dpmsr_set$x$raw_data_input == "Peptide"){rdi <- 3}
-    else if(dpmsr_set$x$raw_data_input == "Precursor"){rdi <- 4}
-    else if(dpmsr_set$x$raw_data_input == "Precursor_PTM"){rdi <- 5}
-    else if(dpmsr_set$x$raw_data_input == "Fragment"){rdi <- 6}
+  if (dpmsr_set$x$raw_data_input == "Protein_Peptide") {rdi <- 1}
+    else if (dpmsr_set$x$raw_data_input == "Protein") {rdi <- 2}
+    else if (dpmsr_set$x$raw_data_input == "Peptide") {rdi <- 3}
+    else if (dpmsr_set$x$raw_data_input == "Precursor") {rdi <- 4}
+    else if (dpmsr_set$x$raw_data_input == "Precursor_PTM") {rdi <- 5}
+    else if (dpmsr_set$x$raw_data_input == "Fragment") {rdi <- 6}
   updateRadioButtons(session, "radio_input", selected = rdi )
   
-  cat(file=stderr(), "update_widget_startup...3", "\n")
-  if(is.null(dpmsr_set$x$data_source)){
+  cat(file = stderr(), "update_widget_startup...3", "\n")
+  if (is.null(dpmsr_set$x$data_source)) {
     dpmsr_set$x$data_source <- "PD"
     updateRadioButtons(session, "data_source", selected = 1) 
   }else{
-    try(if(dpmsr_set$x$data_source == "SP"){updateRadioButtons(session, "data_source", selected = 2) })
-    try(if(dpmsr_set$x$data_source == "PD"){updateRadioButtons(session, "data_source", selected = 1) })
+    try(if (dpmsr_set$x$data_source == "SP") {updateRadioButtons(session, "data_source", selected = 2) })
+    try(if (dpmsr_set$x$data_source == "PD") {updateRadioButtons(session, "data_source", selected = 1) })
   }
   
-  cat(file=stderr(), "update_widget_startup...4", "\n")
+  cat(file = stderr(), "update_widget_startup...4", "\n")
   updateCheckboxInput(session, "primary_group", value = as.logical(dpmsr_set$x$primary_group)) 
   
   updateSelectInput(session, "razor", selected = dpmsr_set$x$peptides_to_use )
 
-  if (as.logical(dpmsr_set$x$peptide_isoform)) {test <- 1}else{test<-0}
+  if (as.logical(dpmsr_set$x$peptide_isoform)) {test <- 1} else {test <- 0}
   
   updateCheckboxInput(session, "checkbox_isoform", value = test)
 
@@ -65,7 +65,7 @@ update_widget_startup <- function(session, input, output){
   updateCheckboxInput(session, "checkbox_tmt", value = as.logical(dpmsr_set$x$tmt_spqc_norm)) 
   updateCheckboxInput(session, "checkbox_report_accession", value = as.logical(dpmsr_set$x$accession_report_out)) 
   
-  cat(file=stderr(), "update_widget_startup...5", "\n")
+  cat(file = stderr(), "update_widget_startup...5", "\n")
   
   updateTextInput(session, "report_accession", value = as.character(dpmsr_set$x$accession_report_list))
   
@@ -80,12 +80,12 @@ update_widget_startup <- function(session, input, output){
   updateTextInput(session, "protein4_list", value = as.character(dpmsr_set$x$protein4_list ))
   updateTextInput(session, "protein_spike_list", value = as.character(dpmsr_set$x$qc_spike_id))
   
-  cat(file=stderr(), "update_widget_startup...end", "\n")
+  cat(file = stderr(), "update_widget_startup...end", "\n")
 }
 
 #-Filter--------------------------------------------------------------------- 
 update_widget_filter <- function(session, input, output){
-  cat(file=stderr(), "update_widget_filter...", "\n")
+  cat(file = stderr(), "update_widget_filter...", "\n")
   
   updateNumericInput(session, "minimum_measured_all", value = as.numeric(dpmsr_set$x$minimum_measured_all))
   
@@ -110,42 +110,42 @@ update_widget_filter <- function(session, input, output){
   
   #-Norm---------------------------------------------------------------------
 update_widget_norm <- function(session, input, output){
-  cat(file=stderr(), "update_widget_norm...", "\n")
+  cat(file = stderr(), "update_widget_norm...", "\n")
   
-  if (as.logical(dpmsr_set$x$sl)) {sl_norm <- 1}else{sl_norm<-0}
+  if (as.logical(dpmsr_set$x$sl)) {sl_norm <- 1}else{sl_norm <- 0}
   updateCheckboxInput(session, "checkbox_n1", value = sl_norm)
   
-  if (as.logical(dpmsr_set$x$tmm)) {tmm_norm <- 1}else{tmm_norm<-0}
+  if (as.logical(dpmsr_set$x$tmm)) {tmm_norm <- 1}else{tmm_norm <- 0}
   updateCheckboxInput(session, "checkbox_n2", value = tmm_norm)
   
-  if (as.logical(dpmsr_set$x$sltmm)) {sltmm_norm <- 1}else{sltmm_norm<-0}
+  if (as.logical(dpmsr_set$x$sltmm)) {sltmm_norm <- 1}else{sltmm_norm <- 0}
   updateCheckboxInput(session, "checkbox_n3", value = sltmm_norm)
   
-  if (as.logical(dpmsr_set$x$directlfq)) {directlfq_norm <- 1}else{directlfq_norm<-0}
+  if (as.logical(dpmsr_set$x$directlfq)) {directlfq_norm <- 1}else{directlfq_norm <- 0}
   updateCheckboxInput(session, "checkbox_n13", value = directlfq_norm)
   
-  if (as.logical(dpmsr_set$x$quantile)) {quantile_norm <- 1}else{quantile_norm<-0}
+  if (as.logical(dpmsr_set$x$quantile)) {quantile_norm <- 1}else{quantile_norm <- 0}
   updateCheckboxInput(session, "checkbox_n4", value = quantile_norm)
   
-  if (as.logical(dpmsr_set$x$lr)) {lr_norm <- 1}else{lr_norm<-0}
+  if (as.logical(dpmsr_set$x$lr)) {lr_norm <- 1}else{lr_norm <- 0}
   updateCheckboxInput(session, "checkbox_n5", value = lr_norm)
   
-  if (as.logical(dpmsr_set$x$loess)) {loess_norm <- 1}else{loess_norm<-0}
+  if (as.logical(dpmsr_set$x$loess)) {loess_norm <- 1}else{loess_norm <- 0}
   updateCheckboxInput(session, "checkbox_n6", value = loess_norm)
   
-  if (as.logical(dpmsr_set$x$vsn)) {vsn_norm <- 1}else{vsn_norm<-0}
+  if (as.logical(dpmsr_set$x$vsn)) {vsn_norm <- 1}else{vsn_norm <- 0}
   updateCheckboxInput(session, "checkbox_n7", value = vsn_norm)
   
-  if (as.logical(dpmsr_set$x$ti)) {ti_norm <- 1}else{ti_norm<-0}
+  if (as.logical(dpmsr_set$x$ti)) {ti_norm <- 1}else{ti_norm <- 0}
   updateCheckboxInput(session, "checkbox_n8", value = ti_norm)
   
-  if (as.logical(dpmsr_set$x$mi)) {mi_norm <- 1}else{mi_norm<-0}
+  if (as.logical(dpmsr_set$x$mi)) {mi_norm <- 1}else{mi_norm <- 0}
   updateCheckboxInput(session, "checkbox_n9", value = mi_norm)
   
-  if (as.logical(dpmsr_set$x$ai)) {ai_norm <- 1}else{ai_norm<-0}
+  if (as.logical(dpmsr_set$x$ai)) {ai_norm <- 1}else{ai_norm <- 0}
   updateCheckboxInput(session, "checkbox_n10", value = ai_norm)
   
-  if (as.logical(dpmsr_set$x$protein)) {protein_norm <- 1}else{protein_norm<-0}
+  if (as.logical(dpmsr_set$x$protein)) {protein_norm <- 1}else{protein_norm <- 0}
   updateCheckboxInput(session, "checkbox_n11", value = protein_norm)
   
   updateTextInput(session, "protein_norm_list", value = as.character(dpmsr_set$x$protein_norm_list ))
@@ -156,7 +156,7 @@ update_widget_norm <- function(session, input, output){
   updateNumericInput(session, "tmt_channels", value = as.numeric(dpmsr_set$x$tmt_spqc_channels))
   updateNumericInput(session, "tmt_filter_sd", value = as.numeric(dpmsr_set$x$tmt_spqc_sets))
   
-  if (as.logical(dpmsr_set$x$tmt_filter_peptide)) {tmt_filter <- 1}else{tmt_filter<-0}
+  if (as.logical(dpmsr_set$x$tmt_filter_peptide)) {tmt_filter <- 1}else{tmt_filter <- 0}
   updateCheckboxInput(session, "checkbox_tmt_filter", value = tmt_filter)
 }
 

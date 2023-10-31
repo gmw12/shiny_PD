@@ -644,7 +644,7 @@ stat_calc2 <- function(session, input, output) {
     data_table$Stats <- ifelse(data_table$sum == 0 & data_table[[dpmsr_set$y$stats$groups$fc[i]]] >= input$foldchange_cutoff, "Up", 
                          ifelse(data_table$sum == 0 & data_table[[dpmsr_set$y$stats$groups$fc[i]]] <= -input$foldchange_cutoff, "Down", ""))       
     
-    test_data_table <<- data_table
+    #test_data_table <<- data_table
     
     data_table <- data_table[1:data_table_cols]
     
@@ -951,16 +951,25 @@ TMT_IRS_protein_data <- function(session, input, output) {
 oneprotein_data <- function(session, input, output) {
   
   cat(file = stderr(), "One Protein stats and plots..." , "\n")
-
+  
   comp_string <- input$stats_oneprotein_plot_comp
+  comp_accession <- input$stats_oneprotein_accession
+  input_stats_oneprotein_plot_spqc <- input$stats_oneprotein_plot_spqc
+  input_stats_use_zscore <- input$stats_use_zscore
+  
+  test_comp_string <<- comp_string; test_comp_accession <<- comp_accession; test_input_stats_oneprotein_plot_spqc <<- input_stats_oneprotein_plot_spqc; test_input_stats_use_zscore <<- input_stats_use_zscore
+  #comp_string <- test_comp_string; comp_accession <- test_comp_accession; input_stats_oneprotein_plot_spqc <- test_input_stats_oneprotein_plot_spqc; input_stats_use_zscore <- test_input_stats_use_zscore
+  
   comp_number <- which(dpmsr_set$y$stats$groups$comp_name == comp_string)
   cat(file = stderr(), str_c("comp_string=", comp_string, "   comp_number=", comp_number), "\n")
-  
+
   cat(file = stderr(), "One Protein stats and plots...1" , "\n")
   df <- dpmsr_set$data$stats[[comp_string]]
-
-  cat(file = stderr(), str_c("accession=", input$stats_oneprotein_accession), "\n")
-  df <- df[grep(as.character(input$stats_oneprotein_accession), df$Accession), ]
+  
+  #df <- dpmsr_set$data$stats$Scr_v_Neg
+  
+  cat(file = stderr(), str_c("accession=", comp_accession), "\n")
+  df <- df[grep(as.character(comp_accession), df$Accession), ]
   #df <-subset(df, df$Accession %in% as.character(input$stats_oneprotein_accession)  )
   
   sample_number <- dpmsr_set$y$stats$groups$N_count[comp_number] + dpmsr_set$y$stats$groups$D_count[comp_number]
@@ -974,12 +983,12 @@ oneprotein_data <- function(session, input, output) {
     df_peptide <- dpmsr_set$data$stats$peptide[[comp_string]]
   }
   
-  df_peptide <- subset(df_peptide, Accession %in% as.character(input$stats_oneprotein_accession)  )
+  df_peptide <- subset(df_peptide, Accession %in% as.character(comp_accession)  )
   peptide_info_columns <- ncol(df_peptide) - sample_number - dpmsr_set$y$stats$comp_spqc_number
   
   #add spqc to plots
   cat(file = stderr(), "One Protein stats and plots...3" , "\n")
-  if (input$stats_oneprotein_plot_spqc) {
+  if (input_stats_oneprotein_plot_spqc) {
     df <- df[(dpmsr_set$y$info_columns_final + 1):(dpmsr_set$y$info_columns_final + sample_number + dpmsr_set$y$stats$comp_spqc_number)]
   }else{
     df <- df[(dpmsr_set$y$info_columns_final + 1):(dpmsr_set$y$info_columns_final + sample_number)]
@@ -987,7 +996,7 @@ oneprotein_data <- function(session, input, output) {
   
   comp_rows <- c(dpmsr_set$y$stats$groups$sample_numbers_N[comp_number],dpmsr_set$y$stats$groups$sample_numbers_D[comp_number] )
   #add spqc to plots
-  if (input$stats_oneprotein_plot_spqc) {
+  if (input_stats_oneprotein_plot_spqc) {
     comp_rows <- c(comp_rows, dpmsr_set$y$stats$comp_spqc_sample_numbers)
   }
   
@@ -1016,7 +1025,7 @@ oneprotein_data <- function(session, input, output) {
   
   #test_df_peptide <<- df_peptide
   
-  if (input$stats_use_zscore) {df_peptide <- peptide_zscore(df_peptide, peptide_info_columns)}
+  if (input_stats_use_zscore) {df_peptide <- peptide_zscore(df_peptide, peptide_info_columns)}
   
   cat(file = stderr(), "One Protein stats and plots...end" , "\n")
   

@@ -141,10 +141,8 @@ collapse_peptide <- function(peptide_data, info_columns=0, stats=FALSE, impute=F
 
 collapse_peptide_setup <- function(peptide_data, info_columns, directlfq=FALSE){
   
-  #test_peptide_data <<- peptide_data
-  #test_info_columns <<- info_columns
-  #peptide_data <- test
-  #info_columns <- test_info
+  #test_peptide_data <<- peptide_data; test_info_columns <<- info_columns; 
+  #peptide_data <- test_peptide_data; info_columns <- test_info_columns
   
   cat(file = stderr(), "starting collapse_peptide_setup...", "\n")
   
@@ -192,6 +190,12 @@ collapse_peptide_setup <- function(peptide_data, info_columns, directlfq=FALSE){
 
 #--------------------------------------------------------------------------------
 rollup_sum <- function(peptide_data, info_columns){
+  
+  #test_peptide_data <<- peptide_data; test_info_column <<- info_columns
+  #peptide_data <- test_peptide_data; info_columns <- test_info_column
+  
+  peptide_data$Detected_Imputed <- NULL
+  
   cat(file = stderr(), "rollup_sum triggered...", "\n")
   
   protein_data <- peptide_data %>% group_by(Accession, Description, Genes) %>% summarise_all(list(sum))
