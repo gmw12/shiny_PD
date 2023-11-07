@@ -58,5 +58,4 @@ devtools::install_github("jmwozniak/PTMphinder", dependencies = TRUE)
 
 cat(file = stderr(), "Shiny_install.R.... END", "\n")
 
-                              
-                              
+#install.packages("RMySQL", dependencies = TRUE, lib = "/home/dpmsr/R/library_4.3")                            

@@ -96,17 +96,19 @@ norm_prep <- function(){
 filter_norm <- function(){
     #revert to original norm data in case rerunning filter
     dpmsr_set$data$norm_data <<- dpmsr_set$data$original_norm_data
+    
+    filter_grep <- unlist(dpmsr_set$x$exclude_norm_grep)
+    paste(filter_grep, collapse="|", sep = ",")
+    
     #if include checked then only normalize filter results
     if (as.logical(dpmsr_set$x$norm_include)) {
       cat(file = stderr(), str_c("Norm include filter = ", dpmsr_set$x$include_norm_grep), "\n")
-      dpmsr_set$data$norm_data <<- dpmsr_set$data$norm_data[grepl(paste(dpmsr_set$x$include_norm_grep, collapse = "|"),
-                                                                   dpmsr_set$data$norm_data$Description, ignore.case = TRUE),]
+      dpmsr_set$data$norm_data <<- dpmsr_set$data$norm_data[grepl(dpmsr_set$x$include_norm_grep, dpmsr_set$data$norm_data$Description, ignore.case = TRUE),]
     }
     #if exclude checked then only normalize filter results
     if (as.logical(dpmsr_set$x$norm_exclude)) {
       cat(file = stderr(), str_c("Norm exclude filter = ", dpmsr_set$x$exclude_norm_grep), "\n")
-      dpmsr_set$data$norm_data <<- dpmsr_set$data$norm_data[!grepl(paste(dpmsr_set$x$exclude_norm_grep, collapse = "|"),
-                                                                  dpmsr_set$data$norm_data$Description, ignore.case = TRUE),]
+      dpmsr_set$data$norm_data <<- dpmsr_set$data$norm_data[!grepl(dpmsr_set$x$exclude_norm_grep, dpmsr_set$data$norm_data$Description, ignore.case = TRUE),]
     }
     
     Simple_Excel(dpmsr_set$data$norm_data, "data", str_c(dpmsr_set$file$extra_prefix, "_norm_data.xlsx", collapse = " "))

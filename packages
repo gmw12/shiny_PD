@@ -1,0 +1,12 @@
+libcurl4-openssl-dev 
+libxml2-dev
+libfontconfig1-dev
+libharfbuzz-dev libfribidi-dev
+libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev 
+cmake
+
+libarchive-dev
+librsvg2-dev
+libsodium-dev
+
+libmariadb-dev 
