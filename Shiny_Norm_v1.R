@@ -160,13 +160,13 @@ norm_parallel <- function(norm_type){
 #--------------------------------------------------------------------------------------
 # global scaling value, sample loading normalization
 sl_normalize <- function(norm_data, data_to_norm, data_title, info_columns){
-  cat(file=stderr(), str_c("sl_normalize...", data_title), "\n")
+  cat(file = stderr(), str_c("sl_normalize...", data_title), "\n")
   annotation_data <- data_to_norm[1:info_columns]
-  data_to_norm <- data_to_norm[(info_columns+1):ncol(data_to_norm)]
-  norm_data <- norm_data[(info_columns+1):ncol(norm_data)]
+  data_to_norm <- data_to_norm[(info_columns + 1):ncol(data_to_norm)]
+  norm_data <- norm_data[(info_columns + 1):ncol(norm_data)]
   excel_name <- "_Peptide_SL_Norm.xlsx"
-  target <- mean(colSums(norm_data, na.rm=TRUE))
-  norm_facs <- target / colSums(norm_data,na.rm=TRUE)
+  target <- mean(colSums(norm_data, na.rm = TRUE))
+  norm_facs <- target / colSums(norm_data,na.rm = TRUE)
   data_out <- sweep(data_to_norm, 2, norm_facs, FUN = "*")
   data_out <- cbind(annotation_data, data_out)
   Simple_Excel(data_out, "data", str_c(dpmsr_set$file$extra_prefix, "_sl_norm.xlsx", collapse = " "))
@@ -177,7 +177,7 @@ sl_normalize <- function(norm_data, data_to_norm, data_title, info_columns){
 #--------------------------------------------------------------------------------------
 # DirectLFQ from Mann ()
 directlfq_normalize <- function(data_to_norm, data_title){
-  cat(file=stderr(), str_c("directlfq_normalize...", data_title), "\n")
+  cat(file = stderr(), str_c("directlfq_normalize...", data_title), "\n")
   
   #data_to_norm <- dpmsr_set$data$data_to_norm
   
@@ -187,7 +187,7 @@ directlfq_normalize <- function(data_to_norm, data_title){
   
   #group and sum data (summed samples will be over written below)
   df <- data_to_norm %>% dplyr::select(Accession, Description, Genes)
-  df <- cbind(df, data_to_norm[,(info_columns+1):ncol(data_to_norm)])
+  df <- cbind(df, data_to_norm[,(info_columns + 1):ncol(data_to_norm)])
   df$Peptides <- 1
   df <- df %>% group_by(Accession, Description, Genes) %>% summarise_all(list(sum))
   peptide_count <- df$Peptides
@@ -202,9 +202,9 @@ directlfq_normalize <- function(data_to_norm, data_title){
   protein <- data_to_norm$Accession
   df_data <- add_column(data_to_norm, protein, .before = 1)
   
-  if (dpmsr_set$x$data_source == "PD"){
+  if (dpmsr_set$x$data_source == "PD") {
     ion <- str_c(df_data$Sequence, "_", df_data$Modifications, "_", 1:nrow(df_data))
-  }else if (dpmsr_set$x$data_source == "SP"){
+  }else if (dpmsr_set$x$data_source == "SP") {
     ion <- df_data$PrecursorId
   }
   
@@ -449,13 +449,11 @@ TMM_norm_data <- function(data_in){
     
     #if include checked then only normalize filter results
     if (as.logical(dpmsr_set$x$norm_include)) {
-      data_in <- data_in[grepl(paste(dpmsr_set$x$include_norm_grep, collapse = "|"),
-                                                                  data_in$Description, ignore.case = TRUE),]
+      data_in <- data_in[grepl(dpmsr_set$x$include_norm_grep, data_in$Description, ignore.case = TRUE),]
     }
     #if exclude checked then only normalize filter results
     if (as.logical(dpmsr_set$x$norm_exclude)) {
-      data_in <- data_in[!grepl(paste(dpmsr_set$x$exclude_norm_grep, collapse = "|"),
-                                                                   data_in$Description, ignore.case = TRUE),]
+      data_in <- data_in[!grepl(dpmsr_set$x$exclude_norm_grep, data_in$Description, ignore.case = TRUE),]
     }
   
     cat(file = stderr(), "TMM Filter norm_prep complete...", "\n")
