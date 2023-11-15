@@ -483,8 +483,8 @@ stat_calc2 <- function(session, input, output) {
 
 
       #testing block
-      #test_df <<- df; test_df_impute <<- df_impute; test_info_columns <<- info_columns 
-      # df <- test_df; df_impute <- test_df_impute ;info_columns <- test_info_columns
+      test_df <<- df; test_df_impute <<- df_impute; test_info_columns <<- info_columns; test_i <<- i
+      # df <- test_df; df_impute <- test_df_impute; info_columns <- test_info_columns; i <- test_i
       
       #collapse peptide data and imputed peptide info, this is done with only the stat groups
       cat(file = stderr(), "stat_calc2...9", "\n")
@@ -515,8 +515,9 @@ stat_calc2 <- function(session, input, output) {
       cat(file = stderr(), "stat_calc2...11", "\n")
       if (dpmsr_set$x$raw_data_input == "Precursor_PTM") {
         cat(file = stderr(), "stat_calc2...11.1", "\n")
-        df <- add_column(df, test2[,1] , .after = "PTMLocations")
-        names(df)[grep("PTMLocations", colnames(df)) + 1] <- "Detected_Imputed"
+        df$Detected_Imputed <- test2[,1]
+        #df <- add_column(df, test2[,1] , .after = "PTMLocations")
+        #names(df)[grep("PTMLocations", colnames(df)) + 1] <- "Detected_Imputed"
         imputed_df <- df_impute[(ncol(df_impute) - sample_N_count - sample_D_count + 1):ncol(df_impute)]  
         imputed_df[imputed_df > 1] <- 1
       }else{
@@ -532,6 +533,8 @@ stat_calc2 <- function(session, input, output) {
       comp_N_imputed <- imputed_df[1:dpmsr_set$y$stats$groups$N_count[i]]
       comp_D_imputed <- imputed_df[(dpmsr_set$y$stats$groups$N_count[i] + 1):(dpmsr_set$y$stats$groups$N_count[i] + dpmsr_set$y$stats$groups$D_count[i])]
     
+      
+      #!!!!!!!!!!!!!! Check this --- sample count not includes spqc
       annotate_in <- df[1:(ncol(df) - sample_count)]
       cat(file = stderr(), "stat_calc2...13", "\n")
       
@@ -544,7 +547,7 @@ stat_calc2 <- function(session, input, output) {
       }
       
       cat(file = stderr(), "stat_calc2...14", "\n")
-      data_in <- df[(ncol(df)-sample_count+1):(ncol(df))]
+      data_in <- df[(ncol(df) - sample_count + 1):(ncol(df))]
       comp_N_data <- data_in[1:dpmsr_set$y$stats$groups$N_count[i]]
       comp_D_data <- data_in[(dpmsr_set$y$stats$groups$N_count[i] + 1):(dpmsr_set$y$stats$groups$N_count[i] + dpmsr_set$y$stats$groups$D_count[i])]
       spqc_data <- data_in[(dpmsr_set$y$stats$groups$N_count[i] + dpmsr_set$y$stats$groups$D_count[i] + 1):ncol(data_in)]
@@ -553,7 +556,7 @@ stat_calc2 <- function(session, input, output) {
     #-------------------------------------------------------------------------------------------------------------------------
 
     #test block
-    test_imputed_df <<- imputed_df; test_df <<- df; test_data_in <<- data_in; test_comp_N_data <<- comp_N_data; test_comp_D_data <<- comp_D_data; test_spqc_data <<- spqc_data; test_comp_N_imputed <<- comp_N_imputed; test_comp_D_imputed <<- comp_D_imputed; test_annotate_in <<- annotate_in
+    #test_imputed_df <<- imputed_df; test_df <<- df; test_data_in <<- data_in; test_comp_N_data <<- comp_N_data; test_comp_D_data <<- comp_D_data; test_spqc_data <<- spqc_data; test_comp_N_imputed <<- comp_N_imputed; test_comp_D_imputed <<- comp_D_imputed; test_annotate_in <<- annotate_in
     # imputed_df <- test_imputed_df; comp_N_data <- test_comp_N_data; comp_D_data <- test_comp_D_data; comp_N_imputed <- test_comp_N_imputed; comp_D_imputed <- test_comp_D_imputed; spqc_data <- test_spqc_data; df <- test_df; annotate_in <- test_annotate_in; i=1
     
     
