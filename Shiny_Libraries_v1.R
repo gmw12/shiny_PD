@@ -29,6 +29,20 @@ library(gplots)
 library(rgl)
 library(colourpicker)
 library(randomcoloR)
+
+
+#not updated on CRAN anymore
+test_pca3d <- require(pca3d)
+if (!test_pca3d) {
+  cat(file = stderr(), "Package pca3d not found, adding from project directory", "\n")
+  if(dir.exists('code/Packages/pca3d')){
+    cat(file = stderr(), "Loading pca3d from primary", "\n")
+    load_pca3d <- try(library("pca3d", lib.loc = str_c(getwd(), '/code/Packages/')), silent = TRUE)
+  }else {
+    cat(file = stderr(), "Loading pca3d from alternate", "\n")
+    library("pca3d", lib.loc = str_c(getwd(), '/Packages/') )
+  }
+}
  
  
 #read write
