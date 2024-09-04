@@ -72,6 +72,12 @@ protein_to_peptide <- function(){
   
   colnames(peptide_out)[1:12] <- c("Confidence", "Accession", "Description", "All.Proteins", "Sequence", "Modifications", "Unique", "Retention.Time","Da","mz", "Ion.Score", "q-Value")
   peptide_out <- subset(peptide_out, Accession %in% master_accessions )
+  
+  #adding gene column
+  add_gene <- str_extract(peptide_out$Description, "GN=\\w*")
+  add_gene <- gsub("GN=", "", add_gene)
+  peptide_out <- peptide_out %>% add_column(Genes = add_gene, .before = 3) 
+  
   Simple_Excel(peptide_out, "Protein_Peptide_Raw", str_c(dpmsr_set$file$extra_prefix,"_ProteinPeptide_to_Peptide_Raw.xlsx", collapse = " "))
   return(peptide_out)
 }

@@ -272,7 +272,7 @@ Cluster_plot <- function(x,y, plot_dir) {
 #Histogram for total intensity-------------------------------------------------
 histogram_plot <- function(df, plottitle)
 {
-  #TS_df <<- df
+  TS_df <<- df
   #df <- TS_df
   
   start <- Sys.time()

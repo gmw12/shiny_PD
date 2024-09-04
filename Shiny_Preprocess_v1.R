@@ -12,6 +12,9 @@ preprocess_order <- function(){
   }else if (dpmsr_set$x$raw_data_input == "Precursor" || dpmsr_set$x$raw_data_input == "Precursor_PTM") {
     cat(file = stderr(), "preprocess_order()...1.3", "\n")
     dpmsr_set$y$total_columns <<- ncol(dpmsr_set$data$data_precursor_start)
+  }else if (dpmsr_set$x$raw_data_input == "Protein_Peptide") {
+    cat(file = stderr(), "preprocess_order()...1.4", "\n")
+    dpmsr_set$y$total_columns <<- ncol(dpmsr_set$data$data_peptide_start)
   }
   
   dpmsr_set$y$info_columns <<- dpmsr_set$y$total_columns - dpmsr_set$y$sample_number

@@ -153,6 +153,14 @@ shinyServer(function(input, output, session) {
             #display raw peptide data
             bar_plot(dpmsr_set$data$data_peptide[(dpmsr_set$y$info_columns + 1):ncol(dpmsr_set$data$data_peptide)],"Raw", dpmsr_set$file$qc_dir)
             box_plot(dpmsr_set$data$data_peptide[(dpmsr_set$y$info_columns + 1):ncol(dpmsr_set$data$data_peptide)],"Raw", dpmsr_set$file$qc_dir)
+          }else if (dpmsr_set$x$raw_data_input == "Protein_Peptide") {
+            cat(file = stderr(), "raw peptide plots...", "\n")
+            #check info columns for rerun of filter (impute column could be added
+            dpmsr_set$y$info_columns <<- ncol(dpmsr_set$data$data_peptide) - dpmsr_set$y$sample_number
+            
+            #display raw peptide data
+            bar_plot(dpmsr_set$data$data_peptide[(dpmsr_set$y$info_columns + 1):ncol(dpmsr_set$data$data_peptide)],"Raw", dpmsr_set$file$qc_dir)
+            box_plot(dpmsr_set$data$data_peptide[(dpmsr_set$y$info_columns + 1):ncol(dpmsr_set$data$data_peptide)],"Raw", dpmsr_set$file$qc_dir)
           }else {
             cat(file = stderr(), "raw precursor plots...", "\n")
             #check info columns for rerun of filter (impute column could be added
@@ -177,6 +185,8 @@ shinyServer(function(input, output, session) {
           if (dpmsr_set$x$raw_data_input == "Protein") {
             histogram_plot(dpmsr_set$data$data_protein, "Intensity_Histogram")
           }else if (dpmsr_set$x$raw_data_input == "Peptide") {
+            histogram_plot(dpmsr_set$data$data_peptide, "Intensity_Histogram")
+          }else if (dpmsr_set$x$raw_data_input == "Protein_Peptide") {
             histogram_plot(dpmsr_set$data$data_peptide, "Intensity_Histogram")
           }else {
             histogram_plot(dpmsr_set$data$data_precursor, "Intensity_Histogram")
